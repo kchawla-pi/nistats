@@ -210,6 +210,9 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             if not isinstance(labels_dtype, np.object):
                 raise ValueError('subject_label column must be of dtype '
                                  'object instead of dtype %s' % labels_dtype)
+        
+        elif validation_4d_images(second_level_input):
+            pass
         else:
             raise ValueError('second_level_input must be a list of'
                              ' `FirstLevelModel` objects, a pandas DataFrame'
@@ -426,3 +429,55 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         output.header['descrip'] = (
             '%s of contrast %s' % (output_type, contrast_name))
         return output
+
+
+def validation_4d_images(second_level_input):
+    """
+    Checks if input image is 4D.
+
+    If input image is 4D, returns (True, input image)
+    If input is a single element list, a 4D image, returns (True, 4D image in the list).
+    If input image is not 4D, returns (False, input image)
+    If input is a collection of more than one 4D images, raises an Error.
+
+    :param second_level_input: niimg-like object or list with only one element which is an niimg-like object.
+    :return: tuple(bool, niimg-like object)
+    """
+    
+    try:
+        second_level_input_length = len(second_level_input)
+    except TypeError:
+        shape_is_4d = verify_4d_shape(second_level_input=second_level_input)
+        return shape_is_4d, second_level_input
+    else:
+        is_image_4d = verify_4d_shape(second_level_input[0])
+        if second_level_input_length > 1:
+            raise ValueError('Collection of 4D images is not supported')
+        elif is_image_4d:
+            return is_image_4d, second_level_input[0]
+        return is_image_4d, second_level_input
+
+
+def verify_4d_shape(second_level_input):
+    """
+    Returns True if input image shape has 4 dimensions, else False.
+    Raises an error if input is not an niimg-like object.
+    Raises an error if input image has more than 4 dimensions.
+
+    :param second_level_input: A single niimg-like object.
+    :return: bool
+    """
+    try:
+        input_shape = second_level_input.shape
+    except AttributeError as err:
+        raise ValueError('Supplied input is not an niimg', second_level_input)
+    else:
+        input_shape_length = len(input_shape)
+        if input_shape_length == 4:
+            return True
+        elif input_shape_length < 4:
+            return False
+        else:
+            raise ValueError(
+                    'Images with more than 4 dimensions are not supported.')
+
