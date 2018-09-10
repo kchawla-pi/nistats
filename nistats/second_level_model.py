@@ -161,8 +161,13 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         # check first level input
         if isinstance(second_level_input, list):
             if len(second_level_input) < 2:
-                raise ValueError('A second level model requires a list with at'
-                                 'least two first level models or niimgs')
+                if isinstance(second_level_input[0], Nifti1Image) and len(second_level_input[0].shape) == 4:
+                    second_level_input = second_level_input[0]
+                    pass
+                else:
+                    raise ValueError('A second level model requires a list with at'
+                                     'least two first level models or niimgs,'
+                                     ' or only a single 4D image.')
             # Check FirstLevelModel objects case
             if isinstance(second_level_input[0], FirstLevelModel):
                 models_input = enumerate(second_level_input)
@@ -196,6 +201,7 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                         raise ValueError(' object at idx %d is %s instead of'
                                          ' Niimg-like object' %
                                          (model_idx, type(niimg)))
+                    # if len(second)
         # Check pandas dataframe case
         elif isinstance(second_level_input, pd.DataFrame):
             for col in ['subject_label', 'map_name', 'effects_map_path']:
@@ -211,7 +217,8 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                 raise ValueError('subject_label column must be of dtype '
                                  'object instead of dtype %s' % labels_dtype)
         
-        elif validation_4d_images(second_level_input):
+        elif isinstance(second_level_input, Nifti1Image) and len(
+            second_level_input[0].shape) == 4:
             pass
         else:
             raise ValueError('second_level_input must be a list of'
