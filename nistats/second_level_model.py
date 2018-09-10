@@ -159,17 +159,14 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         """
         # Check parameters
         # check first level input
-        if isinstance(second_level_input, list):
+        second_level_input_is_4d_niimg = validate_input_as_4d_niimg(second_level_input)
+        if second_level_input_is_4d_niimg:
+            if second_level_input_is_4d_niimg == second_level_input[0]:
+                second_level_input = second_level_input[0]
+        elif isinstance(second_level_input, list):
             if len(second_level_input) < 2:
-                if isinstance(second_level_input[0], Nifti1Image) and len(second_level_input[0].shape) == 4:
-                    second_level_input = second_level_input[0]
-                    pass
-                else:
-                    raise ValueError('A second level model requires a list with at'
-                                     'least two first level models or niimgs,'
-                                     ' or a single 4D image')
-            elif len(second_level_input) != 1 and len(second_level_input[0].shape) == 4:
-                raise ValueError('Multiple 4D niimgs cannot serve as imput for second level model')
+                raise ValueError('A second level model requires a list with at'
+                                 'least two first level models or niimgs')
             # Check FirstLevelModel objects case
             if isinstance(second_level_input[0], FirstLevelModel):
                 models_input = enumerate(second_level_input)
@@ -203,7 +200,6 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                         raise ValueError(' object at idx %d is %s instead of'
                                          ' Niimg-like object' %
                                          (model_idx, type(niimg)))
-                    # if len(second)
         # Check pandas dataframe case
         elif isinstance(second_level_input, pd.DataFrame):
             for col in ['subject_label', 'map_name', 'effects_map_path']:
@@ -218,10 +214,6 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             if not isinstance(labels_dtype, np.object):
                 raise ValueError('subject_label column must be of dtype '
                                  'object instead of dtype %s' % labels_dtype)
-        
-        elif isinstance(second_level_input, Nifti1Image) and len(
-            second_level_input[0].shape) == 4:
-            pass
         else:
             raise ValueError('second_level_input must be a list of'
                              ' `FirstLevelModel` objects, a pandas DataFrame'
@@ -438,3 +430,35 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         output.header['descrip'] = (
             '%s of contrast %s' % (output_type, contrast_name))
         return output
+    
+    
+def validate_input_as_4d_niimg(second_level_input):
+    '''
+    Checks if input is valid 4D input for SecondLevelInput.fit()
+    
+    Returns:
+                True, if input is a single 4D niimg
+                Niimg, if input is a single element collection of 4D niimg.
+                False for all other inputs.
+                
+    
+    :param second_level_input:
+    :return: (bool, niimg)
+    '''
+    try:
+        num_of_images = len(second_level_input)
+    except TypeError as err:  # not a collection of niimgs
+        try:
+            return len(second_level_input.shape) == 4
+        except AttributeError:  # not a single niimg either.
+            return False
+    else:  # possibly collection of niimgs
+        try:
+            img_shape = second_level_input[0].shape
+        except (AttributeError, KeyError):  # first element not a niimg.
+            return False
+        else:
+            if num_of_images == 1 and len(img_shape) == 4:
+                return second_level_input[0]
+            else:  # not a single element list with an niimg.
+                return False
