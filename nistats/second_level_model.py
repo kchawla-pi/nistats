@@ -159,10 +159,9 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         """
         # Check parameters
         # check first level input
-        second_level_input_is_4d_niimg = validate_input_as_4d_niimg(second_level_input)
+        second_level_input_is_4d_niimg, second_level_input = validate_input_as_4d_niimg(second_level_input)
         if second_level_input_is_4d_niimg:
-            if second_level_input_is_4d_niimg == second_level_input[0]:
-                second_level_input = second_level_input[0]
+            pass
         elif isinstance(second_level_input, list):
             if len(second_level_input) < 2:
                 raise ValueError('A second level model requires a list with at'
@@ -436,29 +435,32 @@ def validate_input_as_4d_niimg(second_level_input):
     '''
     Checks if input is valid 4D input for SecondLevelInput.fit()
     
-    Returns:
-                True, if input is a single 4D niimg
-                Niimg, if input is a single element collection of 4D niimg.
-                False for all other inputs.
-                
+    Parameters
+    ----------
+    second_level_input:
     
+    :returns:
+        if second_level_input is
+            4D niimg: (True, original second_level_input)
+            [4D niimg] and len(second_level_input) ==1: (True, second_level_input[0])
+            All other cases: (False, original second_level_input)
+                
     :param second_level_input:
-    :return: (bool, niimg)
     '''
     try:
         num_of_images = len(second_level_input)
     except TypeError as err:  # not a collection of niimgs
         try:
-            return len(second_level_input.shape) == 4
+            return len(second_level_input.shape) == 4, second_level_input
         except AttributeError:  # not a single niimg either.
-            return False
+            return False, second_level_input
     else:  # possibly collection of niimgs
         try:
             img_shape = second_level_input[0].shape
         except (AttributeError, KeyError):  # first element not a niimg.
-            return False
+            return False, second_level_input
         else:
             if num_of_images == 1 and len(img_shape) == 4:
-                return second_level_input[0]
+                return True, second_level_input[0]
             else:  # not a single element list with an niimg.
-                return False
+                return False, second_level_input
