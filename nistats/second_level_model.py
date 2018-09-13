@@ -162,19 +162,21 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         # check first level input
         try:
             second_level_input = check_niimg(niimg=second_level_input, ensure_ndim=4)
-        except DimensionError as err:
-            if str(err) == (
-                    'Input data has incompatible dimensionality: '
-                    'Expected dimension is 4D and you provided '
-                    'a list of 4D images (5D). '
-                    'See http://nilearn.github.io/manipulating_images/input_output.html.'
-                            ):
-                if len(second_level_input) == 1:
-                    second_level_input = second_level_input[0]
-                else:
-                    raise err
+        except DimensionError as dim_err:
+            try:
+                slm_input_length = len(second_level_input)
+            except TypeError:
+                raise dim_err
+
+            try:
+                check_niimg(niimg=second_level_input[0], ensure_ndim=4)
+            except DimensionError:
+                raise dim_err
+
+            if slm_input_length == 1:
+                second_level_input = second_level_input[0]
             else:
-                raise err
+                raise dim_err
         except (TypeError):
             if isinstance(second_level_input, list):
                 if len(second_level_input) < 2:
