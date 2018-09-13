@@ -160,6 +160,7 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         """
         # Check parameters
         # check first level input
+        second_level_input_is_4d_niimg = False
         try:
             second_level_input = check_niimg(niimg=second_level_input, ensure_ndim=4)
         except DimensionError as dim_err:
@@ -234,6 +235,8 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                                  ' `FirstLevelModel` objects, a pandas DataFrame'
                                  ' or a list Niimg-like objects. Instead %s '
                                  'was provided' % type(second_level_input))
+        else:
+            second_level_input_is_4d_niimg = True
 
         # check confounds
         if confounds is not None:
@@ -284,6 +287,8 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             sample_map = second_level_input['effects_map_path'][0]
             labels = second_level_input['subject_label']
             subjects_label = labels.values.tolist()
+        elif second_level_input_is_4d_niimg :
+            sample_map = second_level_input
         elif isinstance(second_level_input[0], FirstLevelModel):
             sample_model = second_level_input[0]
             sample_condition = sample_model.design_matrices_[0].columns[0]
