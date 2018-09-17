@@ -342,7 +342,7 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             Type of the second level contrast
 
         output_type: str, optional
-            Type of the output map. Can be 'z_score', 'stat', 'p_value',
+            Type of the output map. Can be 'z_score', 'stat', 'p_value',  ## mention `z-score` is default.
             'effect_size' or 'effect_variance'
 
         Returns
@@ -421,7 +421,7 @@ class SecondLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         estimate_ = getattr(contrast, output_type)()
 
         # Prepare the returned images
-        output = self.masker_.inverse_transform(estimate_)
+        output = self.masker_.inverse_transform(estimate_)  ## docstring says `output_image` , also, output is too generic a word.
         contrast_name = str(con_val)
         output.header['descrip'] = (
             '%s of contrast %s' % (output_type, contrast_name))

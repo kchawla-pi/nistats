@@ -103,7 +103,7 @@ def get_clusters_table(stat_img, stat_threshold, cluster_threshold=None,
 
     Returns
     -------
-    df : :obj:`pandas.DataFrame`
+    df : :obj:`pandas.DataFrame`  ## img_cluster_table, not df
         Table with peaks and subpeaks from thresholded `stat_img`. For binary
         clusters (clusters with >1 voxel containing only one value), the table
         reports the center of mass of the cluster, rather than any peaks/subpeaks.
@@ -219,7 +219,7 @@ def compare_niimgs(ref_imgs, src_imgs, masker, plot_hist=True, log=True,
 
     Returns
     -------
-    Pearsonr correlation between the images
+    Pearsonr correlation between the images  ## typo in pearson.
 
     Examples
     --------
@@ -336,7 +336,7 @@ def plot_contrast_matrix(contrast_def, design_matrix, colorbar=False, ax=None):
     colorbar: Boolean, optional (default False)
         Include a colorbar in the contrast matrix plot.
 
-    ax: matplotlib Axes object, optional (default None)
+    ax: matplotlib Axes object, optional (default None)  ## axes, not ax.
         Directory where plotted figures will be stored.
 
     Returns

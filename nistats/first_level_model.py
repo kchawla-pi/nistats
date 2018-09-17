@@ -149,7 +149,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
 
     Parameters
     ----------
-    t_r : float
+    t_r : float  ## replace t_r with repetition_time
         This parameter indicates repetition times of the experimental runs.
         In seconds. It is necessary to correctly consider times in the design
         matrix. This parameter is also passed to nilearn.signal.clean.
@@ -245,7 +245,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         further inspection of model details. This has an important impact
         on memory consumption. True by default.
 
-    subject_label : string, optional
+    subject_label : string, optional  ## If subject here does not mean to the person/animal being scanned, & only for ID, maybe make it `label`?
         This id will be used to identify a `FirstLevelModel` when passed to
         a `SecondLevelModel` object.
 
@@ -323,7 +323,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         events: pandas Dataframe or string or list of pandas DataFrames or
                    strings,
             fMRI events used to build design matrices. One events object
-            expected per run_img. Ignored in case designs is not None.
+            expected per run_img. Ignored in case designs is not None.  ## Documentation needs minor correction.
             If string, then a path to a csv file is expected.
 
         confounds: pandas Dataframe or string or list of pandas DataFrames or

@@ -63,20 +63,21 @@ def _gamma_difference_hrf(tr, oversampling=16, time_length=32., onset=0.,
 
 def spm_hrf(tr, oversampling=16, time_length=32., onset=0.):
     """ Implementation of the SPM hrf model
-
+    ## This entire docstring needs serious rewriting. New users shouldn't have to look up what SPM hrf model is, atleast info to let them move on using nistats.
+    ## The defualts should be mentioned in the docstrings. Is there any explanation in NiStats documentation for the why the chosen defaults are what they are?
     Parameters
     ----------
-    tr : float
+    tr : float  ## repetition_time
         scan repeat time, in seconds
 
     oversampling : int, optional
         temporal oversampling factor
 
-    time_length : float, optional
+    time_length : float, optional  ## should this be renamed to kernel_length?
         hrf kernel length, in seconds
 
     onset : float, optional
-        hrf onset time, in seconds
+        hrf onset time, in seconds  ## it's described as response onset time in other docstrings.
 
     Returns
     -------
@@ -87,7 +88,7 @@ def spm_hrf(tr, oversampling=16, time_length=32., onset=0.):
 
 
 def glover_hrf(tr, oversampling=16, time_length=32., onset=0.):
-    """ Implementation of the Glover hrf model
+    """ Implementation of the Glover hrf model  ## Similar comments as spm hrf
 
     Parameters
     ----------
@@ -114,7 +115,7 @@ def glover_hrf(tr, oversampling=16, time_length=32., onset=0.):
 
 
 def spm_time_derivative(tr, oversampling=16, time_length=32., onset=0.):
-    """Implementation of the SPM time derivative hrf (dhrf) model
+    """Implementation of the SPM time derivative hrf (dhrf) model  ## Similar comments as spm hrf
 
     Parameters
     ----------
@@ -142,7 +143,7 @@ def spm_time_derivative(tr, oversampling=16, time_length=32., onset=0.):
 
 
 def glover_time_derivative(tr, oversampling=16, time_length=32., onset=0.):
-    """Implementation of the Glover time derivative hrf (dhrf) model
+    """Implementation of the Glover time derivative hrf (dhrf) model  ## Similar comments as spm hrf
 
     Parameters
     ----------
@@ -167,7 +168,7 @@ def glover_time_derivative(tr, oversampling=16, time_length=32., onset=0.):
 
 
 def spm_dispersion_derivative(tr, oversampling=16, time_length=32., onset=0.):
-    """Implementation of the SPM dispersion derivative hrf model
+    """Implementation of the SPM dispersion derivative hrf model  ## Similar comments as spm hrf
 
     Parameters
     ----------
@@ -198,7 +199,7 @@ def spm_dispersion_derivative(tr, oversampling=16, time_length=32., onset=0.):
 
 def glover_dispersion_derivative(tr, oversampling=16, time_length=32.,
                                  onset=0.):
-    """Implementation of the Glover dispersion derivative hrf model
+    """Implementation of the Glover dispersion derivative hrf model  ## Similar comments as spm hrf
 
     Parameters
     ----------
@@ -466,7 +467,7 @@ def compute_regressor(exp_condition, hrf_model, frame_times, con_id='cond',
     computed_regressors: array of shape(n_scans, n_reg)
         computed regressors sampled at frame times
 
-    reg_names: list of strings
+    reg_names: list of strings  ## regressor_names
         corresponding regressor names
 
     Notes

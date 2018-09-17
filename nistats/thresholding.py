@@ -10,7 +10,7 @@ from nilearn.input_data import NiftiMasker
 
 
 def fdr_threshold(z_vals, alpha):
-    """ return the BH fdr for the input z_vals"""
+    """ return the BH fdr for the input z_vals"""  ## Docstring needs more info.
     z_vals_ = - np.sort(- z_vals)
     p_vals = norm.sf(z_vals_)
     n_samples = len(p_vals)

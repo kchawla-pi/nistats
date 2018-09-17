@@ -36,10 +36,11 @@ from .model import LikelihoodModelResults
 
 class OLSModel(object):
     """ A simple ordinary least squares model.
+    ## OrdinaryLeastSquaresModel().  I get the OLSModel, but in the era of autocomplete, not to mention class name won't be typed frequently, usually at instantiation.
 
     Parameters
     ----------
-    design : array-like
+    design : array-like  ## call it design_matrix, like everywhere else.
         This is your design matrix.  Data are assumed to be column ordered with
         observations in rows.
 
@@ -50,10 +51,10 @@ class OLSModel(object):
 
     Attributes
     ----------
-    design : ndarray
+    design : ndarray  ## call it design_matrix, like everywhere else.
         This is the design, or X, matrix.
 
-    wdesign : ndarray
+    wdesign : ndarray  ## whitened_design_matrix.
         This is the whitened design matrix.  `design` == `wdesign` by default
         for the OLSModel, though models that inherit from the OLSModel will
         whiten the design.
@@ -98,7 +99,7 @@ class OLSModel(object):
         self.df_model = matrix_rank(self.design, eps)
         self.df_resid = self.df_total - self.df_model
 
-    def logL(self, beta, Y, nuisance=None):
+    def logL(self, beta, Y, nuisance=None):  ## call it loglikelihood
         r''' Returns the value of the loglikelihood function at beta.
 
         Given the whitened design matrix, the loglikelihood is evaluated
@@ -120,7 +121,7 @@ class OLSModel(object):
 
         Returns
         -------
-        loglf : float
+        loglf : float  ## call it loglikelihood
             The value of the loglikelihood function.
 
         Notes
@@ -225,12 +226,14 @@ class ARModel(OLSModel):
 
         Parameters
         ----------
-        design : ndarray
+        design : ndarray  ## design_matrix
             2D array with design matrix
         rho : int or array-like
             If int, gives order of model, and initializes rho to zeros.  If
             ndarray, gives initial estimate of rho. Be careful as ``ARModel(X,
             1) != ARModel(X, 1.0)``.
+            
+            ## this seems a usability failure. We should reattempt this. 1 vs 1.0 is not a good ui.
         """
         if type(rho) is type(1):
             self.order = rho
@@ -353,19 +356,19 @@ class SimpleRegressionResults(LikelihoodModelResults):
         # put this as a parameter of LikelihoodModel
         self.df_resid = self.df_total - self.df_model
 
-    def logL(self, Y):
+    def logL(self, Y):  ## loglikelihood
         """
         The maximized log-likelihood
         """
         raise ValueError('can not use this method for simple results')
 
-    def resid(self, Y):
+    def resid(self, Y):  ## residuals
         """
         Residuals from the fit.
         """
         return Y - self.predicted
 
-    def norm_resid(self, Y):
+    def norm_resid(self, Y):  ## normalized_residuals
         """
         Residuals, normalized to have unit length.
 
