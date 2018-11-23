@@ -57,3 +57,10 @@ jobs:
       - store_artifacts:
           path: $HOME/log.txt
           destination: log.txt
+
+
+workflows:
+  version: 2
+  push:
+    jobs:
+      - build
