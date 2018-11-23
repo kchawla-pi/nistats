@@ -23,8 +23,12 @@ jobs:
         # Installing required packages for `make -C doc check command` to work.
       - run: sudo -E apt-get -yq update
       - run: sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install dvipng texlive-latex-base texlive-latex-extra
+      - run:
+          name: Setup conda path in env variables
+          command: |
+            echo DATE_TODAY=`date +%F` >> $BASH_ENV
       - restore_cache:
-          key: v1-packages+datasets-{{ .Branch }}
+          key: v1-packages+datasets-{{ .Branch }}-{{ .Environment.DATE_TODAY }}
       - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
       - run: chmod +x ~/miniconda.sh && ~/miniconda.sh -b
       - run:
