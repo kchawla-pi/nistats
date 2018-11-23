@@ -31,7 +31,7 @@ jobs:
           name: Setup conda path in env variables
           command: |
             echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
-            echo DATE_TODAY=`date %F` >> $BASH_ENV
+            echo DATE_TODAY=`date +%F` >> $BASH_ENV
       - run:
           name: Create conda env
           command: |
