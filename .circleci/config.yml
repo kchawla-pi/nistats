@@ -26,7 +26,7 @@ jobs:
       - run:
           name: Generating today's date and adding it as an env variable
           command: |
-            DATE_TODAY=`date +%F` >> $BASH_ENV
+            echo 'export DATE_TODAY=`date +%F`' >> $BASH_ENV
       - restore_cache:
           key: v1-packages+datasets-{{ .Branch }}-{{ .Environment.DATE_TODAY }}
       - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
