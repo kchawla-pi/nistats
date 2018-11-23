@@ -50,7 +50,7 @@ jobs:
             set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
           no_output_timeout: 5h
       - save_cache:
-          key: v1-packages+datasets-{{ .Branch }}-{{ .Environment.DATE_TODAY }}
+          key: v1-packages+datasets-{{ .Branch }}-{{ .Environment.$DATE_TODAY }}
           paths:
           - $HOME/nilearn_data
           - $HOME/miniconda3
