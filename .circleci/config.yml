@@ -53,7 +53,7 @@ jobs:
           paths:
           - $HOME/nilearn_data
           - $HOME/miniconda3
-          - doc/_build/html
+          - $HOME/project/doc/_build/html
 
       - store_artifacts:
           path: doc/_build/html
