@@ -35,12 +35,12 @@ jobs:
           name: Setup conda path in env variables
           command: |
             echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
-      - run:
-          name: Create conda env
-          command: |
-            conda create -n testenv python=3.6 numpy scipy scikit-learn matplotlib pandas \
-            flake8 lxml nose cython mkl sphinx coverage patsy boto3 pillow pandas -yq
-            conda install -n testenv nibabel nilearn nose-timer -c conda-forge -yq
+#      - run:
+#          name: Create conda env
+#          command: |
+#            conda create -n testenv python=3.6 numpy scipy scikit-learn matplotlib pandas \
+#            flake8 lxml nose cython mkl sphinx coverage patsy boto3 pillow pandas -yq
+#            conda install -n testenv nibabel nilearn nose-timer -c conda-forge -yq
       - run:
           name: Running CircleCI test (make html)
           command: |
@@ -49,11 +49,11 @@ jobs:
 #            set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
           no_output_timeout: 5h
       - save_cache:
-          key: v4-packages+datasets-{{ .Branch }}-{{ checksum "today" }}
+          key: v5-packages+datasets-{{ .Branch }}-{{ checksum "today" }}
           paths:
-          - nilearn_data
-          - miniconda3
-          - project/doc
+          - ../nilearn_data
+          - ../miniconda3
+          - doc
 
       - store_artifacts:
           path: doc/_build/html
