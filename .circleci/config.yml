@@ -51,9 +51,9 @@ jobs:
       - save_cache:
           key: v1-packages+datasets-{{ .Branch }}-{{ checksum "today" }}
           paths:
-          - $HOME/nilearn_data
-          - $HOME/miniconda3
-          - $HOME/project/doc/_build/html
+          - $HOME/nilearn_data/
+          - $HOME/miniconda3/
+          - $HOME/project/doc/
 
       - store_artifacts:
           path: doc/_build/html
