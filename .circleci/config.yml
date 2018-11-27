@@ -7,6 +7,13 @@ jobs:
   prep:
     docker:
       - image: circleci/python:3.6
+    environment:
+      DISTRIB: "conda"
+      PYTHON_VERSION: "3.6"
+      NUMPY_VERSION: "*"
+      SCIPY_VERSION: "*"
+      SCIKIT_LEARN_VERSION: "*"
+      MATPLOTLIB_VERSION: "*"
 
     steps:
       - checkout
@@ -119,8 +126,8 @@ workflows:
     filters:
       branches:
         only:
-        - master
-        - test-circleci
+          - master
+          - test-circleci
     jobs:
       - prep
       - full-build-prep:
