@@ -114,7 +114,7 @@ jobs:
           command: |
             source activate testenv
             pip install -e .
-            set -o pipefail && cd doc && make html-strict 2>&1 | tee ~/log.txt
+            set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
           no_output_timeout: 5h
 
       - store_artifacts:
@@ -130,6 +130,14 @@ workflows:
   version: 2
   push:
     jobs:
-      - quick-build
-      - full-build
+      quick-build:
+        branches:
+          ignore:
+            - master
+            - test-circleci
+      full-build:
+        branches:
+          only:
+            - master
+            - test-circleci
 
