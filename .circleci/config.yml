@@ -108,8 +108,8 @@ workflows:
     filters:
       branches:
         ignore:
-        - master
-        - test-circleci
+          - master
+          - test-circleci
     jobs:
       - prep
       - quick-build-prep:
