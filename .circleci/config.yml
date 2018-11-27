@@ -37,7 +37,7 @@ jobs:
             echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
       - run:
           name: Create new conda env  # Separate command so if it fails (when using cache) the entire build will not.
-          command: conda create -n testenv
+          command: conda create -n testenv 2>&1 | tee ~/log.txt
       - run:
           name: Install packages in conda env
           command: |
