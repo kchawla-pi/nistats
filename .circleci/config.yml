@@ -38,8 +38,7 @@ jobs:
       - run:
           name: Create new conda env  # Separate command so if it fails (when using cache) the entire build will not.
           command: |
-            set +e
-            conda create -n testenv
+            if conda env list | grep testenv ; then echo "Conda env testenv already exists courtesy of the cache."; else conda create -n testenv -yq; fi
       - run:
           name: Install packages in conda env
           command: |
