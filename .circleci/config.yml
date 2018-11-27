@@ -4,16 +4,9 @@
 version: 2
 
 jobs:
-  quick-build:
+  prep:
     docker:
       - image: circleci/python:3.6
-    environment:
-      DISTRIB: "conda"
-      PYTHON_VERSION: "3.6"
-      NUMPY_VERSION: "*"
-      SCIPY_VERSION: "*"
-      SCIKIT_LEARN_VERSION: "*"
-      MATPLOTLIB_VERSION: "*"
 
     steps:
       - checkout
@@ -26,6 +19,11 @@ jobs:
         # Installing required packages for `make -C doc check command` to work.
       - run: sudo -E apt-get -yq update
       - run: sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install dvipng texlive-latex-base texlive-latex-extra
+
+  quick-build-prep:
+    docker:
+      - image: circleci/python:3.6
+    steps:
       - run:
           name: Generating today's date and writing to file to generate daily new cache key
           command: |
@@ -43,27 +41,44 @@ jobs:
               wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
               chmod +x ~/miniconda.sh && ~/miniconda.sh -b
             fi
+
+  full-build-prep:
+    docker:
+      - image: circleci/python:3.6
+    steps:
+      - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+      - run: chmod +x ~/miniconda.sh && ~/miniconda.sh -b
+
+  build:
+    docker:
+      - image: circleci/python:3.6
+    steps:
       - run:
-          name: Setup conda path in env variables
-          command: |
-            echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
-      - run:
-          name: Create new conda env  # Separate command so if it fails (when using cache) the entire build will not.
-          command: |
-            if conda env list | grep testenv ; then echo "Conda env testenv already exists courtesy of the cache."; else conda create -n testenv -yq; fi
-      - run:
-          name: Install packages in conda env
-          command: |
-            conda install -n testenv python=3.6 numpy scipy scikit-learn matplotlib pandas \
-            flake8 lxml nose cython mkl sphinx coverage patsy boto3 pillow pandas -yq
-            conda install -n testenv nibabel nilearn nose-timer -c conda-forge -yq
-      - run:
-          name: Running CircleCI test (make html)
-          command: |
-            source activate testenv
-            pip install -e .
-            set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
-          no_output_timeout: 5h
+            name: Setup conda path in env variables
+            command: |
+              echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
+        - run:
+            name: Create new conda env  # Separate command so if it fails (when using cache) the entire build will not.
+            command: |
+              if conda env list | grep testenv ; then echo "Conda env testenv already exists courtesy of the cache."; else conda create -n testenv -yq; fi
+        - run:
+            name: Install packages in conda env
+            command: |
+              conda install -n testenv python=3.6 numpy scipy scikit-learn matplotlib pandas \
+              flake8 lxml nose cython mkl sphinx coverage patsy boto3 pillow pandas -yq
+              conda install -n testenv nibabel nilearn nose-timer -c conda-forge -yq
+        - run:
+            name: Running CircleCI test (make html)
+            command: |
+              source activate testenv
+              pip install -e .
+              set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
+            no_output_timeout: 5h
+
+  caching:
+    docker:
+      - image: circleci/python:3.6
+    steps:
       - save_cache:
           key: v5-packages+datasets-{{ .Branch }}-{{ checksum "today" }}
           paths:
@@ -80,69 +95,37 @@ jobs:
           destination: log.txt
 
 
-
-  full-build:
-    docker:
-      - image: circleci/python:3.6
-    environment:
-      DISTRIB: "conda"
-      PYTHON_VERSION: "3.6"
-      NUMPY_VERSION: "*"
-      SCIPY_VERSION: "*"
-      SCIKIT_LEARN_VERSION: "*"
-      MATPLOTLIB_VERSION: "*"
-
-    steps:
-      - checkout
-        # Get rid of existing virtualenvs on circle ci as they conflict with conda.
-        # Trick found here:
-        # https://discuss.circleci.com/t/disable-autodetection-of-project-or-application-of-python-venv/235/10
-      - run: cd && rm -rf ~/.pyenv && rm -rf ~/virtualenvs
-        # We need to remove conflicting texlive packages.
-      - run: sudo -E apt-get -yq remove texlive-binaries --purge
-        # Installing required packages for `make -C doc check command` to work.
-      - run: sudo -E apt-get -yq update
-      - run: sudo -E apt-get -yq --no-install-suggests --no-install-recommends --force-yes install dvipng texlive-latex-base texlive-latex-extra
-      - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
-      - run: chmod +x ~/miniconda.sh && ~/miniconda.sh -b
-      - run: echo 'export PATH="$HOME/miniconda3/bin:$PATH"'  >> $BASH_ENV
-      - run:
-          name: Create conda env
-          command: |
-            conda create -n testenv python=3.6 numpy scipy scikit-learn matplotlib pandas \
-            flake8 lxml nose cython mkl sphinx coverage patsy boto3 pillow pandas -yq
-            conda install -n testenv nibabel nilearn nose-timer -c conda-forge -yq
-      - run:
-          name: Running CircleCI test (make html)
-          command: |
-            source activate testenv
-            pip install -e .
-            set -o pipefail && cd doc && make html 2>&1 | tee ~/log.txt
-          no_output_timeout: 5h
-
-      - store_artifacts:
-          path: doc/_build/html
-      - store_artifacts:
-          path: coverage
-      - store_artifacts:
-          path: $HOME/log.txt
-          destination: log.txt
-
-
 workflows:
   version: 2
-  push:
+  quick-build:
+    filters:
+      branches:
+        ignore:
+        - master
+        - test-circleci
     jobs:
-      - quick-build:
-          filters:
-            branches:
-              ignore:
-                - master
-                - test-circleci
-      - full-build:
-          filters:
-            branches:
-              only:
-                - master
-                - test-circleci
+      - prep
+      - quick-build-prep:
+          requires:
+            - prep
+      - build:
+          requires:
+            - quick-build-prep
+      - caching:
+          require:
+            - build
 
+  full-build:
+    filters:
+      branches:
+        only:
+        - master
+        - test-circleci
+    jobs:
+      - prep
+      - full-build-prep:
+          requires:
+            - prep
+      - build:
+          requires:
+            - full-build-prep
