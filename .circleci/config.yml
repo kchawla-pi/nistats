@@ -133,14 +133,14 @@ workflows:
   version: 2
   push:
     jobs:
-      quick-build:
-        branches:
-          ignore:
-            - master
-            - test-circleci
-      full-build:
-        branches:
-          only:
-            - master
-            - test-circleci
+      - quick-build:
+          branches:
+            ignore:
+              - master
+              - test-circleci
+      - full-build:
+          branches:
+            only:
+              - master
+              - test-circleci
 
