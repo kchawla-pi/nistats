@@ -29,8 +29,8 @@ jobs:
             date +%F > today
       - restore_cache:
           key: v5-packages+datasets-{{ .Branch }}-{{ checksum "today" }}
-      - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
-      - run: chmod +x ~/miniconda.sh && ~/miniconda.sh -b
+#      - run: wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O ~/miniconda.sh
+#      - run: chmod +x ~/miniconda.sh && ~/miniconda.sh -b
       - run:
           name: Setup conda path in env variables
           command: |
