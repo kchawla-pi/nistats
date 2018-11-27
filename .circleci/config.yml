@@ -105,17 +105,23 @@ jobs:
 workflows:
   version: 2
   quick-build:
-    triggers:
-      filters:
-        branches:
-          ignore:
-            - master
-            - test-circleci
     jobs:
-      - prep
+      - prep:
+          filters:
+            branches:
+              ignore:
+              - master
+              - test-circleci
+
       - quick-build-prep:
           requires:
             - prep
+          filters:
+            branches:
+              ignore:
+              - master
+              - test-circleci
+
       - build-docs:
           requires:
             - quick-build-prep
@@ -124,17 +130,28 @@ workflows:
             - build-docs
 
   full-build:
-    triggers:
-      filters:
-        branches:
-          only:
-            - master
-            - test-circleci
     jobs:
-      - prep
+      - prep:
+          filters:
+            branches:
+              only:
+              - master
+              - test-circleci
+
       - full-build-prep:
           requires:
             - prep
+          filters:
+            branches:
+              only:
+              - master
+              - test-circleci
+
       - build-docs:
           requires:
             - full-build-prep
+          filters:
+            branches:
+              only:
+              - master
+              - test-circleci
