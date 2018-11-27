@@ -1,7 +1,8 @@
 """Single-subject data (two sessions) in native space
 ==================================================
 
-The example shows the analysis of an SPM dataset studying face perception.
+The example shows <INSERTED FOR (WITHOUT RST ERROR) TESTING. REMOVE AFTER TESTING>
+the analysis of an SPM dataset studying face perception.
 The anaylsis is performed in native spave. Realignment parameters are provided
 with the input images, but those have not been resampled to a common space.
 
