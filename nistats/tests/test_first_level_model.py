@@ -523,3 +523,41 @@ def test_param_mask_deprecation_first_level_models_from_bids():
     for param_warning_ in raised_param_deprecation_warnings:
         assert str(param_warning_.message) == deprecation_msg
         assert param_warning_.category is DeprecationWarning
+
+
+def test_first_level_model_residuals():
+    shapes = [(10, 10, 10, 100)] * 3
+    mask, fmri_data, design_matrices  = generate_fake_fmri_data(shapes)
+
+    for i in range(len(design_matrices)):
+        design_matrices[i].iloc[:, 0] = 1
+
+    model = FirstLevelModel(mask=mask, minimize_memory=False,
+                            noise_model='ols')
+    model.fit(fmri_data, design_matrices=design_matrices)
+
+    for resid in model.residuals:
+        mean_resids = model.masker_.transform(resid).mean(0)
+        assert_array_almost_equal(mean_resids, 0)
+
+
+def test_first_level_model_predictions_rsq():
+    shapes = [(10, 10, 10, 25)] * 3
+    mask, fmri_data, design_matrices  = generate_fake_fmri_data(shapes, 25)
+
+    model = FirstLevelModel(mask=mask,
+                            signal_scaling=False,
+                            minimize_memory=False,
+                            noise_model='ols')
+    model.fit(fmri_data, design_matrices=design_matrices)
+
+    for pred, data, rsq in zip(model.predicted, fmri_data, model.rsq):
+        y_predicted = model.masker_.transform(pred)
+        y_measured = model.masker_.transform(data)
+
+        assert_array_almost_equal(y_predicted, y_measured)
+
+        rsq = model.masker_.transform(rsq)
+        assert_array_almost_equal(rsq, 1.0)
+
+

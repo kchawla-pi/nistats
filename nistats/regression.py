@@ -61,7 +61,6 @@ class OLSModel(object):
     df_resid : scalar
         Degrees of freedom of the residuals.  Number of observations less the
         rank of the design.
-
     df_model : scalar
         Degrees of freedome of the model.  The rank of the design.
     """
@@ -276,6 +275,7 @@ class RegressionResults(LikelihoodModelResults):
                                         dispersion, nuisance)
         self.wY = wY
         self.wresid = wresid
+        self.wdesign = model.wdesign
 
     @setattr_on_read
     def resid(self):
@@ -310,7 +310,7 @@ class RegressionResults(LikelihoodModelResults):
         """
         beta = self.theta
         # the LikelihoodModelResults has parameters named 'theta'
-        X = self.model.design
+        X = self.wdesign
         return np.dot(X, beta)
 
     @setattr_on_read
@@ -320,12 +320,19 @@ class RegressionResults(LikelihoodModelResults):
         return (self.wresid ** 2).sum(0)
 
     @setattr_on_read
+    def rsq(self):
+        """Proportion of explained variance. 
+        If not from an OLS model this is "pseudo"-R2.
+        """
+        return np.var(self.predicted, 0) / np.var(self.wY, 0)
+
+    @setattr_on_read
     def MSE(self):
         """ Mean square (error) """
         return self.SSE / self.df_resid
 
 
-class SimpleRegressionResults(LikelihoodModelResults):
+class SimpleRegressionResults(RegressionResults):
     """This class contains only information of the model fit necessary
     for contast computation.
 
@@ -347,41 +354,19 @@ class SimpleRegressionResults(LikelihoodModelResults):
         # put this as a parameter of LikelihoodModel
         self.df_resid = self.df_total - self.df_model
 
+        self.wdesign = results.model.wdesign
+
     def logL(self, Y):
         """
         The maximized log-likelihood
         """
-        raise ValueError('can not use this method for simple results')
+        raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
 
-    def resid(self, Y):
+    def resid(self):
         """
         Residuals from the fit.
         """
-        return Y - self.predicted
+        raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
 
-    def norm_resid(self, Y):
-        """
-        Residuals, normalized to have unit length.
-
-        Notes
-        -----
-        Is this supposed to return "stanardized residuals,"
-        residuals standardized
-        to have mean zero and approximately unit variance?
-
-        d_i = e_i / sqrt(MS_E)
-
-        Where MS_E = SSE / (n - k)
-
-        See: Montgomery and Peck 3.2.1 p. 68
-             Davidson and MacKinnon 15.2 p 662
-        """
-        return self.resid(Y) * positive_reciprocal(np.sqrt(self.dispersion))
-
-    def predicted(self):
-        """ Return linear predictor values from a design matrix.
-        """
-        beta = self.theta
-        # the LikelihoodModelResults has parameters named 'theta'
-        X = self.model.design
-        return np.dot(X, beta)
+    def norm_resid(self):
+        raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
