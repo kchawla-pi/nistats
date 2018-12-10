@@ -174,23 +174,27 @@ def test_make_events_file_localizer_first_level():
     def run_test():
         data_for_tests = _input_data_for_test_file()
         expected_data_from_test_file = _expected_output_data_from_test_file()
-        with NamedTemporaryFile(mode='w',
-                                dir=os.getcwd(),
-                                suffix='.csv') as temp_csv_obj:
-            data_for_tests.to_csv(temp_csv_obj.name,
+        temp_csv_filename = 'temp_csv_file.csv'
+        try:
+            data_for_tests.to_csv(temp_csv_filename,
+                                  mode='w',
                                   index=False,
                                   header=False,
                                   sep=' ',
                                   )
             datasets._make_events_file_localizer_first_level(
-                    temp_csv_obj.name
+                    temp_csv_filename
                     )
-            data_from_test_file_post_mod = pd.read_csv(temp_csv_obj.name,
+            data_from_test_file_post_mod = pd.read_csv(temp_csv_filename,
                                                        sep='\t')
             assert_true(all(
                     expected_data_from_test_file == data_from_test_file_post_mod
                     )
                     )
+        except:
+            raise
+        finally:
+            os.remove(temp_csv_filename)
     
     run_test()
 
