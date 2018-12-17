@@ -6,7 +6,10 @@ Test the second level model.
 from __future__ import with_statement
 
 import os
-from tempfile import TemporaryDirectory
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from nistats.utils import TemporaryDirectory
 
 import numpy as np
 import pandas as pd

@@ -7,7 +7,11 @@ from __future__ import with_statement
 
 import os
 import shutil
-from tempfile import TemporaryDirectory
+
+try:
+    from tempfile import TemporaryDirectory
+except ImportError:
+    from nistats.utils import TemporaryDirectory
 
 import numpy as np
 
