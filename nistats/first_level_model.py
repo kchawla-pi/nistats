@@ -397,7 +397,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                 self.masker_.fit(run_imgs[0])
             else:
                 self.masker_ = self.mask
-
+        
         # For each run fit the model and keep only the regression results.
         self.labels_, self.results_, self.design_matrices_ = [], [], []
         n_runs = len(run_imgs)

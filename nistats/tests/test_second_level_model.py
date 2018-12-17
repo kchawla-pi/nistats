@@ -6,7 +6,7 @@ Test the second level model.
 from __future__ import with_statement
 
 import os
-
+from tempfile import TemporaryDirectory
 import numpy as np
 
 from nibabel import load, Nifti1Image
@@ -41,7 +41,7 @@ def write_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
 
 
 def test_high_level_glm_with_paths():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 1),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -65,7 +65,7 @@ def test_high_level_glm_with_paths():
 
 def test_fmri_inputs():
     # Test processing of FMRI inputs
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         # prepare fake data
         p, q = 80, 10
         X = np.random.randn(p, q)
@@ -145,7 +145,7 @@ def _first_level_dataframe():
 
 
 def test_second_level_model_glm_computation():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 1),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -167,7 +167,7 @@ def test_second_level_model_glm_computation():
 
 
 def test_second_level_model_contrast_computation():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 1),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -208,7 +208,7 @@ def test_second_level_model_contrast_computation():
 
 
 def test_second_level_model_contrast_computation_with_memory_caching():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 1),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]

@@ -7,6 +7,8 @@ from __future__ import with_statement
 
 import os
 import shutil
+from tempfile import TemporaryDirectory
+
 import numpy as np
 
 from nibabel import load, Nifti1Image
@@ -17,12 +19,10 @@ from nistats.design_matrix import check_design_matrix, make_first_level_design_m
 
 from nose.tools import assert_true, assert_equal, assert_raises
 from numpy.testing import (assert_almost_equal, assert_array_equal)
-from nibabel.tmpdirs import InTemporaryDirectory
 import pandas as pd
 
 from nistats.tests.test_utils import create_fake_bids_dataset
 from nistats.utils import get_bids_files
-
 
 # This directory path
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
@@ -76,7 +76,7 @@ def test_high_level_glm_one_session():
 
 def test_high_level_glm_with_data():
     # New API
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 16)), 3
         mask, fmri_data, design_matrices = write_fake_fmri_data(shapes, rk)
         multi_session_model = FirstLevelModel(mask=None).fit(
@@ -116,7 +116,7 @@ def test_high_level_glm_with_data():
 def test_high_level_glm_with_paths():
     # New API
     shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 14)), 3
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         mask_file, fmri_files, design_files = write_fake_fmri_data(shapes, rk)
         multi_session_model = FirstLevelModel(mask=None).fit(
             fmri_files, design_matrices=design_files)
@@ -185,7 +185,7 @@ def test_scaling():
 
 def test_fmri_inputs():
     # Test processing of FMRI inputs
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 10),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -221,6 +221,7 @@ def test_fmri_inputs():
             # confounds rows do not match n_scans
             assert_raises(
                 ValueError, FirstLevelModel(mask=None).fit, fi, d, conf)
+            import time
 
 
 def basic_paradigm():
@@ -235,7 +236,7 @@ def basic_paradigm():
 
 def test_first_level_model_design_creation():
         # Test processing of FMRI inputs
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 10),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -262,7 +263,7 @@ def test_first_level_model_design_creation():
 
 
 def test_first_level_model_glm_computation():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 10),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -281,13 +282,14 @@ def test_first_level_model_glm_computation():
         labels2, results2 = run_glm(
             model.masker_.transform(func_img),
             model.design_matrices_[0].values, 'ar1')
+        
         # ar not giving consistent results in python 3.4
         # assert_almost_equal(labels1, labels2, decimal=2) ####FIX
         # assert_equal(len(results1), len(results2)) ####FIX
 
 
 def test_first_level_glm_computation_with_memory_caching():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 10),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -305,7 +307,7 @@ def test_first_level_glm_computation_with_memory_caching():
 
 
 def test_first_level_model_contrast_computation():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         shapes = ((7, 8, 9, 10),)
         mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
         FUNCFILE = FUNCFILE[0]
@@ -352,7 +354,7 @@ def test_first_level_model_contrast_computation():
 
 
 def test_first_level_models_from_bids():
-    with InTemporaryDirectory():
+    with TemporaryDirectory():
         bids_path = create_fake_bids_dataset(n_sub=10, n_ses=2,
                                              tasks=['localizer', 'main'],
                                              n_runs=[1, 3])
