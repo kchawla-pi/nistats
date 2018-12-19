@@ -1,9 +1,5 @@
 import csv
 import os
-try:
-    from tempfile import TemporaryDirectory
-except ImportError:
-    from nistats.utils import TemporaryDirectory
 
 import pandas as pd
 from nose.tools import (assert_raises,
@@ -119,8 +115,9 @@ def test_binary_bytearray_of_ints_data():
         with open(tmp_bin_filename, 'wb') as temp_bin_obj:
             temp_bin_obj.write(temp_data_bytearray_from_ints)
             with assert_raises(ValueError):
-                result = _verify_events_file_uses_tab_separators(
-                        events_files=temp_bin_obj.name)
+                _verify_events_file_uses_tab_separators(
+                        events_files=temp_bin_obj.name
+                        )
     except:
         raise
     finally:

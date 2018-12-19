@@ -11,7 +11,7 @@ import shutil
 try:
     from tempfile import TemporaryDirectory
 except ImportError:
-    from nistats.utils import TemporaryDirectory
+    from nistats.utils import TempDirPy2Wrapper as TemporaryDirectory
 
 import numpy as np
 
@@ -225,7 +225,6 @@ def test_fmri_inputs():
             # confounds rows do not match n_scans
             assert_raises(
                 ValueError, FirstLevelModel(mask=None).fit, fi, d, conf)
-            import time
 
 
 def basic_paradigm():
