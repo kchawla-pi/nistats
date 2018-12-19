@@ -145,7 +145,8 @@ def create_fake_bids_dataset(base_dir='', n_sub=10, n_ses=2,
     optional session field. In this case n_ses will be ignored.
     """
     bids_path = os.path.join(base_dir, 'bids_dataset')
-    os.makedirs(bids_path)
+    if not os.path.exists(bids_path):
+        os.makedirs(bids_path)
     # Create surface bids dataset
     open(os.path.join(bids_path, 'README.txt'), 'w')
     vox = 4
@@ -157,11 +158,13 @@ def create_fake_bids_dataset(base_dir='', n_sub=10, n_ses=2,
             subses_dir = os.path.join(bids_path, subject, session)
             if session == 'ses-01' or session == '':
                 anat_path = os.path.join(subses_dir, 'anat')
-                os.makedirs(anat_path)
+                if not os.path.exists(anat_path):
+                    os.makedirs(anat_path)
                 anat_file = os.path.join(anat_path, subject + '_T1w.nii.gz')
                 open(anat_file, 'w')
             func_path = os.path.join(subses_dir, 'func')
-            os.makedirs(func_path)
+            if not os.path.exists(func_path):
+                os.makedirs(func_path)
             for task, n_run in zip(tasks, n_runs):
                 for run in ['run-%02d' % label for label in range(1, n_run + 1)]:
                     fields = [subject, session, 'task-' + task]
@@ -183,7 +186,8 @@ def create_fake_bids_dataset(base_dir='', n_sub=10, n_ses=2,
     # Create derivatives files
     if with_derivatives:
         bids_path = os.path.join(base_dir, 'bids_dataset', 'derivatives')
-        os.makedirs(bids_path)
+        if not os.path.exists(bids_path):
+            os.makedirs(bids_path)
         for subject in ['sub-%02d' % label for label in range(1, 11)]:
             for session in created_sessions:
                 subses_dir = os.path.join(bids_path, subject, session)
