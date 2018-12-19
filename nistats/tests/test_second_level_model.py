@@ -9,7 +9,7 @@ import os
 try:
     from tempfile import TemporaryDirectory
 except ImportError:
-    from nistats.utils import TemporaryDirectory
+    from nistats.utils import TempDirPy2Wrapper as TemporaryDirectory
 
 import numpy as np
 import pandas as pd
