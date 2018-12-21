@@ -31,6 +31,7 @@ from nistats.design_matrix import (check_design_matrix,
 from nistats.tests.test_utils import (create_fake_bids_dataset,
                                       generate_fake_fmri_data,
                                       write_fake_fmri_data,
+                                      within_temp_dir,
                                       )
 from nistats.utils import get_bids_files
 
@@ -40,14 +41,8 @@ BASEDIR = os.path.dirname(os.path.abspath(__file__))
 FUNCFILE = os.path.join(BASEDIR, 'functional.nii.gz')
 
 
+@within_temp_dir
 def test_high_level_glm_one_session():
-    with InTemporaryDirectory():
-        _high_level_glm_one_session_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _high_level_glm_one_session_tester_code():
     shapes, rk = [(7, 8, 9, 15)], 3
     mask, fmri_data, design_matrices = generate_fake_fmri_data(shapes, rk)
 
@@ -62,14 +57,8 @@ def _high_level_glm_one_session_tester_code():
     assert_true(isinstance(z1, Nifti1Image))
 
 
+@within_temp_dir
 def test_high_level_glm_with_data():
-    with InTemporaryDirectory():
-        _high_level_glm_with_data_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _high_level_glm_with_data_tester_code():
     shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 16)), 3
     mask, fmri_data, design_matrices = write_fake_fmri_data(shapes, rk)
     multi_session_model = FirstLevelModel(mask=None).fit(
@@ -113,14 +102,8 @@ def _high_level_glm_with_data_tester_code():
                        variance_image.get_data())
 
 
+@within_temp_dir
 def test_high_level_glm_with_paths():
-    with InTemporaryDirectory():
-        _high_level_glm_with_paths_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _high_level_glm_with_paths_tester_code():
     shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 14)), 3
     mask_file, fmri_files, design_files = write_fake_fmri_data(shapes, rk)
     multi_session_model = FirstLevelModel(mask=None).fit(
@@ -132,15 +115,8 @@ def _high_level_glm_with_paths_tester_code():
     assert_true(z_image.get_data().std() < 3.)
 
 
+@within_temp_dir
 def test_high_level_glm_null_contrasts():
-    # test that contrast computation is resilient to 0 values.
-    with InTemporaryDirectory():
-        _high_level_glm_null_contrasts_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _high_level_glm_null_contrasts_tester_code():
     # test that contrast computation is resilient to 0 values.
     shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 19)), 3
     mask, fmri_data, design_matrices = generate_fake_fmri_data(shapes, rk)
@@ -250,15 +226,9 @@ def basic_paradigm():
     return events
 
 
+@within_temp_dir
 def test_first_level_model_design_creation():
     # Test processing of FMRI inputs
-    with InTemporaryDirectory():
-        _first_level_model_design_creation_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _first_level_model_design_creation_tester_code():
     shapes = ((7, 8, 9, 10),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -285,14 +255,8 @@ def _first_level_model_design_creation_tester_code():
     assert_array_equal(names1, names2)
 
 
+@within_temp_dir
 def test_first_level_model_glm_computation():
-    with InTemporaryDirectory():
-        _first_level_model_glm_computation_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _first_level_model_glm_computation_tester_code():
     shapes = ((7, 8, 9, 10),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -317,14 +281,8 @@ def _first_level_model_glm_computation_tester_code():
     # assert_equal(len(results1), len(results2)) ####FIX
 
 
+@within_temp_dir
 def test_first_level_glm_computation_with_memory_caching():
-    with InTemporaryDirectory():
-        _first_level_glm_computation_with_memory_caching_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _first_level_glm_computation_with_memory_caching_tester_code():
     shapes = ((7, 8, 9, 10),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -341,14 +299,8 @@ def _first_level_glm_computation_with_memory_caching_tester_code():
     model.fit(func_img, events)
 
 
+@within_temp_dir
 def test_first_level_model_contrast_computation():
-    with InTemporaryDirectory():
-        _first_level_model_contrast_computation_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _first_level_model_contrast_computation_tester_code():
     shapes = ((7, 8, 9, 10),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -394,14 +346,8 @@ def _first_level_model_contrast_computation_tester_code():
     assert_raises(ValueError, model.compute_contrast, c1, '', [])
 
 
+@within_temp_dir
 def test_first_level_models_from_bids():
-    with InTemporaryDirectory():
-        _first_level_models_from_bids_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
-def _first_level_models_from_bids_tester_code():
     bids_path = create_fake_bids_dataset(n_sub=10, n_ses=2,
                                          tasks=['localizer', 'main'],
                                          n_runs=[1, 3])

@@ -18,18 +18,16 @@ from nilearn.image import concat_imgs
 
 from nistats.first_level_model import FirstLevelModel, run_glm
 from nistats.second_level_model import SecondLevelModel
-from nistats.tests.test_utils import create_fake_bids_dataset, write_fake_fmri_data
+from nistats.tests.test_utils import (write_fake_fmri_data,
+                                      within_temp_dir,
+                                      )
 # This directory path
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 FUNCFILE = os.path.join(BASEDIR, 'functional.nii.gz')
 
 
+@within_temp_dir
 def test_high_level_glm_with_paths():
-    with InTemporaryDirectory():
-        _high_level_glm_with_paths_tester_code()
-
-
-def _high_level_glm_with_paths_tester_code():
     shapes = ((7, 8, 9, 1),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -48,13 +46,8 @@ def _high_level_glm_with_paths_tester_code():
     assert_array_equal(z_image.affine, load(mask).affine)
     
 
+@within_temp_dir
 def test_fmri_inputs():
-    # Test processing of FMRI inputs
-    with InTemporaryDirectory():
-        _fmri_inputs_tester_code()
-
-
-def _fmri_inputs_tester_code():
     # Test processing of FMRI inputs
     # prepare fake data
     p, q = 80, 10
@@ -134,12 +127,8 @@ def _first_level_dataframe():
     return dataframe
 
 
+@within_temp_dir
 def test_second_level_model_glm_computation():
-    with InTemporaryDirectory():
-        _second_level_model_glm_computation_tester_code()
-
-
-def _second_level_model_glm_computation_tester_code():
     shapes = ((7, 8, 9, 1),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -160,12 +149,8 @@ def _second_level_model_glm_computation_tester_code():
     assert_equal(len(results1), len(results2))
 
 
+@within_temp_dir
 def test_second_level_model_contrast_computation():
-    with InTemporaryDirectory():
-        _second_level_model_contrast_computation_tester_code()
-
-
-def _second_level_model_contrast_computation_tester_code():
     shapes = ((7, 8, 9, 1),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]
@@ -205,12 +190,8 @@ def _second_level_model_contrast_computation_tester_code():
     assert_raises(ValueError, model.compute_contrast, None)
 
 
+@within_temp_dir
 def test_second_level_model_contrast_computation_with_memory_caching():
-    with InTemporaryDirectory():
-        _second_level_model_contrast_computation_with_memory_caching_tester_code()
-
-
-def _second_level_model_contrast_computation_with_memory_caching_tester_code():
     shapes = ((7, 8, 9, 1),)
     mask, FUNCFILE, _ = write_fake_fmri_data(shapes)
     FUNCFILE = FUNCFILE[0]

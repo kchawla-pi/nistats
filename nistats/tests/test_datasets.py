@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from nistats import datasets
-
+from nistats.tests.test_utils import within_temp_dir
 
 currdir = os.path.dirname(os.path.abspath(__file__))
 datadir = os.path.join(currdir, 'data')
@@ -170,31 +170,27 @@ def test_make_events_file_localizer_first_level():
         file_data = pd.DataFrame(file_data)
         file_data.columns = ['trial_type', 'onset', 'duration']
         return file_data
-    
+
+    @within_temp_dir
     def run_test():
         data_for_tests = _input_data_for_test_file()
         expected_data_from_test_file = _expected_output_data_from_test_file()
         temp_csv_filename = 'temp_csv_file.csv'
-        try:
-            data_for_tests.to_csv(temp_csv_filename,
-                                  mode='w',
-                                  index=False,
-                                  header=False,
-                                  sep=' ',
-                                  )
-            datasets._make_events_file_localizer_first_level(
-                    temp_csv_filename
-                    )
-            data_from_test_file_post_mod = pd.read_csv(temp_csv_filename,
-                                                       sep='\t')
-            assert_true(all(
-                    expected_data_from_test_file == data_from_test_file_post_mod
-                    )
-                    )
-        except:
-            raise
-        finally:
-            os.remove(temp_csv_filename)
+        data_for_tests.to_csv(temp_csv_filename,
+                              mode='w',
+                              index=False,
+                              header=False,
+                              sep=' ',
+                              )
+        datasets._make_events_file_localizer_first_level(
+                temp_csv_filename
+                )
+        data_from_test_file_post_mod = pd.read_csv(temp_csv_filename,
+                                                   sep='\t')
+        assert_true(all(
+                expected_data_from_test_file == data_from_test_file_post_mod
+                )
+                )
     
     run_test()
 
@@ -228,12 +224,10 @@ def test_make_spm_auditory_events_file():
         with open(events_filepath, 'r') as actual_events_file_obj:
             actual_events_data_string = actual_events_file_obj.read()
         return actual_events_data_string, events_filepath
-    
+
+    @within_temp_dir
     def run_test():
-        try:
-            actual_events_data_string, events_filepath = create_actual_data()
-        finally:
-            os.remove(events_filepath)
+        actual_events_data_string, events_filepath = create_actual_data()
         expected_events_data_string = create_expected_data()
         assert_equal(actual_events_data_string, expected_events_data_string)
     

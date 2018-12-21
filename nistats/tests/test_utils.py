@@ -1,22 +1,26 @@
 #!/usr/bin/env python
+import functools
 import os
 import json
+
 import numpy as np
 import pandas as pd
-from scipy.stats import norm
+
 import scipy.linalg as spl
+
 from numpy.testing import assert_almost_equal, assert_array_almost_equal
 from nose.tools import assert_true, assert_equal, assert_raises
 from nibabel import load, Nifti1Image
 from nibabel.tmpdirs import InTemporaryDirectory
+from nilearn.datasets.tests import test_utils as tst
 from nose import with_setup
+from scipy.stats import norm
 
 from nistats.utils import (multiple_mahalanobis, z_score, multiple_fast_inverse,
                            positive_reciprocal, full_rank, _check_run_tables,
                            _check_and_load_tables, _check_list_length_match,
                            get_bids_files, parse_bids_filename,
                            get_design_from_fslmat)
-from nilearn.datasets.tests import test_utils as tst
 
 
 def test_full_rank():
@@ -309,3 +313,16 @@ def generate_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
     mask = Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
                        affine)
     return mask, fmri_data, design_matrices
+
+
+def within_temp_dir(func):
+    """ Custom decorator, executes the decorated function in a TemporaryDirectory.
+    The directory and its contents are destroyed after the function completes.
+    Uses nibabel.tmpdirs.InTemporaryDirectory
+    """
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+        with InTemporaryDirectory():
+            return func(*args, **kwargs)
+    return wrapper
+
