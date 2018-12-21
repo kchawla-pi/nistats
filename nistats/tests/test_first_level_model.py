@@ -28,7 +28,10 @@ from nistats.first_level_model import (mean_scaling,
 from nistats.design_matrix import (check_design_matrix,
                                    make_first_level_design_matrix,
                                    )
-from nistats.tests.test_utils import create_fake_bids_dataset
+from nistats.tests.test_utils import (create_fake_bids_dataset,
+                                      generate_fake_fmri_data,
+                                      write_fake_fmri_data,
+                                      )
 from nistats.utils import get_bids_files
 
 
@@ -37,33 +40,11 @@ BASEDIR = os.path.dirname(os.path.abspath(__file__))
 FUNCFILE = os.path.join(BASEDIR, 'functional.nii.gz')
 
 
-def write_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
-    mask_file, fmri_files, design_files = 'mask.nii', [], []
-    for i, shape in enumerate(shapes):
-        fmri_files.append('fmri_run%d.nii' % i)
-        data = np.random.randn(*shape)
-        data[1:-1, 1:-1, 1:-1] += 100
-        Nifti1Image(data, affine).to_filename(fmri_files[-1])
-        design_files.append('dmtx_%d.csv' % i)
-        pd.DataFrame(np.random.randn(shape[3], rk),
-                     columns=['', '', '']).to_csv(design_files[-1])
-    Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
-                affine).to_filename(mask_file)
-    return mask_file, fmri_files, design_files
-
-
-def generate_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
-    fmri_data = []
-    design_matrices = []
-    for i, shape in enumerate(shapes):
-        data = np.random.randn(*shape)
-        data[1:-1, 1:-1, 1:-1] += 100
-        fmri_data.append(Nifti1Image(data, affine))
-        design_matrices.append(pd.DataFrame(np.random.randn(shape[3], rk),
-                                            columns=['a', 'b', 'c']))
-    mask = Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
-                       affine)
-    return mask, fmri_data, design_matrices
+def test_high_level_glm_one_session():
+    with InTemporaryDirectory():
+        _high_level_glm_one_session_tester_code()
+        # Using a function ensures objects attached to files are deleted.
+        # This prevents WindowsError when deleting temporary directory.
 
 
 def _high_level_glm_one_session_tester_code():
@@ -81,12 +62,11 @@ def _high_level_glm_one_session_tester_code():
     assert_true(isinstance(z1, Nifti1Image))
 
 
-def test_high_level_glm_one_session():
+def test_high_level_glm_with_data():
     with InTemporaryDirectory():
-        _high_level_glm_one_session_tester_code()
+        _high_level_glm_with_data_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
-
 
 
 def _high_level_glm_with_data_tester_code():
@@ -133,9 +113,9 @@ def _high_level_glm_with_data_tester_code():
                        variance_image.get_data())
 
 
-def test_high_level_glm_with_data():
+def test_high_level_glm_with_paths():
     with InTemporaryDirectory():
-        _high_level_glm_with_data_tester_code()
+        _high_level_glm_with_paths_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -152,9 +132,10 @@ def _high_level_glm_with_paths_tester_code():
     assert_true(z_image.get_data().std() < 3.)
 
 
-def test_high_level_glm_with_paths():
+def test_high_level_glm_null_contrasts():
+    # test that contrast computation is resilient to 0 values.
     with InTemporaryDirectory():
-        _high_level_glm_with_paths_tester_code()
+        _high_level_glm_null_contrasts_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -176,14 +157,6 @@ def _high_level_glm_null_contrasts_tester_code():
     np.testing.assert_almost_equal(z1.get_data(), z2.get_data())
     
     
-def test_high_level_glm_null_contrasts():
-    # test that contrast computation is resilient to 0 values.
-    with InTemporaryDirectory():
-        _high_level_glm_null_contrasts_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
 def test_run_glm():
     # New API
     n, p, q = 100, 80, 10
@@ -219,6 +192,14 @@ def test_scaling():
     assert_almost_equal(Y_.mean(0), 0, 5)
     assert_almost_equal(mean_, mean, 0)
     assert_true(Y.std() > 1)
+
+
+def test_fmri_inputs():
+    # Test processing of FMRI inputs
+    with InTemporaryDirectory():
+        _fmri_inputs_tester_code()
+        # Using a function ensures objects attached to files are deleted.
+        # This prevents WindowsError when deleting temporary directory.
 
 
 def _fmri_inputs_tester_code():
@@ -259,14 +240,6 @@ def _fmri_inputs_tester_code():
             ValueError, FirstLevelModel(mask=None).fit, fi, d, conf)
 
 
-def test_fmri_inputs():
-    # Test processing of FMRI inputs
-    with InTemporaryDirectory():
-        _fmri_inputs_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
 def basic_paradigm():
     conditions = ['c0', 'c0', 'c0', 'c1', 'c1', 'c1', 'c2', 'c2', 'c2']
     onsets = [30, 70, 100, 10, 30, 90, 30, 40, 60]
@@ -275,6 +248,14 @@ def basic_paradigm():
                              'onset': onsets,
                              'duration': durations})
     return events
+
+
+def test_first_level_model_design_creation():
+    # Test processing of FMRI inputs
+    with InTemporaryDirectory():
+        _first_level_model_design_creation_tester_code()
+        # Using a function ensures objects attached to files are deleted.
+        # This prevents WindowsError when deleting temporary directory.
 
 
 def _first_level_model_design_creation_tester_code():
@@ -304,10 +285,9 @@ def _first_level_model_design_creation_tester_code():
     assert_array_equal(names1, names2)
 
 
-def test_first_level_model_design_creation():
-    # Test processing of FMRI inputs
+def test_first_level_model_glm_computation():
     with InTemporaryDirectory():
-        _first_level_model_design_creation_tester_code()
+        _first_level_model_glm_computation_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -337,9 +317,9 @@ def _first_level_model_glm_computation_tester_code():
     # assert_equal(len(results1), len(results2)) ####FIX
 
 
-def test_first_level_model_glm_computation():
+def test_first_level_glm_computation_with_memory_caching():
     with InTemporaryDirectory():
-        _first_level_model_glm_computation_tester_code()
+        _first_level_glm_computation_with_memory_caching_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -361,9 +341,9 @@ def _first_level_glm_computation_with_memory_caching_tester_code():
     model.fit(func_img, events)
 
 
-def test_first_level_glm_computation_with_memory_caching():
+def test_first_level_model_contrast_computation():
     with InTemporaryDirectory():
-        _first_level_glm_computation_with_memory_caching_tester_code()
+        _first_level_model_contrast_computation_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -414,9 +394,9 @@ def _first_level_model_contrast_computation_tester_code():
     assert_raises(ValueError, model.compute_contrast, c1, '', [])
 
 
-def test_first_level_model_contrast_computation():
+def test_first_level_models_from_bids():
     with InTemporaryDirectory():
-        _first_level_model_contrast_computation_tester_code()
+        _first_level_models_from_bids_tester_code()
         # Using a function ensures objects attached to files are deleted.
         # This prevents WindowsError when deleting temporary directory.
 
@@ -483,13 +463,6 @@ def _first_level_models_from_bids_tester_code():
                   bids_path, 'main', 'T1w')  # variant not specified
     
     
-def test_first_level_models_from_bids():
-    with InTemporaryDirectory():
-        _first_level_models_from_bids_tester_code()
-        # Using a function ensures objects attached to files are deleted.
-        # This prevents WindowsError when deleting temporary directory.
-
-
 def test_first_level_models_with_no_signal_scaling():
     """
     test to ensure that the FirstLevelModel works correctly with a

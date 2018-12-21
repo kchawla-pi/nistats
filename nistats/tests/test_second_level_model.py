@@ -18,25 +18,15 @@ from nilearn.image import concat_imgs
 
 from nistats.first_level_model import FirstLevelModel, run_glm
 from nistats.second_level_model import SecondLevelModel
-
+from nistats.tests.test_utils import create_fake_bids_dataset, write_fake_fmri_data
 # This directory path
 BASEDIR = os.path.dirname(os.path.abspath(__file__))
 FUNCFILE = os.path.join(BASEDIR, 'functional.nii.gz')
 
 
-def write_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
-    mask_file, fmri_files, design_files = 'mask.nii', [], []
-    for i, shape in enumerate(shapes):
-        fmri_files.append('fmri_run%d.nii' % i)
-        data = np.random.randn(*shape)
-        data[1:-1, 1:-1, 1:-1] += 100
-        Nifti1Image(data, affine).to_filename(fmri_files[-1])
-        design_files.append('dmtx_%d.csv' % i)
-        pd.DataFrame(np.random.randn(shape[3], rk),
-                     columns=['', '', '']).to_csv(design_files[-1])
-    Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
-                affine).to_filename(mask_file)
-    return mask_file, fmri_files, design_files
+def test_high_level_glm_with_paths():
+    with InTemporaryDirectory():
+        _high_level_glm_with_paths_tester_code()
 
 
 def _high_level_glm_with_paths_tester_code():
@@ -58,9 +48,10 @@ def _high_level_glm_with_paths_tester_code():
     assert_array_equal(z_image.affine, load(mask).affine)
     
 
-def test_high_level_glm_with_paths():
+def test_fmri_inputs():
+    # Test processing of FMRI inputs
     with InTemporaryDirectory():
-        _high_level_glm_with_paths_tester_code()
+        _fmri_inputs_tester_code()
 
 
 def _fmri_inputs_tester_code():
@@ -133,12 +124,6 @@ def _fmri_inputs_tester_code():
                   None, [])
 
 
-def test_fmri_inputs():
-    # Test processing of FMRI inputs
-    with InTemporaryDirectory():
-        _fmri_inputs_tester_code()
-
-
 def _first_level_dataframe():
     names = ['con_01', 'con_01', 'con_01']
     subjects = ['01', '02', '03']
@@ -147,6 +132,11 @@ def _first_level_dataframe():
                               'subject_label': subjects,
                               'effects_map_path': maps})
     return dataframe
+
+
+def test_second_level_model_glm_computation():
+    with InTemporaryDirectory():
+        _second_level_model_glm_computation_tester_code()
 
 
 def _second_level_model_glm_computation_tester_code():
@@ -170,9 +160,9 @@ def _second_level_model_glm_computation_tester_code():
     assert_equal(len(results1), len(results2))
 
 
-def test_second_level_model_glm_computation():
+def test_second_level_model_contrast_computation():
     with InTemporaryDirectory():
-        _second_level_model_glm_computation_tester_code()
+        _second_level_model_contrast_computation_tester_code()
 
 
 def _second_level_model_contrast_computation_tester_code():
@@ -215,9 +205,9 @@ def _second_level_model_contrast_computation_tester_code():
     assert_raises(ValueError, model.compute_contrast, None)
 
 
-def test_second_level_model_contrast_computation():
+def test_second_level_model_contrast_computation_with_memory_caching():
     with InTemporaryDirectory():
-        _second_level_model_contrast_computation_tester_code()
+        _second_level_model_contrast_computation_with_memory_caching_tester_code()
 
 
 def _second_level_model_contrast_computation_with_memory_caching_tester_code():
@@ -237,8 +227,3 @@ def _second_level_model_contrast_computation_with_memory_caching_tester_code():
     model.compute_contrast(c1, output_type='z_score')
     # or simply pass nothing
     model.compute_contrast()
-
-
-def test_second_level_model_contrast_computation_with_memory_caching():
-    with InTemporaryDirectory():
-        _second_level_model_contrast_computation_with_memory_caching_tester_code()
