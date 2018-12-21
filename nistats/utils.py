@@ -447,27 +447,3 @@ def get_design_from_fslmat(fsl_design_matrix_path, column_names=None):
     design_matrix = pd.DataFrame(design_matrix, columns=column_names)
 
     return design_matrix
-
-
-class TempDirPy2Wrapper(object):
-    """Custom wrapper for Python 2's tempfile.mkdtemp().
-     Create and return a temporary directory.  This has the same
-    behavior as mkdtemp but can be used as a context manager.  For
-    example:
-        with TemporaryDirectory() as tmpdir:
-            ...
-    Upon exiting the context, the directory and everything contained
-    in it are removed.
-    """
-    
-    def __init__(self, suffix="", prefix="tmp", dir=None):
-        self.name = mkdtemp(suffix, prefix, dir)
-    
-    def __repr__(self):
-        return "<{} {!r}>".format(self.__class__.__name__, self.name)
-    
-    def __enter__(self):
-        return self.name
-    
-    def __exit__(self, exc, value, tb):
-        shutil.rmtree(self.name)
