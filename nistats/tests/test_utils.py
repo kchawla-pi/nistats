@@ -280,3 +280,32 @@ def test_get_design_from_fslmat():
             fsl_mat.write('\n')
     design_matrix = get_design_from_fslmat(fsl_mat_path)
     assert_true(design_matrix.shape == matrix.shape)
+
+
+def write_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
+    mask_file, fmri_files, design_files = 'mask.nii', [], []
+    for i, shape in enumerate(shapes):
+        fmri_files.append('fmri_run%d.nii' % i)
+        data = np.random.randn(*shape)
+        data[1:-1, 1:-1, 1:-1] += 100
+        Nifti1Image(data, affine).to_filename(fmri_files[-1])
+        design_files.append('dmtx_%d.csv' % i)
+        pd.DataFrame(np.random.randn(shape[3], rk),
+                     columns=['', '', '']).to_csv(design_files[-1])
+    Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
+                affine).to_filename(mask_file)
+    return mask_file, fmri_files, design_files
+
+
+def generate_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
+    fmri_data = []
+    design_matrices = []
+    for i, shape in enumerate(shapes):
+        data = np.random.randn(*shape)
+        data[1:-1, 1:-1, 1:-1] += 100
+        fmri_data.append(Nifti1Image(data, affine))
+        design_matrices.append(pd.DataFrame(np.random.randn(shape[3], rk),
+                                            columns=['a', 'b', 'c']))
+    mask = Nifti1Image((np.random.rand(*shape[:3]) > .5).astype(np.int8),
+                       affine)
+    return mask, fmri_data, design_matrices
