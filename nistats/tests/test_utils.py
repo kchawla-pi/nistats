@@ -316,7 +316,9 @@ def generate_fake_fmri_data(shapes, rk=3, affine=np.eye(4)):
 
 
 def within_temp_dir(func):
-    """ Custom decorator, executes the decorated function in a TemporaryDirectory.
+    """ Decorator to execute the decorated function in a TemporaryDirectory.
+    Ensures all open file handles are closed before removing the directory.
+    Necessary for writing tests compatible with Windows.
     The directory and its contents are destroyed after the function completes.
     Uses nibabel.tmpdirs.InTemporaryDirectory
     """
