@@ -95,8 +95,6 @@ jobs:
             source activate testenv
             pip install -e .
             set -o pipefail && cd doc && make html-strict 2>&1 | tee log.txt
-            mkdir -p doc/_build/test-results/make-html-strict;
-            cp junit-results.xml doc/_build/test-results/make-html-strict/junit.xml;
           no_output_timeout: 5h
       - store_test_results:
           path: doc/_build/test-results
@@ -110,6 +108,11 @@ jobs:
           key: v1-docs-{{ .Branch }}-{{ checksum "today" }}-{{ checksum ".circleci/manual-cache-timestamp" }}
           paths:
             - doc
+      - run:
+          name:
+          cammand: |
+            mkdir -p doc/_build/test-results/make-html-strict
+            cp junit-results.xml doc/_build/test-results/make-html-strict/junit.xml
 
       - store_artifacts:
           path: doc/_build/test-results
