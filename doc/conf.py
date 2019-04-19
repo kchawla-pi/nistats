@@ -280,7 +280,6 @@ extlinks = {
 }
 
 sphinx_gallery_conf = {
-    'junit': '../test-results/sphinx-gallery/junit.xml',
     'doc_module': 'nistats',
     'backreferences_dir': os.path.join('modules', 'generated'),
     'reference_url'     : {
@@ -291,7 +290,8 @@ sphinx_gallery_conf = {
         'nibabel': 'http://nipy.org/nibabel',
         'sklearn': 'http://scikit-learn.org/stable',
         'patsy': 'http://patsy.readthedocs.io/en/latest/',
-        'pandas': 'http://pandas.pydata.org/pandas-docs/stable/'}
+        'pandas': 'http://pandas.pydata.org/pandas-docs/stable/'},
+    'junit': os.path.join('..', 'test-results', 'sphinx-gallery', 'junit.xml'),
     }
 
 # Get rid of spurious warnings due to some interaction between
