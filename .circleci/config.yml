@@ -110,7 +110,7 @@ jobs:
             - doc
       - run:
           name:
-          cammand: |
+          command: |
             mkdir -p doc/_build/test-results/make-html-strict
             cp junit-results.xml doc/_build/test-results/make-html-strict/junit.xml
 
@@ -212,7 +212,7 @@ jobs:
             - doc
       - run:
           name:
-          cammand: |
+          coammand: |
             mkdir -p doc/_build/test-results/make-html-strict
             cp junit-results.xml doc/_build/test-results/make-html-strict/junit.xml
 
