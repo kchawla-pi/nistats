@@ -98,7 +98,7 @@ jobs:
             mkdir -p _build/test-results
           no_output_timeout: 5h
       - store_test_results:
-          path: doc/_build/test-results
+          path: doc/_build/test-results/junit-results.xml
 
       - save_cache:
           key: v1-packages+datasets-{{ checksum "week_num" }}
@@ -193,7 +193,7 @@ jobs:
             source activate testenv
             pip install -e .
             set -o pipefail && cd doc && make html 2>&1 | tee log.txt
-            mkdir -p _build/test-results
+            mkdir -p _build/test-results/junit-results.xml
           no_output_timeout: 5h
 
       - save_cache:
