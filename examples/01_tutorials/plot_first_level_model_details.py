@@ -477,10 +477,3 @@ plt.show()
 # that Nistats defaults ('cosine' drift, cutoff=128s, 'glover' hrf,
 # ar(1) model) are actually reasonable.  Note that these conclusions
 # are specific to this dataset and may vary with other ones.
-from matplotlib import pyplot as plt
-from nistats.reporting.glm_reporter import generate_report
-from nistats.reporting import plot_design_matrix
-
-generate_report(first_level_model)
-design_matrix_plot = plot_design_matrix(first_level_model.design_matrices_[0])
-plt.savefig('dmtx.png')
