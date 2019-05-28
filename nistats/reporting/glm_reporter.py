@@ -8,6 +8,8 @@ from nistats.reporting import plot_design_matrix
 
 
 html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.html')
+
+
 def generate_report(output_path, model, **kwargs):
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
@@ -20,8 +22,13 @@ def generate_report(output_path, model, **kwargs):
     plot_design_matrix(model.design_matrices_[0], output_file=dmtx_filepath)
     
     z_maps = kwargs['z_maps']
-    anatomical_img = kwargs['anat']
-    stat_map_plot = plot_stat_map(z_maps['seed_based_glm'], threshold=3.08, title='Seed Based GLM', bg_img=anatomical_img)
+    anatomical_img = kwargs['bg_img']
+    stat_map_plot = plot_stat_map(z_maps['seed_based_glm'],
+                                  threshold=kwargs['threshold'],
+                                  title='Seed Based GLM',
+                                  bg_img=anatomical_img,
+                                  display_mode=kwargs['display_mode'],
+                                  )
     stat_map_plot_filepath = 'stat_map_plot.png'
     stat_map_plot.savefig(stat_map_plot_filepath)
     # design_matrix_plot = save_design_matrix_plot(model)

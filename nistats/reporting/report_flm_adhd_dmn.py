@@ -44,12 +44,15 @@ def create_report_adhd_dmn():
     output_filepath = 'generated_report.html'
     z_maps = make_zmaps(first_level_model, contrasts)
     generate_report(output_filepath, first_level_model,
-                                  contrasts=contrasts,
-                                  z_maps=z_maps,
-                                  mask=first_level_model.masker_.mask_img_,
-                                  design_matrices=first_level_model.design_matrices_,
-                                  anat=datasets.load_mni152_template(),
-                                  )
+                    contrasts=contrasts,
+                    z_maps=z_maps,
+                    mask=first_level_model.masker_.mask_img_,
+                    design_matrices=first_level_model.design_matrices_,
+                    bg_img=datasets.load_mni152_template(),
+                    display_mode='z',
+                    threshold=3.09,
+                    scaled=True,
+                    )
     # generate_subject_stats_report(output_filepath,
     #                               contrasts=contrasts,
     #                               z_maps=z_maps,
