@@ -4,7 +4,10 @@ import pprint
 
 import numpy as np
 from nilearn.plotting import plot_stat_map
-from nistats.reporting import plot_design_matrix
+from nistats.reporting import (
+    plot_design_matrix,
+    get_clusters_table,
+    )
 
 
 html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.html')
@@ -20,6 +23,7 @@ def generate_report(output_path, model, **kwargs):
 
     dmtx_filepath = 'dmtx.png'
     plot_design_matrix(model.design_matrices_[0], output_file=dmtx_filepath)
+    # design_matrix_plot = save_design_matrix_plot(model)
     
     z_maps = kwargs['z_maps']
     anatomical_img = kwargs['bg_img']
@@ -31,11 +35,14 @@ def generate_report(output_path, model, **kwargs):
                                   )
     stat_map_plot_filepath = 'stat_map_plot.png'
     stat_map_plot.savefig(stat_map_plot_filepath)
-    # design_matrix_plot = save_design_matrix_plot(model)
+    
+    cluster_table = get_clusters_table(z_maps['seed_based_glm'], 3.09)
+    cluster_table_html = cluster_table.to_html()
     report_values = {'Title': 'Test Report',
                      'contrasts': contrasts,
                      'design_matrix_binary': dmtx_filepath,
                      'stat_map': stat_map_plot_filepath,
+                     'cluster_table': cluster_table_html,
                      }
     report_text = report_template.safe_substitute(**report_values)
     print(report_text)
