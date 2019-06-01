@@ -14,12 +14,13 @@ html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.ht
 
 
 def generate_report(output_path, model, **kwargs):
+    # check_glm_model_attr(model)
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
         
     # print(html_template_text)
     report_template = string.Template(html_template_text)
-    contrasts = pretty_print_mapping_of_sequence(kwargs['contrasts'])
+    contrasts_display_text = pretty_print_mapping_of_sequence(kwargs['contrasts'])
 
     dmtx_filepath = 'dmtx.png'
     plot_design_matrix(model.design_matrices_[0], output_file=dmtx_filepath)
@@ -27,19 +28,22 @@ def generate_report(output_path, model, **kwargs):
     
     z_maps = kwargs['z_maps']
     anatomical_img = kwargs['bg_img']
-    stat_map_plot = plot_stat_map(z_maps['seed_based_glm'],
+    
+    z_map_name = list(z_maps.keys())[0]
+    stat_map_plot = plot_stat_map(z_maps[z_map_name],
                                   threshold=kwargs['threshold'],
-                                  title='Seed Based GLM',
+                                  title=z_map_name,
                                   bg_img=anatomical_img,
                                   display_mode=kwargs['display_mode'],
                                   )
-    stat_map_plot_filepath = 'stat_map_plot.png'
+    z_map_name_filename_text = z_map_name.title().replace(' ', '')
+    stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(z_map_name_filename_text )
     stat_map_plot.savefig(stat_map_plot_filepath)
-    
-    cluster_table = get_clusters_table(z_maps['seed_based_glm'], 3.09)
+
+    cluster_table = get_clusters_table(z_maps[z_map_name], 3.09, 15)
     cluster_table_html = cluster_table.to_html()
     report_values = {'Title': 'Test Report',
-                     'contrasts': contrasts,
+                     'contrasts': contrasts_display_text,
                      'design_matrix_binary': dmtx_filepath,
                      'stat_map': stat_map_plot_filepath,
                      'cluster_table': cluster_table_html,
