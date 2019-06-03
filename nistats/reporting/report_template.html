@@ -5,16 +5,18 @@
     <title>${Title}</title>
 </head>
 <body>
+
 <h4>Contrasts:</h4>
 <p>${contrasts}</p>
-<h4>Design Matrix:</h4>
 
-<img src=${design_matrix_binary} alt="Visual representation of Design Matrix of the fMRI experiment">
+<h4>Design Matrix:</h4>
+${design_matrix_binary}
+
 <h4> Stat map</h4>
-<img src=${stat_map}>
+${html_stat_maps}
 
 <h4>Cluster table</h4>
-<p>${cluster_table}</p>
+${html_code_for_cluster_tables}
 
 </body>
 </html>

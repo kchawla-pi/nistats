@@ -13,6 +13,23 @@ from nistats.reporting import (
 html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.html')
 
 
+def _report_design_matrices(model):
+    html_design_matrices = []
+    for count, design_matrix in enumerate(model.design_matrices_):
+        dmtx_filepath = 'dmtx{}.png'.format(count)
+        plot_design_matrix(design_matrix, output_file=dmtx_filepath)
+        html_design_matrix = '''<img src="{}" alt="Visual representation of Design Matrix of the fMRI experiment">
+    '''.format(dmtx_filepath)
+        html_design_matrices.append(html_design_matrix)
+        # design_matrix_plot = save_design_matrix_plot(model)
+    html_design_matrices = '\n'.join(html_design_matrices)
+    return html_design_matrices
+
+
+def _report_stat_maps(z_maps, bg_img):
+    pass
+
+
 def generate_report(output_path, model, **kwargs):
     # check_glm_model_attr(model)
     with open(html_template_path) as html_file_obj:
@@ -21,32 +38,38 @@ def generate_report(output_path, model, **kwargs):
     # print(html_template_text)
     report_template = string.Template(html_template_text)
     contrasts_display_text = pretty_print_mapping_of_sequence(kwargs['contrasts'])
-
-    dmtx_filepath = 'dmtx.png'
-    plot_design_matrix(model.design_matrices_[0], output_file=dmtx_filepath)
-    # design_matrix_plot = save_design_matrix_plot(model)
+    
+    html_design_matrices = _report_design_matrices(model)
     
     z_maps = kwargs['z_maps']
     anatomical_img = kwargs['bg_img']
-    
-    z_map_name = list(z_maps.keys())[0]
-    stat_map_plot = plot_stat_map(z_maps[z_map_name],
-                                  threshold=kwargs['threshold'],
-                                  title=z_map_name,
-                                  bg_img=anatomical_img,
-                                  display_mode=kwargs['display_mode'],
-                                  )
-    z_map_name_filename_text = z_map_name.title().replace(' ', '')
-    stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(z_map_name_filename_text )
-    stat_map_plot.savefig(stat_map_plot_filepath)
-
-    cluster_table = get_clusters_table(z_maps[z_map_name], 3.09, 15)
-    cluster_table_html = cluster_table.to_html()
+    html_stat_maps = []
+    html_code_for_cluster_tables = []
+    # html_code_stat_map_cluster_table_pair = []
+    for z_map_name in z_maps:
+    # z_map_name = list(z_maps.keys())[0]
+        stat_map_plot = plot_stat_map(z_maps[z_map_name],
+                                      threshold=kwargs['threshold'],
+                                      title=z_map_name,
+                                      bg_img=anatomical_img,
+                                      display_mode=kwargs['display_mode'],
+                                      )
+        z_map_name_filename_text = z_map_name.title().replace(' ', '')
+        stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(z_map_name_filename_text )
+        stat_map_plot.savefig(stat_map_plot_filepath)
+        html_stat_map_ = '''<img src="{}">'''.format(stat_map_plot_filepath)
+        html_stat_maps.append(html_stat_map_)
+        cluster_table = get_clusters_table(z_maps[z_map_name], 3.09, 15)
+        cluster_table_html = cluster_table.to_html()
+        html_code_for_cluster_table_ = '''<p>{}</p>'''.format(cluster_table_html)
+        html_code_for_cluster_tables.append(html_code_for_cluster_table_)
+    html_stat_maps = '\n'.join(html_stat_maps)
+    html_code_for_cluster_tables = '\n'.join(html_code_for_cluster_tables)
     report_values = {'Title': 'Test Report',
                      'contrasts': contrasts_display_text,
-                     'design_matrix_binary': dmtx_filepath,
-                     'stat_map': stat_map_plot_filepath,
-                     'cluster_table': cluster_table_html,
+                     'design_matrix_binary': html_design_matrices,
+                     'html_stat_maps': html_stat_maps,
+                     'html_code_for_cluster_tables': html_code_for_cluster_tables,
                      }
     report_text = report_template.safe_substitute(**report_values)
     print(report_text)

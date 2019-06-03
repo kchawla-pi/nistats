@@ -41,7 +41,7 @@ def create_report_adhd_dmn():
     first_level_model = first_level_model.fit(run_imgs=adhd_dataset.func[0],
                                               design_matrices=design_matrix)
     
-    output_filepath = 'generated_report.html'
+    output_filepath = 'generated_report_flm_adhd_dmn.html'
     z_maps = make_zmaps(first_level_model, contrasts)
     generate_report(output_filepath, first_level_model,
                     contrasts=contrasts,
