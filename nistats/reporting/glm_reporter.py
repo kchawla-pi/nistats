@@ -26,8 +26,43 @@ def _report_design_matrices(model):
     return html_design_matrices
 
 
-def _report_stat_maps(z_maps, bg_img):
-    pass
+def _report_stat_maps_cluster_tables(kwargs):
+    z_maps = kwargs['z_maps']
+    all_stat_map_cluster_table_pairs_html_code = []
+    for z_map_name, z_map_data in z_maps.items():
+        single_stat_map_html_code = _make_html_for_stat_maps(z_map_name, z_map_data, kwargs)
+        single_cluster_table_html_code = _make_html_for_cluster_table(z_map_data)
+        single_stat_map_cluster_table_pair = [single_stat_map_html_code,
+                                              single_cluster_table_html_code]
+        all_stat_map_cluster_table_pairs_html_code.extend(
+            single_stat_map_cluster_table_pair)
+    all_stat_map_cluster_table_pairs_html_code = '\n'.join(
+        all_stat_map_cluster_table_pairs_html_code)
+    return all_stat_map_cluster_table_pairs_html_code
+
+
+def _make_html_for_stat_maps(z_map_name, z_map_data, kwargs):
+    stat_map_plot = plot_stat_map(z_map_data,
+                                  threshold=kwargs['threshold'],
+                                  title=z_map_name,
+                                  bg_img=kwargs['bg_img'],
+                                  display_mode=kwargs['display_mode'],
+                                  )
+    z_map_name_filename_text = z_map_name.title().replace(' ', '')
+    stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(
+            z_map_name_filename_text)
+    stat_map_plot.savefig(stat_map_plot_filepath)
+    single_stat_map_html_code = '''<img src="{}">'''.format(
+            stat_map_plot_filepath)
+    return single_stat_map_html_code
+
+
+def _make_html_for_cluster_table(z_map_data):
+    cluster_table = get_clusters_table(z_map_data, 3.09, 15)
+    single_cluster_table_html_code = cluster_table.to_html()
+    single_cluster_table_html_code = '''<p>{}</p>'''.format(
+            single_cluster_table_html_code)
+    return single_cluster_table_html_code
 
 
 def generate_report(output_path, model, **kwargs):
@@ -40,36 +75,12 @@ def generate_report(output_path, model, **kwargs):
     contrasts_display_text = pretty_print_mapping_of_sequence(kwargs['contrasts'])
     
     html_design_matrices = _report_design_matrices(model)
-    
-    z_maps = kwargs['z_maps']
-    anatomical_img = kwargs['bg_img']
-    html_stat_maps = []
-    html_code_for_cluster_tables = []
-    # html_code_stat_map_cluster_table_pair = []
-    for z_map_name in z_maps:
-    # z_map_name = list(z_maps.keys())[0]
-        stat_map_plot = plot_stat_map(z_maps[z_map_name],
-                                      threshold=kwargs['threshold'],
-                                      title=z_map_name,
-                                      bg_img=anatomical_img,
-                                      display_mode=kwargs['display_mode'],
-                                      )
-        z_map_name_filename_text = z_map_name.title().replace(' ', '')
-        stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(z_map_name_filename_text )
-        stat_map_plot.savefig(stat_map_plot_filepath)
-        html_stat_map_ = '''<img src="{}">'''.format(stat_map_plot_filepath)
-        html_stat_maps.append(html_stat_map_)
-        cluster_table = get_clusters_table(z_maps[z_map_name], 3.09, 15)
-        cluster_table_html = cluster_table.to_html()
-        html_code_for_cluster_table_ = '''<p>{}</p>'''.format(cluster_table_html)
-        html_code_for_cluster_tables.append(html_code_for_cluster_table_)
-    html_stat_maps = '\n'.join(html_stat_maps)
-    html_code_for_cluster_tables = '\n'.join(html_code_for_cluster_tables)
+    all_stat_map_cluster_table_pairs_html_code = _report_stat_maps_cluster_tables(kwargs)
+
     report_values = {'Title': 'Test Report',
                      'contrasts': contrasts_display_text,
-                     'design_matrix_binary': html_design_matrices,
-                     'html_stat_maps': html_stat_maps,
-                     'html_code_for_cluster_tables': html_code_for_cluster_tables,
+                     'design_matrices': html_design_matrices,
+                     'all_stat_map_cluster_table_pairs': all_stat_map_cluster_table_pairs_html_code,
                      }
     report_text = report_template.safe_substitute(**report_values)
     print(report_text)
