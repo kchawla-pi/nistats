@@ -5,7 +5,7 @@ import numpy as np
 from patsy import DesignInfo
 from nilearn.datasets import load_mni152_template
 
-from nistats.reporting.glm_reporter import generate_report
+from nistats.reporting.glm_reporter import make_report
 from nistats.utils import get_design_from_fslmat
 from nistats.datasets import (fetch_openneuro_dataset_index,
                               fetch_openneuro_dataset, select_from_index)
@@ -77,16 +77,16 @@ def create_report_bids_features():
     z_maps, fsl_z_map, contrasts = make_reporter_args(model, data_dir, subject)
     
     output_filepath = 'generated_report_flm_bids_features.html'
-    generate_report(output_path=output_filepath,
-                    model=model,
-                    contrasts=contrasts,
-                    z_maps=z_maps,
-                    mask=model.masker_.mask_img_,
-                    design_matrices=model.design_matrices_,
-                    bg_img=load_mni152_template(),
-                    threshold=3.0,
-                    display_mode='z',
-                    )
+    make_report(output_path=output_filepath,
+                model=model,
+                contrasts=contrasts,
+                statistical_maps=z_maps,
+                # mask=model.masker_.mask_img_,
+                # design_matrices=model.design_matrices_,
+                bg_img=load_mni152_template(),
+                threshold=3.0,
+                display_mode='z',
+                )
     # generate_subject_stats_report(stats_report_filename=output_filepath,
     #                               contrasts=contrasts,
     #                               z_maps=z_maps,

@@ -6,7 +6,7 @@ from nilearn.input_data import NiftiSpheresMasker
 from nistats.first_level_model import FirstLevelModel
 from nistats.design_matrix import make_first_level_design_matrix
 
-from nistats.reporting.glm_reporter import generate_report
+from nistats.reporting.glm_reporter import make_report
 
 
 def make_zmaps(first_level_model, contrasts):
@@ -43,16 +43,15 @@ def create_report_adhd_dmn():
     
     output_filepath = 'generated_report_flm_adhd_dmn.html'
     z_maps = make_zmaps(first_level_model, contrasts)
-    generate_report(output_filepath, first_level_model,
-                    contrasts=contrasts,
-                    z_maps=z_maps,
-                    mask=first_level_model.masker_.mask_img_,
-                    design_matrices=first_level_model.design_matrices_,
-                    bg_img=datasets.load_mni152_template(),
-                    display_mode='z',
-                    threshold=3.09,
-                    scaled=True,
-                    )
+    make_report(output_filepath, first_level_model,
+                contrasts=contrasts,
+                statistical_maps=z_maps,
+                # mask=first_level_model.masker_.mask_img_,
+                # design_matrices=first_level_model.design_matrices_,
+                bg_img=datasets.load_mni152_template(),
+                display_mode='z',
+                threshold=3.09,
+                )
     # generate_subject_stats_report(output_filepath,
     #                               contrasts=contrasts,
     #                               z_maps=z_maps,

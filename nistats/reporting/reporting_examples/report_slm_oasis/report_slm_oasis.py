@@ -68,14 +68,14 @@ def make_design_matrix(oasis_dataset, n_subjects):
 def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
-    from nistats.reporting.glm_reporter import generate_report
-    generate_report(
+    from nistats.reporting.glm_reporter import make_report
+    make_report(
             output_filepath,
             model,
             contrasts=contrast,
-            z_maps=z_maps,
-            mask=mask_img,
-            design_matrices=[design_matrix],
+            statistical_maps=z_maps,
+            # mask=mask_img,
+            # design_matrices=[design_matrix],
             bg_img=icbm152_2009['t1'],
             threshold=3.09,
             display_mode='z',
