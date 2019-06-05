@@ -2,9 +2,10 @@ import string
 import os
 import pprint
 
-import numpy as np
+import pandas as pd
 from nilearn.datasets import load_mni152_template
 from nilearn.plotting import plot_stat_map
+
 from nistats.reporting import (
     plot_design_matrix,
     get_clusters_table,
@@ -14,13 +15,12 @@ from nistats.reporting import (
 html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.html')
 
 
-def make_report(output_path,
-                model,
-                contrasts,
-                statistical_maps,
-                threshold=3.09,
-                bg_img='MNI 152 Template',
-                display_mode='z'):
+def make_glm_report(output_path,
+                    model,
+                    contrasts,
+                    threshold=3.09,
+                    bg_img='MNI 152 Template',
+                    display_mode='z'):
     """ Creates an HTML page which shows all important aspects
     of a fitted GLM.
     
@@ -33,8 +33,6 @@ def make_report(output_path,
         A fitted first or second level model object.
         
     contrasts: Dict[string, ndarray]
-    
-    statistical_maps: Dict[string, ndarray]
     
     threshold: float
         Default is 3.09
@@ -49,6 +47,7 @@ def make_report(output_path,
     -------
     None
     """
+    pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     
     with open(html_template_path) as html_file_obj:
@@ -56,8 +55,13 @@ def make_report(output_path,
     
     # print(html_template_text)
     report_template = string.Template(html_template_text)
-    contrasts_display_text = pretty_print_mapping_of_sequence(contrasts)
-    
+    contrasts_display_text = pd.DataFrame.from_dict(contrasts, orient='index'
+                                                    ).to_html(border=0,
+                                                              header=False,
+                                                              )
+    pd.set_option('display.max_colwidth', 50)
+    model_attributes_html = make_model_attributes_html_table(model)
+    statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _report_design_matrices(model)
     all_stat_map_cluster_table_pairs_html_code = (
         _report_stat_maps_cluster_tables(statistical_maps,
@@ -67,7 +71,8 @@ def make_report(output_path,
                                          )
     )
     
-    report_values = {'Title': 'Test Report',
+    report_values = {'title': 'Test Report',
+                     'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
                      'design_matrices': html_design_matrices,
                      'all_stat_map_cluster_table_pairs': all_stat_map_cluster_table_pairs_html_code,
@@ -85,6 +90,30 @@ def pretty_print_mapping_of_sequence(any_dict):
         line_text = '{} : {}'.format(key, formatted_value)
         output_text.append(line_text)
     return '\n'.join(output_text)
+
+
+def make_model_attributes_html_table(model):
+    selected_model_attributes = {
+        attr_name: attr_val
+        for attr_name, attr_val in model.__dict__.items()
+        if not attr_name.endswith('_')
+        }
+    model_attributes_table = pd.DataFrame.from_dict(selected_model_attributes,
+                                                    orient='index',
+                                                    )
+    model_attributes_table = model_attributes_table.to_html(header=False,
+                                                            sparsify=False,
+                                                            )
+    return model_attributes_table
+
+
+def make_statistical_maps(model, contrasts):
+    """ Given a first model and contrasts, return the corresponding z-maps"""
+    statistical_maps = {}
+    for contrast_id, contrast_val in contrasts.items():
+        statistical_maps[contrast_id] = model.compute_contrast(
+                contrast_val)
+    return statistical_maps
 
 
 def _report_design_matrices(model):
@@ -249,4 +278,4 @@ def _make_html_for_cluster_table(statistical_map_data):
     
 
 if __name__ == '__main__':
-    make_report('generated_report.html', None)
+    make_glm_report('generated_report.html', None)
