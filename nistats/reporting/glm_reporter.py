@@ -18,6 +18,7 @@ html_template_root_path = os.path.dirname(__file__)
 def make_glm_report(output_path,
                     model,
                     contrasts,
+                    title='auto',
                     threshold=3.09,
                     bg_img='MNI 152 Template',
                     display_mode='z'):
@@ -32,7 +33,7 @@ def make_glm_report(output_path,
     model: FirstLevelModel or SecondLevelModel object
         A fitted first or second level model object.
         
-    contrasts: Dict[string, ndarray]
+    contrasts: Dict[string, ndarray] , String
     
     threshold: float
         Default is 3.09
@@ -54,7 +55,9 @@ def make_glm_report(output_path,
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
     
-    # print(html_template_text)
+    page_title, page_heading_1, page_heading_2 = _make_page_title_heading(contrasts,
+                                                                          title,
+                                                                          )
     report_template = string.Template(html_template_text)
     contrasts_display_text = pd.DataFrame.from_dict(contrasts, orient='index'
                                                     ).to_html(border=0,
@@ -73,7 +76,9 @@ def make_glm_report(output_path,
                                 )
     )
     all_components_text = '\n'.join(all_components)
-    report_values = {'title': 'Test Report',
+    report_values = {'page_title': page_title,
+                     'page_heading_1': page_heading_1,
+                     'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
                      'design_matrices': html_design_matrices,
@@ -85,15 +90,21 @@ def make_glm_report(output_path,
         html_write_obj.write(report_text)
 
 
-def pretty_print_mapping_of_sequence(any_dict):
-    output_text = []
-    for key, value in any_dict.items():
-        formatted_value = pprint.pformat(value)
-        line_text = '{} : {}'.format(key, formatted_value)
-        output_text.append(line_text)
-    return '\n'.join(output_text)
-
-
+def _make_page_title_heading(contrasts, title):
+    if title != 'auto':
+        return title, title, ''
+    else:
+        try:
+            contrasts_names = sorted(list(contrasts.keys()))
+        except AttributeError:
+            contrasts_names = contrasts
+        contrasts_text = ', '.join(contrasts_names)
+        page_title = 'Report: {}'.format(contrasts_text)
+        page_heading_1 = 'Statistical Report for contrasts'
+        page_heading_2 = '{}'.format(contrasts_text)
+        return page_title, page_heading_1, page_heading_2
+    
+    
 def make_model_attributes_html_table(model):
     selected_model_attributes = {
         attr_name: attr_val

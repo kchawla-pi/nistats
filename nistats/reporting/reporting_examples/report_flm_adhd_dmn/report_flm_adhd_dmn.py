@@ -46,6 +46,7 @@ def create_report_adhd_dmn():
     make_glm_report(output_filepath,
                     first_level_model,
                     contrasts=contrasts,
+                    title='ADHD DMN Report',
                     )
     # generate_subject_stats_report(output_filepath,
     #                               contrasts=contrasts,
