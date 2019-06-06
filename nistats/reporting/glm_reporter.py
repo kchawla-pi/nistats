@@ -146,9 +146,11 @@ def _report_design_matrices(model):
 
 
 def _make_report_components(statistical_maps, contrasts, threshold, bg_img, display_mode):
-    """ Creates a list of HTML code for report components
-    representing corresponding contrast, statistical maps & cluster table;
-    to be inserted into the HTML Report Template.
+    """ Populates a smaller HTML sub-template with the proper values,
+     make a list containing one or more of such components
+     & returns the list to be inserted into the HTML Report Template.
+    Each component contains the HTML code for
+    a contrast & its corresponding statistical maps & cluster table;
     
     Parameters
     ----------
