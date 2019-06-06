@@ -12,7 +12,7 @@ from nistats.reporting import (
     )
 
 
-html_template_path = os.path.join(os.path.dirname(__file__), 'report_template.html')
+html_template_root_path = os.path.dirname(__file__)
 
 
 def make_glm_report(output_path,
@@ -37,7 +37,7 @@ def make_glm_report(output_path,
     threshold: float
         Default is 3.09
         
-    bg_img: Niimg
+    bg_img: Nifti image
         Default is the MNI152 template
         
     display_mode: String
@@ -49,7 +49,8 @@ def make_glm_report(output_path,
     """
     pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
-    
+    html_template_path = os.path.join(html_template_root_path,
+                                      'report_template.html')
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
     
@@ -63,22 +64,23 @@ def make_glm_report(output_path,
     model_attributes_html = make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _report_design_matrices(model)
-    all_stat_map_cluster_table_pairs_html_code = (
-        _report_stat_maps_cluster_tables(statistical_maps,
-                                         threshold,
-                                         bg_img,
-                                         display_mode,
-                                         )
+    all_components = (
+        _make_report_components(statistical_maps,
+                                contrasts,
+                                threshold,
+                                bg_img,
+                                display_mode,
+                                )
     )
-    
+    all_components_text = '\n'.join(all_components)
     report_values = {'title': 'Test Report',
                      'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
                      'design_matrices': html_design_matrices,
-                     'all_stat_map_cluster_table_pairs': all_stat_map_cluster_table_pairs_html_code,
+                     'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
-    print(report_text)
+    # print(report_text)
     with open(output_path, 'w') as html_write_obj:
         html_write_obj.write(report_text)
 
@@ -108,7 +110,7 @@ def make_model_attributes_html_table(model):
 
 
 def make_statistical_maps(model, contrasts):
-    """ Given a first model and contrasts, return the corresponding z-maps"""
+    """ Given a model and contrasts, return the corresponding z-maps"""
     statistical_maps = {}
     for contrast_id, contrast_val in contrasts.items():
         statistical_maps[contrast_id] = model.compute_contrast(
@@ -143,18 +145,18 @@ def _report_design_matrices(model):
     return html_design_matrices
 
 
-def _report_stat_maps_cluster_tables(statistical_maps, threshold, bg_img, display_mode):
-    """ Generates a string of HTML code
-    representing statistical maps & corresponding cluster tables;
+def _make_report_components(statistical_maps, contrasts, threshold, bg_img, display_mode):
+    """ Creates a list of HTML code for report components
+    representing corresponding contrast, statistical maps & cluster table;
     to be inserted into the HTML Report Template.
     
     Parameters
     ----------
-    statistical_maps: Dict[string, numpy array]
+    statistical_maps: Nifti images
     
     threshold: float
     
-    bg_img: niimg
+    bg_img: Nifti image
     
     display_mode: string
     
@@ -162,26 +164,41 @@ def _report_stat_maps_cluster_tables(statistical_maps, threshold, bg_img, displa
     -------
     String of HTML code representing Statistical Maps + Cluster Tables
     """
-    all_stat_map_cluster_table_pairs_html_code = []
-    for stat_map_name, stat_map_data in statistical_maps.items():
-        single_stat_map_html_code = _make_html_for_stat_maps(stat_map_name,
-                                                             stat_map_data,
-                                                             threshold,
-                                                             bg_img,
-                                                             display_mode,
-                                                             )
-        single_cluster_table_html_code = _make_html_for_cluster_table(stat_map_data)
-        single_stat_map_cluster_table_pair = [single_stat_map_html_code,
-                                              single_cluster_table_html_code]
-        all_stat_map_cluster_table_pairs_html_code.extend(
-            single_stat_map_cluster_table_pair)
-    all_stat_map_cluster_table_pairs_html_code = '\n'.join(
-        all_stat_map_cluster_table_pairs_html_code)
-    return all_stat_map_cluster_table_pairs_html_code
+    all_components = []
+    components_template_path = os.path.join(html_template_root_path,
+                                            'report_components_template.html'
+                                            )
+    with open(components_template_path) as html_template_obj:
+        components_template_text = html_template_obj.read()
+    for stat_map_name, stat_map_img in statistical_maps.items():
+        component_text_ = string.Template(components_template_text)
+        contrast_html = _make_html_for_contrast(stat_map_name, contrasts)
+        stat_map_plot_filepath = _make_html_for_stat_maps(stat_map_name,
+                                                          stat_map_img,
+                                                          threshold,
+                                                          bg_img,
+                                                          display_mode,
+                                                          )
+        cluster_table_html = _make_html_for_cluster_table(stat_map_img)
+        components_values = {
+            'contrast': contrast_html,
+            'stat_map_img': stat_map_plot_filepath,
+            'cluster_table': cluster_table_html,
+            }
+        component_text_ = component_text_.safe_substitute(**components_values)
+        all_components.append(component_text_)
+    return all_components
 
+
+def _make_html_for_contrast(stat_map_name, contrasts):
+    current_contrast = {stat_map_name: contrasts[stat_map_name]}
+    contrast_html = pd.DataFrame.from_dict(current_contrast, orient='index'
+                           ).to_html(header=False, border=0)
+    return contrast_html
+    
 
 def _make_html_for_stat_maps(statistical_map_name,
-                             statistical_map_data,
+                             statistical_map_img,
                              threshold,
                              bg_img,
                              display_mode,
@@ -192,11 +209,11 @@ def _make_html_for_stat_maps(statistical_map_name,
     ----------
     statistical_map_name: String
     
-    statistical_map_data: Ndarray
+    statistical_map_img: Ndarray
     
     threshold: float
     
-    bg_img: niimg
+    bg_img: Nifti image
     
     display_mode: String
     
@@ -204,7 +221,7 @@ def _make_html_for_stat_maps(statistical_map_name,
     -------
     String of HTML code representing a statistical map.
     """
-    stat_map_plot = plot_stat_map(statistical_map_data,
+    stat_map_plot = plot_stat_map(statistical_map_img,
                                   threshold=threshold,
                                   title=statistical_map_name,
                                   bg_img=bg_img,
@@ -214,26 +231,22 @@ def _make_html_for_stat_maps(statistical_map_name,
     stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(
             z_map_name_filename_text)
     stat_map_plot.savefig(stat_map_plot_filepath)
-    single_stat_map_html_code = '''<img src="{}">'''.format(
-            stat_map_plot_filepath)
-    return single_stat_map_html_code
+    return stat_map_plot_filepath
 
 
-def _make_html_for_cluster_table(statistical_map_data):
+def _make_html_for_cluster_table(statistical_map_img):
     """ Generates string of HTML code for a cluster table.
 
     Parameters
     ----------
-    statistical_map_data: Ndarray
+    statistical_map_img: Nifti image
 
     Returns
     -------
     String of HTML code representing a cluster table.
     """
-    cluster_table = get_clusters_table(statistical_map_data, 3.09, 15)
+    cluster_table = get_clusters_table(statistical_map_img, 3.09, 15)
     single_cluster_table_html_code = cluster_table.to_html()
-    single_cluster_table_html_code = '''<p>{}</p>'''.format(
-            single_cluster_table_html_code)
     return single_cluster_table_html_code
 
 
