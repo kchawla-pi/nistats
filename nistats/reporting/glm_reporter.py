@@ -1,6 +1,5 @@
 import string
 import os
-import pprint
 
 import pandas as pd
 from nilearn.datasets import load_mni152_template
@@ -54,15 +53,15 @@ def make_glm_report(output_path,
                                       'report_template.html')
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
-    
+    contrasts = _make_contrasts_dict(contrasts)
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(contrasts,
                                                                           title,
                                                                           )
     report_template = string.Template(html_template_text)
-    contrasts_display_text = pd.DataFrame.from_dict(contrasts, orient='index'
-                                                    ).to_html(border=0,
-                                                              header=False,
-                                                              )
+    try:
+        contrasts_display_text = ', '.join(sorted(contrasts))
+    except AttributeError:
+        contrasts_display_text = contrasts
     pd.set_option('display.max_colwidth', 50)
     model_attributes_html = make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
@@ -90,15 +89,23 @@ def make_glm_report(output_path,
         html_write_obj.write(report_text)
 
 
+def _make_contrasts_dict(contrasts):
+    # contrasts = 'StopSuccess - Go'
+    contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
+    if not isinstance(contrasts, dict):
+        contrasts = {contrast_: contrast_ for contrast_ in contrasts}
+    return contrasts
+
+
 def _make_page_title_heading(contrasts, title):
     if title != 'auto':
         return title, title, ''
     else:
-        try:
-            contrasts_names = sorted(list(contrasts.keys()))
-        except AttributeError:
-            contrasts_names = contrasts
-        contrasts_text = ', '.join(contrasts_names)
+        if isinstance(contrasts, str):
+            contrasts_text = contrasts
+        else:
+            contrasts_names = sorted(contrasts)
+            contrasts_text = ', '.join(contrasts_names)
         page_title = 'Report: {}'.format(contrasts_text)
         page_heading_1 = 'Statistical Report for contrasts'
         page_heading_2 = '{}'.format(contrasts_text)
@@ -122,10 +129,9 @@ def make_model_attributes_html_table(model):
 
 def make_statistical_maps(model, contrasts):
     """ Given a model and contrasts, return the corresponding z-maps"""
-    statistical_maps = {}
-    for contrast_id, contrast_val in contrasts.items():
-        statistical_maps[contrast_id] = model.compute_contrast(
-                contrast_val)
+    statistical_maps = {contrast_id: model.compute_contrast(contrast_val)
+                        for contrast_id, contrast_val in contrasts.items()
+                        }
     return statistical_maps
 
 
@@ -192,7 +198,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
                                                           bg_img,
                                                           display_mode,
                                                           )
-        cluster_table_html = _make_html_for_cluster_table(stat_map_img)
+        cluster_table_html = _make_html_for_cluster_table(stat_map_img, threshold)
         components_values = {
             'contrast': contrast_html,
             'stat_map_img': stat_map_plot_filepath,
@@ -204,7 +210,9 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
 
 
 def _make_html_for_contrast(stat_map_name, contrasts):
-    current_contrast = {stat_map_name: contrasts[stat_map_name]}
+    contrast_val = contrasts[stat_map_name]
+    contrast_val = '' if isinstance(contrast_val, str) else contrast_val
+    current_contrast = {stat_map_name: contrast_val}
     contrast_html = pd.DataFrame.from_dict(current_contrast, orient='index'
                            ).to_html(header=False, border=0)
     return contrast_html
@@ -247,7 +255,7 @@ def _make_html_for_stat_maps(statistical_map_name,
     return stat_map_plot_filepath
 
 
-def _make_html_for_cluster_table(statistical_map_img):
+def _make_html_for_cluster_table(statistical_map_img, threshold):
     """ Generates string of HTML code for a cluster table.
 
     Parameters
@@ -258,7 +266,10 @@ def _make_html_for_cluster_table(statistical_map_img):
     -------
     String of HTML code representing a cluster table.
     """
-    cluster_table = get_clusters_table(statistical_map_img, 3.09, 15)
+    cluster_table = get_clusters_table(statistical_map_img,
+                                       stat_threshold=threshold,
+                                       cluster_threshold=15,
+                                       )
     single_cluster_table_html_code = cluster_table.to_html()
     return single_cluster_table_html_code
 
@@ -305,3 +316,11 @@ def _make_html_for_cluster_table(statistical_map_img):
 
 if __name__ == '__main__':
     make_glm_report('generated_report.html', None)
+
+#TODO: Less peak value precision
+#TODO: Add effect size of contrast?
+#TODO: Limit number of voxel clusters in table
+#TODO: Diagnostic things like Image of variance? Plot variance maps, effects size maps?
+#TODO: Oasis VBM Example, check age effect. It is positive. It should be negative (expected reduction in cortex).
+#TODO: Should we output in Markdown? Easy to cut-paste, insert in Latex.
+#TODO: Plot stat maps on Glass Brains?

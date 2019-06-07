@@ -79,7 +79,7 @@ def create_report_bids_features():
     output_filepath = 'generated_report_flm_bids_features.html'
     make_glm_report(output_path=output_filepath,
                     model=model,
-                    contrasts=contrasts,
+                    contrasts='StopSuccess - Go',
                     )
     # generate_subject_stats_report(stats_report_filename=output_filepath,
     #                               contrasts=contrasts,
