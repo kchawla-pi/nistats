@@ -1,5 +1,21 @@
-<p>${contrast}</p>
+<div class="wrap-collabsible">
+  <input id="collapsible" class="toggle" type="checkbox">
+  <label for="collapsible" class="lbl-toggle">More Info</label>
+  <div class="collapsible-content">
+    <div class="content-inner">
+        <p>${contrast}</p>
+        <img src="${stat_map_img}">
 
-<img src="${stat_map_img}">
+        <div class="wrap-collabsible">
+          <input id="collapsible" class="toggle" type="checkbox">
+          <label for="collapsible" class="lbl-toggle">More Info</label>
+          <div class="collapsible-content">
+            <div class="content-inner">
+              <p>${cluster_table}</p>
+            </div>
+          </div>
+        </div>
 
-<p>${cluster_table}</p>
+    </div>
+  </div>
+</div>

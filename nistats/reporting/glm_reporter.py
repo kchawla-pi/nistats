@@ -58,22 +58,24 @@ def make_glm_report(output_path,
                                                                           title,
                                                                           )
     report_template = string.Template(html_template_text)
-    try:
+    if contrasts.keys() == contrasts.values():
         contrasts_display_text = ', '.join(sorted(contrasts))
-    except AttributeError:
-        contrasts_display_text = contrasts
+    else:
+        contrasts_display_text = pd.DataFrame.from_dict(contrasts,
+                                                        orient='index'
+                                                        ).to_html(border=0,
+                                                                  header=False,
+                                                                  )
     pd.set_option('display.max_colwidth', 50)
     model_attributes_html = make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _report_design_matrices(model)
-    all_components = (
-        _make_report_components(statistical_maps,
-                                contrasts,
-                                threshold,
-                                bg_img,
-                                display_mode,
-                                )
-    )
+    all_components = _make_report_components(statistical_maps,
+                                             contrasts,
+                                             threshold,
+                                             bg_img,
+                                             display_mode,
+                                             )
     all_components_text = '\n'.join(all_components)
     report_values = {'page_title': page_title,
                      'page_heading_1': page_heading_1,
@@ -324,3 +326,6 @@ if __name__ == '__main__':
 #TODO: Oasis VBM Example, check age effect. It is positive. It should be negative (expected reduction in cortex).
 #TODO: Should we output in Markdown? Easy to cut-paste, insert in Latex.
 #TODO: Plot stat maps on Glass Brains?
+
+#TODO: Variance of the model
+#TODO: Noise model
