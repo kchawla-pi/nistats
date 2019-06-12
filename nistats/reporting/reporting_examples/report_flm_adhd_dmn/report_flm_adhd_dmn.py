@@ -47,6 +47,7 @@ def create_report_adhd_dmn():
                     first_level_model,
                     contrasts=contrasts,
                     title='ADHD DMN Report',
+                    plot_type='glass',
                     )
     # generate_subject_stats_report(output_filepath,
     #                               contrasts=contrasts,

@@ -3,7 +3,7 @@ import os
 
 import pandas as pd
 from nilearn.datasets import load_mni152_template
-from nilearn.plotting import plot_stat_map
+from nilearn.plotting import plot_stat_map, plot_glass_brain
 
 from nistats.reporting import (
     plot_design_matrix,
@@ -20,7 +20,9 @@ def make_glm_report(output_path,
                     title='auto',
                     threshold=3.09,
                     bg_img='MNI 152 Template',
-                    display_mode='z'):
+                    display_mode='z',
+                    plot_type='stat',
+                    ):
     """ Creates an HTML page which shows all important aspects
     of a fitted GLM.
     
@@ -67,7 +69,7 @@ def make_glm_report(output_path,
                                                                   header=False,
                                                                   )
     pd.set_option('display.max_colwidth', 50)
-    model_attributes_html = make_model_attributes_html_table(model)
+    model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _report_design_matrices(model)
     all_components = _make_report_components(statistical_maps,
@@ -75,6 +77,7 @@ def make_glm_report(output_path,
                                              threshold,
                                              bg_img,
                                              display_mode,
+                                             plot_type,
                                              )
     all_components_text = '\n'.join(all_components)
     report_values = {'page_title': page_title,
@@ -114,7 +117,7 @@ def _make_page_title_heading(contrasts, title):
         return page_title, page_heading_1, page_heading_2
     
     
-def make_model_attributes_html_table(model):
+def _make_model_attributes_html_table(model):
     selected_model_attributes = {
         attr_name: attr_val
         for attr_name, attr_val in model.__dict__.items()
@@ -164,7 +167,7 @@ def _report_design_matrices(model):
     return html_design_matrices
 
 
-def _make_report_components(statistical_maps, contrasts, threshold, bg_img, display_mode):
+def _make_report_components(statistical_maps, contrasts, threshold, bg_img, display_mode, plot_type):
     """ Populates a smaller HTML sub-template with the proper values,
      make a list containing one or more of such components
      & returns the list to be inserted into the HTML Report Template.
@@ -199,6 +202,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
                                                           threshold,
                                                           bg_img,
                                                           display_mode,
+                                                          plot_type ,
                                                           )
         cluster_table_html = _make_html_for_cluster_table(stat_map_img, threshold)
         components_values = {
@@ -225,6 +229,7 @@ def _make_html_for_stat_maps(statistical_map_name,
                              threshold,
                              bg_img,
                              display_mode,
+                             plot_type,
                              ):
     """ Generates string of HTML code for a statistical map.
     
@@ -244,12 +249,19 @@ def _make_html_for_stat_maps(statistical_map_name,
     -------
     String of HTML code representing a statistical map.
     """
-    stat_map_plot = plot_stat_map(statistical_map_img,
-                                  threshold=threshold,
-                                  title=statistical_map_name,
-                                  bg_img=bg_img,
-                                  display_mode=display_mode,
-                                  )
+    if plot_type == 'glass':
+        stat_map_plot = plot_glass_brain(statistical_map_img,
+                                         threshold=threshold,
+                                         title=statistical_map_name,
+                                         display_mode=display_mode,
+                                         )
+    else:
+        stat_map_plot = plot_stat_map(statistical_map_img,
+                                      threshold=threshold,
+                                      title=statistical_map_name,
+                                      bg_img=bg_img,
+                                      display_mode=display_mode,
+                                      )
     z_map_name_filename_text = statistical_map_name.title().replace(' ', '')
     stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(
             z_map_name_filename_text)
