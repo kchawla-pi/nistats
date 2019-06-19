@@ -1,25 +1,51 @@
 <!DOCTYPE html>
 <html lang="en">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>${page_title}</title>
-    <link rel="stylesheet" type="text/css" href="style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--  <title>jQuery UI Accordion - Collapse content</title>-->
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script>
+  $( function() {
+    $( "#accordion" ).accordion({
+      collapsible: true
+    });
+  } );
+  </script>
+  <title>${page_title}</title>
+<!--    <link rel="stylesheet" type="text/css" href="style.css">-->
 </head>
 <body>
+
 <h1>${page_heading_1}</h1>
 <h2>${page_heading_2}</h2>
-<h4>Model details:</h4>
-<p>${model_attributes}</p>
+<div id="accordion">
+  <h4>Model details:</h4>
+  <div>
+  <p>${model_attributes}</p>
+  </div>
 
 
 <h4>Contrasts:</h4>
-<p>${contrasts}</p>
+  <div>
+  <p>${contrasts}</p>
+  </div>
 
 <h4>Design Matrix:</h4>
-${design_matrices}
+  <div>
+  ${design_matrices}
+  </div>
+
 
 <h4> Stat Maps with Cluster Tables</h4>
+
 ${component}
 
-</body>
+
+</div></body>
 </html>

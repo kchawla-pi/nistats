@@ -60,7 +60,12 @@ def make_glm_report(output_path,
                                                                           title,
                                                                           )
     report_template = string.Template(html_template_text)
-    if contrasts.keys() == contrasts.values():
+    contrast_arrays_not_supplied = any([contrast_name == contrast_value
+                                        for contrast_name, contrast_value
+                                        in contrasts.items()
+                                        ]
+                                       )
+    if contrast_arrays_not_supplied:
         contrasts_display_text = ', '.join(sorted(contrasts))
     else:
         contrasts_display_text = pd.DataFrame.from_dict(contrasts,
