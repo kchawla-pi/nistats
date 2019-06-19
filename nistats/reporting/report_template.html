@@ -1,51 +1,127 @@
 <!DOCTYPE html>
-<html lang="en">
-<!doctype html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-<!--  <title>jQuery UI Accordion - Collapse content</title>-->
-  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-  <link rel="stylesheet" href="/resources/demos/style.css">
-  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
-  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
-  <script>
-  $( function() {
-    $( "#accordion" ).accordion({
-      collapsible: true
-    });
-  } );
-  </script>
-  <title>${page_title}</title>
-<!--    <link rel="stylesheet" type="text/css" href="style.css">-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>${page_title}</title>
+<style>
+/* Popup container - can be anything you want */
+.popup {
+  position: relative;
+  display: inline-block;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* The actual popup */
+.popup .popuptext {
+  visibility: hidden;
+  width: 480px;
+  background-color: #555;
+  color: #fff;
+  text-align: center;
+  border-radius: 6px;
+  padding: 8px 0;
+  position: absolute;
+  z-index: 1;
+  /*bottom: 125%;*/
+  left: 50%;
+  margin-left: 10px;
+}
+
+/* Popup arrow */
+.popup .popuptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
+
+/* Toggle this class - hide and show the popup */
+.popup .show {
+  visibility: visible;
+  -webkit-animation: fadeIn 1s;
+  animation: fadeIn 1s;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity: 1;}
+}
+
+@keyframes fadeIn {
+  from {opacity: 0;}
+  to {opacity:1 ;}
+}
+</style>
 </head>
-<body>
+<body style="text-align:left">
 
 <h1>${page_heading_1}</h1>
 <h2>${page_heading_2}</h2>
-<div id="accordion">
-  <h4>Model details:</h4>
-  <div>
-  <p>${model_attributes}</p>
-  </div>
+<h4>Model details:</h4>
+<p>${model_attributes}</p>
 
 
 <h4>Contrasts:</h4>
-  <div>
-  <p>${contrasts}</p>
-  </div>
+<p>${contrasts}</p>
 
 <h4>Design Matrix:</h4>
-  <div>
-  ${design_matrices}
-  </div>
-
+${design_matrices}
 
 <h4> Stat Maps with Cluster Tables</h4>
-
 ${component}
 
 
-</div></body>
+<!--<h2>Popup</h2>-->
+<!--<div class="popup" onclick="myFunction()">Click me to toggle the popup!-->
+<!--  <span class="popuptext" id="myPopup">A Simple Popup!</span>-->
+<!--</div>-->
+
+<script>
+// When the user clicks on div, open the popup
+function myFunction() {
+  var popup = document.getElementById("myPopup");
+  popup.classList.toggle("show");
+}
+</script>
+
+</body>
 </html>
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>${page_title}</title>-->
+<!--    <link rel="stylesheet" type="text/css" href="style.css">-->
+<!--</head>-->
+<!--<body>-->
+<!--<h1>${page_heading_1}</h1>-->
+<!--<h2>${page_heading_2}</h2>-->
+<!--<h4>Model details:</h4>-->
+<!--<p>${model_attributes}</p>-->
+
+
+<!--<h4>Contrasts:</h4>-->
+<!--<p>${contrasts}</p>-->
+
+<!--<h4>Design Matrix:</h4>-->
+<!--${design_matrices}-->
+
+<!--<h4> Stat Maps with Cluster Tables</h4>-->
+<!--${component}-->
+
+<!--</body>-->
+<!--</html>-->
+
+
