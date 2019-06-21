@@ -95,6 +95,8 @@ def make_glm_report(output_path,
                      }
     report_text = report_template.safe_substitute(**report_values)
     # print(report_text)
+    from nilearn.plotting.js_plotting_utils import HTMLDocument
+    # return HTMLDocument(report_text)
     with open(output_path, 'w') as html_write_obj:
         html_write_obj.write(report_text)
 
@@ -162,11 +164,16 @@ def _report_design_matrices(model):
     """
     html_design_matrices = []
     for count, design_matrix in enumerate(model.design_matrices_):
-        dmtx_filepath = 'dmtx{}.png'.format(count)
-        plot_design_matrix(design_matrix, output_file=dmtx_filepath)
-        html_design_matrix = ('<img src="{}" alt="Visual representation '
-                              'of Design Matrix of the fMRI experiment">'
-                              ).format(dmtx_filepath)
+        dmtx_filepath = 'dmtx{}.svg'.format(count)
+        dmtx = plot_design_matrix(design_matrix)
+        import io
+        buffer = io.StringIO()
+        dmtx.figure.savefig(buffer, format='svg')
+            
+        # html_design_matrix = ('<img src="{}" alt="Visual representation '
+        #                       'of Design Matrix of the fMRI experiment">'
+        #                       ).format(dmtx_filepath)
+        html_design_matrix = ('<svg>{}</svg>'.format(buffer.getvalue()))
         html_design_matrices.append(html_design_matrix)
     html_design_matrices = '\n'.join(html_design_matrices)
     return html_design_matrices
@@ -268,7 +275,7 @@ def _make_html_for_stat_maps(statistical_map_name,
                                       display_mode=display_mode,
                                       )
     z_map_name_filename_text = statistical_map_name.title().replace(' ', '')
-    stat_map_plot_filepath = 'stat_map_plot_{}.png'.format(
+    stat_map_plot_filepath = 'stat_map_plot_{}.svg'.format(
             z_map_name_filename_text)
     stat_map_plot.savefig(stat_map_plot_filepath)
     return stat_map_plot_filepath

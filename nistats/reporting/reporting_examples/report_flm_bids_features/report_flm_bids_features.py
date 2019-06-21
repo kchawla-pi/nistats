@@ -56,40 +56,15 @@ def make_design_matrix(data_dir, subject):
     return design_matrix
 
 
-def make_reporter_args(model, data_dir, subject):
-    contrast_def = 'StopSuccess - Go'
-    design_info = DesignInfo(model.design_matrices_[0].columns.tolist())
-    con_vals = [contrast_def]
-    for cidx, con in enumerate(con_vals):
-        if not isinstance(con, np.ndarray):
-            con_vals[cidx] = design_info.linear_constraint(con).coefs
-    z_maps = {contrast_def: model.compute_contrast(contrast_def)}
-    fsl_z_map = nib.load(
-        os.path.join(data_dir, 'derivatives', 'task', subject, 'stopsignal.feat',
-                     'stats', 'zstat12.nii.gz'))
-    contrasts = {contrast_def: con_vals}
-    return z_maps, fsl_z_map, contrasts
-
-
 def create_report_bids_features():
     data_dir = fetch_bids_data()
     model, subject = make_flm(data_dir)
-    z_maps, fsl_z_map, contrasts = make_reporter_args(model, data_dir, subject)
-    
     output_filepath = 'generated_report_flm_bids_features.html'
     make_glm_report(output_path=output_filepath,
                     model=model,
                     contrasts='StopSuccess - Go',
-                    # contrasts=contrasts
                     )
-    # generate_subject_stats_report(stats_report_filename=output_filepath,
-    #                               contrasts=contrasts,
-    #                               z_maps=z_maps,
-    #                               mask=model.masker_.mask_img_,
-    #                               design_matrices=model.design_matrices_,
-    #                               anat=load_mni152_template(),
-    #                               threshold=3.0,
-    #                               )
+
 
 if __name__ == '__main__':
     create_report_bids_features()

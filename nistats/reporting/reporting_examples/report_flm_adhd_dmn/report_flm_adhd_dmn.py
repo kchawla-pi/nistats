@@ -9,15 +9,6 @@ from nistats.design_matrix import make_first_level_design_matrix
 from nistats.reporting.glm_reporter import make_glm_report
 
 
-def make_zmaps(first_level_model, contrasts):
-    """ Given a first model and contrasts, return the corresponding z-maps"""
-    z_maps = {}
-    for index, (contrast_id, contrast_val) in enumerate(contrasts.items()):
-        z_maps[contrast_id] = first_level_model.compute_contrast(
-                contrast_val, output_type='z_score')
-    return z_maps
-
-
 def create_report_adhd_dmn():
     t_r = 2.
     slice_time_ref = 0.
@@ -42,20 +33,13 @@ def create_report_adhd_dmn():
                                               design_matrices=design_matrix)
     
     output_filepath = 'generated_report_flm_adhd_dmn.html'
-    z_maps = make_zmaps(first_level_model, contrasts)
-    make_glm_report(output_filepath,
+    report = make_glm_report(output_filepath,
                     first_level_model,
                     contrasts=contrasts,
                     title='ADHD DMN Report',
                     plot_type='glass',
                     )
-    # generate_subject_stats_report(output_filepath,
-    #                               contrasts=contrasts,
-    #                               z_maps=z_maps,
-    #                               mask=first_level_model.masker_.mask_img_,
-    #                               design_matrices=first_level_model.design_matrices_,
-    #                               anat=datasets.load_mni152_template(),
-    #                               )
+    # report.open_in_browser()
 
 
 if __name__ == '__main__':
