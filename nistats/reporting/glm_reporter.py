@@ -1,3 +1,4 @@
+import io
 import string
 import os
 
@@ -164,15 +165,9 @@ def _report_design_matrices(model):
     """
     html_design_matrices = []
     for count, design_matrix in enumerate(model.design_matrices_):
-        dmtx_filepath = 'dmtx{}.svg'.format(count)
-        dmtx = plot_design_matrix(design_matrix)
-        import io
+        design_matrix_image_axes = plot_design_matrix(design_matrix)
         buffer = io.StringIO()
-        dmtx.figure.savefig(buffer, format='svg')
-            
-        # html_design_matrix = ('<img src="{}" alt="Visual representation '
-        #                       'of Design Matrix of the fMRI experiment">'
-        #                       ).format(dmtx_filepath)
+        design_matrix_image_axes.figure.savefig(buffer, format='svg')
         html_design_matrix = ('<svg class="dmtx">{}</svg>'.format(buffer.getvalue()))
         html_design_matrices.append(html_design_matrix)
     html_design_matrices = '\n'.join(html_design_matrices)
@@ -209,7 +204,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
     for stat_map_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
         contrast_html = _make_html_for_contrast(stat_map_name, contrasts)
-        stat_map_plot_filepath = _make_html_for_stat_maps(stat_map_name,
+        stat_map_html_code  = _make_html_for_stat_maps(stat_map_name,
                                                           stat_map_img,
                                                           threshold,
                                                           bg_img,
@@ -219,7 +214,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
         cluster_table_html = _make_html_for_cluster_table(stat_map_img, threshold)
         components_values = {
             'contrast': contrast_html,
-            'stat_map_img': stat_map_plot_filepath,
+            'stat_map_img': stat_map_html_code,
             'cluster_table': cluster_table_html,
             }
         component_text_ = component_text_.safe_substitute(**components_values)
@@ -274,11 +269,11 @@ def _make_html_for_stat_maps(statistical_map_name,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
-    z_map_name_filename_text = statistical_map_name.title().replace(' ', '')
-    stat_map_plot_filepath = 'stat_map_plot_{}.svg'.format(
-            z_map_name_filename_text)
-    stat_map_plot.savefig(stat_map_plot_filepath)
-    return stat_map_plot_filepath
+    buffer = io.StringIO()
+    from matplotlib import pyplot as plt
+    plt.savefig(buffer, format='svg')
+    stat_map_html_code = buffer.getvalue()
+    return stat_map_html_code
 
 
 def _make_html_for_cluster_table(statistical_map_img, threshold):
@@ -299,46 +294,6 @@ def _make_html_for_cluster_table(statistical_map_img, threshold):
     single_cluster_table_html_code = cluster_table.to_html()
     return single_cluster_table_html_code
 
-
-# def save_design_matrix_plot(model):
-#     """
-#     :param model: not sure if I will use this, or stick with plot_design_matrix
-#     :return:
-#     """
-#     from matplotlib import pyplot as plt
-#
-#     design_matrix = model.design_matrices_[0]
-#     fig = plt.figure()  #TODO: code from _plot_matrices.plot_design_matrix(). Refactor target.
-#     ax = fig.add_subplot(1, 1, 1)
-#     _, X, names = check_design_matrix(design_matrix)
-#     X = X / np.maximum(1.e-12, np.sqrt(
-#             np.sum(X ** 2, 0)))  # pylint: disable=no-member
-#
-#     ax.imshow(X, interpolation='nearest', aspect='auto')
-#     ax.set_label('conditions')
-#     ax.set_ylabel('scan number')
-#
-#     ax.set_xticks(range(len(names)))
-#     ax.set_xticklabels(names, rotation=60, ha='right')
-#
-#     plt.tight_layout()
-#
-#     # dmtx_fpath = os.path.abspath('./results/dmtx.png')
-#     dmtx_fpath = 'dmtx.png'
-#     fig.savefig(dmtx_fpath)
-#     return dmtx_fpath
-
-#   # experimenting with embedding the image binary into the html
-#   # fig.canvas.draw()
-#   # buf = fig.canvas.tostring_rgb()
-#   # import base64
-#   # buf64 = base64.b64encode(buf)
-#   # design_matrix_image_html_insert = 'data:image/png;base64,{}'.format((buf64))
-#   # design_matrix_image_html_insert = '<img src="data:image/png;base64,{}">'.format(buf64.rstrip('\r'))
-#   # return design_matrix_image_html_insert
-    
-   
-    
 
 if __name__ == '__main__':
     make_glm_report('generated_report.html', None)
