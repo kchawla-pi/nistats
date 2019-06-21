@@ -173,7 +173,7 @@ def _report_design_matrices(model):
         # html_design_matrix = ('<img src="{}" alt="Visual representation '
         #                       'of Design Matrix of the fMRI experiment">'
         #                       ).format(dmtx_filepath)
-        html_design_matrix = ('<svg>{}</svg>'.format(buffer.getvalue()))
+        html_design_matrix = ('<svg class="dmtx">{}</svg>'.format(buffer.getvalue()))
         html_design_matrices.append(html_design_matrix)
     html_design_matrices = '\n'.join(html_design_matrices)
     return html_design_matrices
