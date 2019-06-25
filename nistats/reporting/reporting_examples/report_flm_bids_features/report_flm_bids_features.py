@@ -60,10 +60,12 @@ def create_report_bids_features():
     data_dir = fetch_bids_data()
     model, subject = make_flm(data_dir)
     output_filepath = 'generated_report_flm_bids_features.html'
-    make_glm_report(output_path=output_filepath,
+    report = make_glm_report(#output_path=output_filepath,
                     model=model,
                     contrasts='StopSuccess - Go',
                     )
+    report.save_as_html(output_filepath)
+    
 
 
 if __name__ == '__main__':

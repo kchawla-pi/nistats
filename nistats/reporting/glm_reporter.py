@@ -15,7 +15,7 @@ from nistats.reporting import (
 html_template_root_path = os.path.dirname(__file__)
 
 
-def make_glm_report(output_path,
+def make_glm_report(#output_path,
                     model,
                     contrasts,
                     title='auto',
@@ -97,9 +97,9 @@ def make_glm_report(output_path,
     report_text = report_template.safe_substitute(**report_values)
     # print(report_text)
     from nilearn.plotting.js_plotting_utils import HTMLDocument
-    # return HTMLDocument(report_text)
-    with open(output_path, 'w') as html_write_obj:
-        html_write_obj.write(report_text)
+    return HTMLDocument(report_text)
+    # with open(output_path, 'w') as html_write_obj:
+    #     html_write_obj.write(report_text)
 
 
 def _make_contrasts_dict(contrasts):

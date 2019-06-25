@@ -69,13 +69,14 @@ def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
     from nistats.reporting.glm_reporter import make_glm_report
-    make_glm_report(
-            output_filepath,
+    report = make_glm_report(
+            # output_filepath,
             model,
             contrasts=contrast,
             # contrasts={'age', 'sex'},
             bg_img=icbm152_2009['t1'],
             )
+    report.save_as_html(output_filepath)
     # generate_subject_stats_report(
     #         output_filepath,
     #         contrasts=contrast,
