@@ -406,8 +406,8 @@ def _make_html_for_cluster_table(statistical_map_img, stat_threshold,
                                        )
     cluster_table_details = {
         'Threshold Z': stat_threshold,
-        'Cluster Level p-value Threshold': cluster_threshold,
-        'Cluster size threshold (voxels)': None,
+        'Cluster Level p-value Threshold': None,
+        'Cluster size threshold (voxels)': cluster_threshold,
         'Minimum distance (mm)': min_distance,
         'Number of voxels': None,
         'Number of clusters': None,

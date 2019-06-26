@@ -37,7 +37,8 @@ def create_report_adhd_dmn():
             first_level_model,
             contrasts=contrasts,
             title='ADHD DMN Report',
-            min_distance=15.,
+            min_distance=8.,
+            cluster_threshold=15,
             plot_type='glass',
             )
     # report.open_in_browser()
