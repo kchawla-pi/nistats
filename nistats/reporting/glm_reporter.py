@@ -27,8 +27,14 @@ def make_glm_report(
                     display_mode='z',
                     plot_type='stat',
                     ):
-    """ Creates an HTML page which shows all important aspects
-    of a fitted GLM.
+    """ Returns HTMLDocument object for a report which shows
+    all important aspects of a fitted GLM.
+    The object can be opened in a browser or saved to disk.
+    
+    Usage:
+        report = make_glm_report(model, contrasts)
+        report.open_in_browser()
+        report.save_as_html(destination_path)
     
     Parameters
     ----------
@@ -49,9 +55,14 @@ def make_glm_report(
     display_mode: String
         Default is 'z'.
         
+    plot_type: String. ['stat' (default)| 'glass']
+        Specifies the type of plot to be drawn for the statistical maps.
+        
+        
     Returns
     -------
-    None
+    report_text: HTMLDocument Object
+        Contains the HTML code for the GLM Report.
     """
     pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
