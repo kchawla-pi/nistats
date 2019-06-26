@@ -115,17 +115,21 @@ def make_glm_report(
 def _make_contrasts_dict(contrasts):
     """ Accepts contrasts and returns a dict of them.
     with the names of contrasts as keys.
-    If contrasts is a:
-     dict then returns it unchanged.
-     string or list/tuple of strings, returns a dict where key==values.
+    
+    If contrasts is:
+      dict then returns it unchanged.
+      
+      string or list/tuple of strings, returns a dict where key==values
     
     Parameters
     ----------
-    contrasts: str, list/tuple, dict
+    contrasts: str, List/Tuple[str], Dict[str, str or np.array]
+        Contrast information
     
     Returns
     -------
     contrasts: Dict[str, np.array or str]
+        Contrast information, as a dict
     """
     contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
     if not isinstance(contrasts, dict):
@@ -143,7 +147,7 @@ def _make_page_title_heading(contrasts, title):
     Parameters
     ----------
     contrasts: Dict[str, np.array or str] or List/Tuple[str] or String
-        Needed for contrast names, either as a sequence or keys of dict.
+        Needed for contrast names.
     
     title: str
         User supplied text for HTML Page title and primary heading.
