@@ -14,19 +14,20 @@ from nistats.reporting import (
     get_clusters_table,
     )
 
-
 html_template_root_path = os.path.dirname(__file__)
 
 
 def make_glm_report(
-                    model,
-                    contrasts,
-                    title='auto',
-                    threshold=3.09,
-                    bg_img='MNI 152 Template',
-                    display_mode='z',
-                    plot_type='stat',
-                    ):
+        model,
+        contrasts,
+        title='auto',
+        stat_threshold=3.09,
+        cluster_threshold=None,
+        min_distance=8.,
+        bg_img='MNI 152 Template',
+        display_mode='z',
+        plot_type='stat',
+        ):
     """ Returns HTMLDocument object for a report which shows
     all important aspects of a fitted GLM.
     The object can be opened in a browser or saved to disk.
@@ -46,8 +47,16 @@ def make_glm_report(
         
     contrasts: Dict[string, ndarray] , String
     
-    threshold: float
+    stat_threshold: float
+        Cluster forming threshold in same scale as `stat_img` (either a
+        p-value or z-scale value).
         Default is 3.09
+
+    cluster_threshold : int or None, optional
+        Cluster size threshold, in voxels.
+
+    min_distance: float, optional
+        Minimum distance between subpeaks in mm. Default is 8 mm.
         
     bg_img: Nifti image
         Default is the MNI152 template
@@ -71,9 +80,10 @@ def make_glm_report(
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
     contrasts = _make_contrasts_dict(contrasts)
-    page_title, page_heading_1, page_heading_2 = _make_page_title_heading(contrasts,
-                                                                          title,
-                                                                          )
+    page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
+        contrasts,
+        title,
+        )
     report_template = string.Template(html_template_text)
     contrast_arrays_not_supplied = any([contrast_name == contrast_value
                                         for contrast_name, contrast_value
@@ -94,7 +104,9 @@ def make_glm_report(
     html_design_matrices = _report_design_matrices(model)
     all_components = _make_report_components(statistical_maps,
                                              contrasts,
-                                             threshold,
+                                             stat_threshold,
+                                             cluster_threshold,
+                                             min_distance,
                                              bg_img,
                                              display_mode,
                                              plot_type,
@@ -168,8 +180,8 @@ def _make_page_title_heading(contrasts, title):
         page_heading_1 = 'Statistical Report for contrasts'
         page_heading_2 = '{}'.format(contrasts_text)
         return page_title, page_heading_1, page_heading_2
-    
-    
+
+
 def _make_model_attributes_html_table(model):
     """ Returns an HTML table with pertinent model attributes & information.
     Does not contain derived attributes.
@@ -239,13 +251,16 @@ def _report_design_matrices(model):
         design_matrix_image_axes = plot_design_matrix(design_matrix)
         buffer = io.StringIO()
         design_matrix_image_axes.figure.savefig(buffer, format='svg')
-        html_design_matrix = ('<svg class="dmtx">{}</svg>'.format(buffer.getvalue()))
+        html_design_matrix = (
+            '<svg class="dmtx">{}</svg>'.format(buffer.getvalue()))
         html_design_matrices.append(html_design_matrix)
     html_design_matrices = '\n'.join(html_design_matrices)
     return html_design_matrices
 
 
-def _make_report_components(statistical_maps, contrasts, threshold, bg_img, display_mode, plot_type):
+def _make_report_components(statistical_maps, contrasts, stat_threshold,
+                            cluster_threshold, min_distance, bg_img,
+                            display_mode, plot_type):
     """ Populates a smaller HTML sub-template with the proper values,
      make a list containing one or more of such components
      & returns the list to be inserted into the HTML Report Template.
@@ -256,7 +271,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
     ----------
     statistical_maps: Nifti images
     
-    threshold: float
+    stat_threshold: float
     
     bg_img: Nifti image
     
@@ -277,17 +292,23 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
     for stat_map_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
         contrast_html = _make_html_for_contrast(stat_map_name, contrasts)
-        stat_map_html_code  = _make_html_for_stat_maps(stat_map_name,
-                                                          stat_map_img,
-                                                          threshold,
-                                                          bg_img,
-                                                          display_mode,
-                                                          plot_type ,
-                                                          )
-        cluster_table_html = _make_html_for_cluster_table(stat_map_img, threshold)
+        stat_map_html_code = _make_html_for_stat_maps(stat_map_name,
+                                                      stat_map_img,
+                                                      stat_threshold,
+                                                      bg_img,
+                                                      display_mode,
+                                                      plot_type,
+                                                      )
+        cluster_table_details_html, cluster_table_html = (
+            _make_html_for_cluster_table(stat_map_img,
+                                         stat_threshold,
+                                         cluster_threshold,
+                                         min_distance)
+        )
         components_values = {
             'contrast': contrast_html,
             'stat_map_img': stat_map_html_code,
+            'cluster_table_details': cluster_table_details_html,
             'cluster_table': cluster_table_html,
             }
         component_text_ = component_text_.safe_substitute(**components_values)
@@ -316,9 +337,9 @@ def _make_html_for_contrast(contrast_name, contrasts):
     contrast_val = '' if isinstance(contrast_val, str) else contrast_val
     current_contrast = {contrast_name: contrast_val}
     contrast_html = pd.DataFrame.from_dict(current_contrast, orient='index'
-                           ).to_html(header=False, border=0)
+                                           ).to_html(header=False, border=0)
     return contrast_html
-    
+
 
 def _make_html_for_stat_maps(statistical_map_name,
                              statistical_map_img,
@@ -365,7 +386,8 @@ def _make_html_for_stat_maps(statistical_map_name,
     return stat_map_html_code
 
 
-def _make_html_for_cluster_table(statistical_map_img, threshold):
+def _make_html_for_cluster_table(statistical_map_img, stat_threshold,
+                                 cluster_threshold, min_distance):
     """ Generates string of HTML code for a cluster table.
 
     Parameters
@@ -378,23 +400,38 @@ def _make_html_for_cluster_table(statistical_map_img, threshold):
         HTML code representing a cluster table.
     """
     cluster_table = get_clusters_table(statistical_map_img,
-                                       stat_threshold=threshold,
-                                       cluster_threshold=15,
+                                       stat_threshold=stat_threshold,
+                                       cluster_threshold=cluster_threshold,
+                                       min_distance=min_distance,
                                        )
+    cluster_table_details = {
+        'Threshold Z': stat_threshold,
+        'Cluster Level p-value Threshold': cluster_threshold,
+        'Cluster size threshold (voxels)': None,
+        'Minimum distance (mm)': min_distance,
+        'Number of voxels': None,
+        'Number of clusters': None,
+        }
+    pd.set_option('display.precision', 2)
+    cluster_table_details_html = pd.DataFrame.from_dict(
+            cluster_table_details, orient='index').to_html(border=0,
+                                                           header=False,
+                                                           )
     single_cluster_table_html_code = cluster_table.to_html()
-    return single_cluster_table_html_code
+    pd.reset_option('display.precision')
+    return cluster_table_details_html, single_cluster_table_html_code
 
 
 if __name__ == '__main__':
     make_glm_report('generated_report.html', None)
 
-#TODO: Less peak value precision
-#TODO: Add effect size of contrast?
-#TODO: Limit number of voxel clusters in table
-#TODO: Diagnostic things like Image of variance? Plot variance maps, effects size maps?
-#TODO: Oasis VBM Example, check age effect. It is positive. It should be negative (expected reduction in cortex).
-#TODO: Should we output in Markdown? Easy to cut-paste, insert in Latex.
-#TODO: Plot stat maps on Glass Brains?
+# TODO: Less peak value precision
+# TODO: Add effect size of contrast?
+# TODO: Limit number of voxel clusters in table
+# TODO: Diagnostic things like Image of variance? Plot variance maps, effects size maps?
+# TODO: Oasis VBM Example, check age effect. It is positive. It should be negative (expected reduction in cortex).
+# TODO: Should we output in Markdown? Easy to cut-paste, insert in Latex.
+# TODO: Plot stat maps on Glass Brains?
 
-#TODO: Variance of the model
-#TODO: Noise model
+# TODO: Variance of the model
+# TODO: Noise model

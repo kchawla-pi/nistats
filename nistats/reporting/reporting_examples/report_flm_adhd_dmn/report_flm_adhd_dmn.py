@@ -33,16 +33,16 @@ def create_report_adhd_dmn():
                                               design_matrices=design_matrix)
     
     output_filepath = 'generated_report_flm_adhd_dmn.html'
-    report = make_glm_report(#output_filepath,
-                    first_level_model,
-                    contrasts=contrasts,
-                    title='ADHD DMN Report',
-                    plot_type='glass',
-                    )
+    report = make_glm_report(
+            first_level_model,
+            contrasts=contrasts,
+            title='ADHD DMN Report',
+            min_distance=15.,
+            plot_type='glass',
+            )
     # report.open_in_browser()
     report.save_as_html(output_filepath)
 
 
 if __name__ == '__main__':
     create_report_adhd_dmn()
-
