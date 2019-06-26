@@ -40,6 +40,7 @@ def create_report_adhd_dmn():
             min_distance=8.,
             cluster_threshold=15,
             plot_type='glass',
+            display_mode='ortho',
             )
     # report.open_in_browser()
     report.save_as_html(output_filepath)
