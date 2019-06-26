@@ -3,8 +3,11 @@ import string
 import os
 
 import pandas as pd
+
+from matplotlib import pyplot as plt
 from nilearn.datasets import load_mni152_template
 from nilearn.plotting import plot_stat_map, plot_glass_brain
+from nilearn.plotting.js_plotting_utils import HTMLDocument
 
 from nistats.reporting import (
     plot_design_matrix,
@@ -15,7 +18,7 @@ from nistats.reporting import (
 html_template_root_path = os.path.dirname(__file__)
 
 
-def make_glm_report(#output_path,
+def make_glm_report(
                     model,
                     contrasts,
                     title='auto',
@@ -95,15 +98,24 @@ def make_glm_report(#output_path,
                      'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
-    # print(report_text)
-    from nilearn.plotting.js_plotting_utils import HTMLDocument
     return HTMLDocument(report_text)
-    # with open(output_path, 'w') as html_write_obj:
-    #     html_write_obj.write(report_text)
 
 
 def _make_contrasts_dict(contrasts):
-    # contrasts = 'StopSuccess - Go'
+    """ Accepts contrasts and returns a dict of them.
+    with the names of contrasts as keys.
+    If contrasts is a:
+     dict then returns it unchanged.
+     string or list/tuple of strings, returns a dict where key==values.
+    
+    Parameters
+    ----------
+    contrasts: str, list/tuple, dict
+    
+    Returns
+    -------
+    contrasts: Dict[str, np.array or str]
+    """
     contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
     if not isinstance(contrasts, dict):
         contrasts = {contrast_: contrast_ for contrast_ in contrasts}
@@ -111,7 +123,25 @@ def _make_contrasts_dict(contrasts):
 
 
 def _make_page_title_heading(contrasts, title):
-    if title != 'auto':
+    """ Creates report page title, heading & sub-heading
+     using title text or contrast names.
+    Accepts contrasts and user supplied title string.
+    
+    If title is not in (None, 'auto'), page title == heading, no sub-heading
+    
+    Parameters
+    ----------
+    contrasts: Dict[str, np.array or str] or List/Tuple[str] or String
+        Needed for contrast names, either as a sequence or keys of dict.
+    
+    title: str
+        User supplied text for HTML Page title and primary heading.
+    
+    Returns
+    -------
+    (HTML page title, heading, sub-heading): Tuple[str, str, str]
+    """
+    if title not in ('auto', None):
         return title, title, ''
     else:
         if isinstance(contrasts, str):
@@ -126,6 +156,18 @@ def _make_page_title_heading(contrasts, title):
     
     
 def _make_model_attributes_html_table(model):
+    """ Returns an HTML table with pertinent model attributes & information.
+    Does not contain derived attributes.
+    
+    Parameters
+    ----------
+    model: FirstLevelModel or SecondLevelModel object.
+    
+    Returns
+    -------
+    HTML Table: String
+        HTML code for creating a table.
+    """
     selected_model_attributes = {
         attr_name: attr_val
         for attr_name, attr_val in model.__dict__.items()
@@ -141,7 +183,20 @@ def _make_model_attributes_html_table(model):
 
 
 def make_statistical_maps(model, contrasts):
-    """ Given a model and contrasts, return the corresponding z-maps"""
+    """ Given a model and contrasts, return the corresponding z-maps
+    
+    Parameters
+    ----------
+    model: FirstLevelModel or SecondLevelModel object
+    
+    contrasts: Dict[str, ndarray or str]
+        Dict of contrasts
+    
+    Returns
+    -------
+    statistical_maps: Dict[str, niimg]
+        Dict of statistical maps keyed to contrast names.
+    """
     statistical_maps = {contrast_id: model.compute_contrast(contrast_val)
                         for contrast_id, contrast_val in contrasts.items()
                         }
@@ -160,8 +215,9 @@ def _report_design_matrices(model):
         
     Returns
     -------
-    String of HTML code to be inserted into the HTML template
-    to insert the plotted design matrices.
+    html_design_matrices: String
+        HTML code for the plotted design matrices,
+        to be inserted into the HTML template.
     """
     html_design_matrices = []
     for count, design_matrix in enumerate(model.design_matrices_):
@@ -193,7 +249,9 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
     
     Returns
     -------
-    String of HTML code representing Statistical Maps + Cluster Tables
+    all_components: String
+        HTML code representing each set of
+        contrast, statistical map, cluster table.
     """
     all_components = []
     components_template_path = os.path.join(html_template_root_path,
@@ -222,10 +280,26 @@ def _make_report_components(statistical_maps, contrasts, threshold, bg_img, disp
     return all_components
 
 
-def _make_html_for_contrast(stat_map_name, contrasts):
-    contrast_val = contrasts[stat_map_name]
+def _make_html_for_contrast(contrast_name, contrasts):
+    """ Generates string of HTML code for a Pandas DataFrame of contrast name and array.
+    Accepts statistical map name, dict of contrasts.
+    
+    Parameters
+    ----------
+    contrast_name: String
+        Name of the individual contrast
+        
+    contrasts: Dict[str, ndarray or str]
+        Dict of all contrasts.
+        
+    Returns
+    -------
+    contrast_html: String
+        HTML code to insert individual contrast name, its array into a webpage.
+    """
+    contrast_val = contrasts[contrast_name]
     contrast_val = '' if isinstance(contrast_val, str) else contrast_val
-    current_contrast = {stat_map_name: contrast_val}
+    current_contrast = {contrast_name: contrast_val}
     contrast_html = pd.DataFrame.from_dict(current_contrast, orient='index'
                            ).to_html(header=False, border=0)
     return contrast_html
@@ -254,7 +328,8 @@ def _make_html_for_stat_maps(statistical_map_name,
     
     Returns
     -------
-    String of HTML code representing a statistical map.
+    stat_map_html_code: String
+        String of HTML code representing a statistical map.
     """
     if plot_type == 'glass':
         stat_map_plot = plot_glass_brain(statistical_map_img,
@@ -270,7 +345,6 @@ def _make_html_for_stat_maps(statistical_map_name,
                                       display_mode=display_mode,
                                       )
     buffer = io.StringIO()
-    from matplotlib import pyplot as plt
     plt.savefig(buffer, format='svg')
     stat_map_html_code = buffer.getvalue()
     return stat_map_html_code
@@ -285,7 +359,8 @@ def _make_html_for_cluster_table(statistical_map_img, threshold):
 
     Returns
     -------
-    String of HTML code representing a cluster table.
+    single_cluster_table_html_code: String
+        HTML code representing a cluster table.
     """
     cluster_table = get_clusters_table(statistical_map_img,
                                        stat_threshold=threshold,
