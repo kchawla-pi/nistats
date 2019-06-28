@@ -214,12 +214,36 @@ def _make_model_attributes_html_table(model):
     HTML Table: String
         HTML code for creating a table.
     """
-    selected_model_attributes = {
-        attr_name: attr_val
-        for attr_name, attr_val in model.__dict__.items()
-        if not attr_name.endswith('_')
+    selected_attributes = [
+        'subject_label',
+        'mask_img',
+        'drift_model',
+        'hrf_model',
+        'standardize',
+        'noise_model',
+        'min_onset',
+        't_r',
+        'labels_',
+        'period_cut',
+        'target_shape',
+        'signal_scaling',
+        'drift_order',
+        'scaling_axis',
+        'smoothing_fwhm',
+        'target_affine',
+        'slice_time_ref',
+        'fir_delays',
+        ]
+    # selected_model_attributes = {
+    #     attr_name: attr_val
+    #     for attr_name, attr_val in model.__dict__.items()
+    #     if not attr_name.endswith('_')
+    #     }
+    selected_model_attributes_values = {
+        attr_name: model.__dict__[attr_name]
+        for attr_name in selected_attributes
         }
-    model_attributes_table = pd.DataFrame.from_dict(selected_model_attributes,
+    model_attributes_table = pd.DataFrame.from_dict(selected_model_attributes_values,
                                                     orient='index',
                                                     )
     model_attributes_table = model_attributes_table.to_html(header=False,
@@ -450,7 +474,7 @@ def _make_html_for_cluster_table(statistical_map_img, threshold, alpha,
         HTML code representing a cluster table.
     """
     cluster_table = get_clusters_table(statistical_map_img,
-                                       stat_threshold=stat_threshold,
+                                       stat_threshold=threshold,
                                        cluster_threshold=cluster_threshold,
                                        min_distance=min_distance,
                                        )
