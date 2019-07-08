@@ -4,7 +4,18 @@
 Changelog
 ---------
 
+.. warning::
+
+ | period_cut (in seconds) has been replaced by high_pass (in Hz)
+ | in FirstLevelModel & design matrices.
+ | This is a code-breaking change. Please update your code accordingly.
+
+Fixes
+-----
+
 * Removed Python 2 deprecation warning for Python 3 installations.
+* fixed effect contrasts now average effect sizes across runs rather than
+  summing them.
 
 Contributors
 ------------
