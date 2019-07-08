@@ -93,25 +93,14 @@ def make_glm_report(
                                       'report_template.html')
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
-    contrasts = _make_contrasts_dict(contrasts)
+    report_template = string.Template(html_template_text)
+    
+    contrasts, contrasts_display_text = _make_all_contrasts(contrasts=contrasts)
+
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
         title,
         )
-    report_template = string.Template(html_template_text)
-    contrast_arrays_not_supplied = any([contrast_name == contrast_value
-                                        for contrast_name, contrast_value
-                                        in contrasts.items()
-                                        ]
-                                       )
-    if contrast_arrays_not_supplied:
-        contrasts_display_text = ', '.join(sorted(contrasts))
-    else:
-        contrasts_display_text = pd.DataFrame.from_dict(contrasts,
-                                                        orient='index'
-                                                        ).to_html(border=0,
-                                                                  header=False,
-                                                                  )
     pd.set_option('display.max_colwidth', 50)
     model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
@@ -141,6 +130,24 @@ def make_glm_report(
     report.width = 1600  # for better visual experience in Jupyter Notebooks.
     report.height = 800
     return report
+
+
+def _make_all_contrasts(contrasts):
+    contrasts = _make_contrasts_dict(contrasts)
+    contrast_arrays_not_supplied = any([contrast_name == contrast_value
+                                        for contrast_name, contrast_value
+                                        in contrasts.items()
+                                        ]
+                                       )
+    if contrast_arrays_not_supplied:
+        contrasts_display_text = ', '.join(sorted(contrasts))
+    else:
+        contrasts_display_text = pd.DataFrame.from_dict(contrasts,
+                                                        orient='index'
+                                                        ).to_html(border=0,
+                                                                  header=False,
+                                                                  )
+    return contrasts, contrasts_display_text
 
 
 def _make_contrasts_dict(contrasts):
@@ -224,7 +231,7 @@ def _make_model_attributes_html_table(model):
         'min_onset',
         't_r',
         'labels_',
-        'period_cut',
+        'high_pass',
         'target_shape',
         'signal_scaling',
         'drift_order',
@@ -242,6 +249,7 @@ def _make_model_attributes_html_table(model):
     selected_model_attributes_values = {
         attr_name: model.__dict__[attr_name]
         for attr_name in selected_attributes
+        if attr_name in model.__dict__
         }
     model_attributes_table = pd.DataFrame.from_dict(selected_model_attributes_values,
                                                     orient='index',
