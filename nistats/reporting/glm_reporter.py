@@ -14,7 +14,8 @@ from nilearn.plotting import (plot_glass_brain,
                               )
 from nilearn.plotting.js_plotting_utils import HTMLDocument
 
-from nistats.reporting import (plot_design_matrix,
+from nistats.reporting import (plot_contrast_matrix,
+                               plot_design_matrix,
                                get_clusters_table,
                                )
 from nistats.thresholding import map_threshold
@@ -101,6 +102,7 @@ def make_glm_report(
     report_template = string.Template(html_template_text)
     
     contrasts, contrasts_display_text = _make_all_contrasts(contrasts=contrasts)
+    contrast_matrix_html = _make_contrast_matrix_plot(contrasts, model)
 
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
@@ -129,6 +131,7 @@ def make_glm_report(
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
+                     'contrasts_plot': contrast_matrix_html,
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
@@ -183,6 +186,20 @@ def _make_contrasts_dict(contrasts):
     return contrasts
 
 
+def _make_contrast_matrix_plot(contrasts, model):
+    contrast_plots = []
+    for design_matrix in model.design_matrices_:
+        for contrast_name, contrast_data in contrasts.items():
+            buffer = io.StringIO()
+            contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
+            contrast_matrix_plot.figure.set_tight_layout(True)
+            contrast_matrix_plot.figure.set_figheight(2)
+            plt.savefig(buffer, format='svg')
+            contrast_plots.append(buffer.getvalue())
+        contrast_plots_text = '<p>'.join(contrast_plots)
+        return contrast_plots_text
+    
+    
 def _make_page_title_heading(contrasts, title):
     """ Creates report page title, heading & sub-heading
      using title text or contrast names.
