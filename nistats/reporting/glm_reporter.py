@@ -8,7 +8,10 @@ import pandas as pd
 
 from matplotlib import pyplot as plt
 from nilearn.datasets import load_mni152_template
-from nilearn.plotting import plot_stat_map, plot_glass_brain
+from nilearn.plotting import (plot_glass_brain,
+                              plot_roi,
+                              plot_stat_map,
+                              )
 from nilearn.plotting.js_plotting_utils import HTMLDocument
 
 from nistats.reporting import (plot_design_matrix,
@@ -24,14 +27,16 @@ def make_glm_report(
         model,
         contrasts,
         title='auto',
+        roi_img=None,
+        bg_img='MNI 152 Template',
         threshold=3.09,
         alpha=0.01,
         cluster_threshold=None,
         height_control='fpr',
         min_distance=8.,
-        bg_img='MNI 152 Template',
-        display_mode=None,
         plot_type='stat',
+        display_mode=None,
+        cut_coords=None,
         ):
     """ Returns HTMLDocument object for a report which shows
     all important aspects of a fitted GLM.
@@ -105,17 +110,19 @@ def make_glm_report(
     model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _report_design_matrices(model)
-    all_components = _make_report_components(statistical_maps=statistical_maps,
-                                             contrasts=contrasts,
-                                             threshold=threshold,
-                                             alpha=alpha,
-                                             cluster_threshold=cluster_threshold,
-                                             height_control=height_control,
-                                             min_distance=min_distance,
-                                             bg_img=bg_img,
-                                             display_mode=display_mode,
-                                             plot_type=plot_type,
-                                             )
+    roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
+    all_components = _make_report_components(
+            statistical_maps=statistical_maps,
+            contrasts=contrasts,
+            threshold=threshold,
+            alpha=alpha,
+            cluster_threshold=cluster_threshold,
+            height_control=height_control,
+            min_distance=min_distance,
+            bg_img=bg_img,
+            display_mode=display_mode,
+            plot_type=plot_type,
+            )
     all_components_text = '\n'.join(all_components)
     report_values = {'page_title': page_title,
                      'page_heading_1': page_heading_1,
@@ -123,6 +130,7 @@ def make_glm_report(
                      'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
                      'design_matrices': html_design_matrices,
+                     'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
@@ -308,6 +316,17 @@ def _report_design_matrices(model):
     html_design_matrices = '\n'.join(html_design_matrices)
     return html_design_matrices
 
+
+def _make_roi_plot(roi_img, bg_img):
+    if roi_img:
+        roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
+        buffer = io.StringIO()
+        plt.savefig(buffer, format='svg')
+        roi_plot_html_code = buffer.getvalue()
+    else:
+        roi_plot_html_code = 'Pass the mask with the `roi_img` parameter to plot the ROI'
+    return roi_plot_html_code
+    
 
 def _make_report_components(statistical_maps, contrasts, threshold, alpha,
                             cluster_threshold, height_control, min_distance, bg_img,

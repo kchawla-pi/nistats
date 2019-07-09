@@ -72,6 +72,7 @@ def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
     report = make_glm_report(
             # output_filepath,
             model,
+            roi_img=mask_img,
             contrasts=contrast,
             # contrasts={'age', 'sex'},
             bg_img=icbm152_2009['t1'],
