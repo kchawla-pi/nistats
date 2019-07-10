@@ -102,7 +102,11 @@ def make_glm_report(
     report_template = string.Template(html_template_text)
     
     contrasts, contrasts_display_text = _make_all_contrasts(contrasts=contrasts)
-    contrast_matrix_html = _make_contrast_matrix_plot(contrasts, model)
+    contrast_plots = _make_dict_of_contrast_plots(contrasts, model)
+    contrast_plots_text = ['{}<p>{}'.format(key, item)
+                           for key, item in contrast_plots.items()
+                           ]
+    contrast_plots_text = '<p>'.join(contrast_plots_text)
 
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
@@ -131,7 +135,7 @@ def make_glm_report(
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
                      'contrasts': contrasts_display_text,
-                     'contrasts_plot': contrast_matrix_html,
+                     'contrasts_plot': contrast_plots_text,
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
@@ -186,8 +190,8 @@ def _make_contrasts_dict(contrasts):
     return contrasts
 
 
-def _make_contrast_matrix_plot(contrasts, model):
-    contrast_plots = []
+def _make_dict_of_contrast_plots(contrasts, model):
+    contrast_plots = {}
     for design_matrix in model.design_matrices_:
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
@@ -195,9 +199,8 @@ def _make_contrast_matrix_plot(contrasts, model):
             contrast_matrix_plot.figure.set_tight_layout(True)
             contrast_matrix_plot.figure.set_figheight(2)
             plt.savefig(buffer, format='svg')
-            contrast_plots.append(buffer.getvalue())
-        contrast_plots_text = '<p>'.join(contrast_plots)
-        return contrast_plots_text
+            contrast_plots[contrast_name] = buffer.getvalue()
+    return contrast_plots
     
     
 def _make_page_title_heading(contrasts, title):
@@ -266,11 +269,6 @@ def _make_model_attributes_html_table(model):
         'slice_time_ref',
         'fir_delays',
         ]
-    # selected_model_attributes = {
-    #     attr_name: attr_val
-    #     for attr_name, attr_val in model.__dict__.items()
-    #     if not attr_name.endswith('_')
-    #     }
     selected_model_attributes_values = {
         attr_name: model.__dict__[attr_name]
         for attr_name in selected_attributes

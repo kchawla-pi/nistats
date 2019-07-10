@@ -1,4 +1,5 @@
 import os
+import pickle
 
 import nibabel
 import pandas as pd
@@ -7,9 +8,9 @@ import numpy as np
 from nilearn import datasets
 from nilearn.image import resample_to_img
 
+from nistats.reporting.glm_reporter import make_glm_report
 from nistats.second_level_model import SecondLevelModel
 from nistats.thresholding import map_threshold
-
 
 def make_zmaps(model, contrasts):
     """ Given a model and contrasts, return the corresponding z-maps"""
@@ -68,10 +69,9 @@ def make_design_matrix(oasis_dataset, n_subjects):
 def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
-    from nistats.reporting.glm_reporter import make_glm_report
     report = make_glm_report(
             # output_filepath,
-            model,
+            model=model,
             roi_img=mask_img,
             contrasts=contrast,
             # contrasts={'age', 'sex'},
@@ -99,7 +99,7 @@ def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
     return second_level_model, z_maps
 
 
-def create_report_oasis():
+def make_report_oasis():
     n_subjects = 100  # more subjects requires more memory
     contrast = {'age': [1, 0, 0], 'sex':[0, 1, 0]}
     # contrast = {'age', 'sex'}
@@ -113,7 +113,31 @@ def create_report_oasis():
                       )
     model.design_matrices_ = [model.design_matrix_]
     run_reporter(model, mask_img, design_matrix, contrast, z_maps)
+
+
+def pickle_this(name, obj):
+    with open(name + '.pickle', 'wb') as pobj:
+        pickle.dump(obj, pobj)
+
+
+def unpickle_all():
+    keys = ['model', 'roi_img', 'contrasts', 'bg_img']
+    kwargs = dict.fromkeys(keys)
+    for item in keys:
+        with open(item + '.pickle', 'rb') as upobj:
+            kwargs[item] = pickle.load(upobj)
+    return kwargs
     
+def make_report_with_prepickled_data():
+    output_filepath = 'generated_report_slm_oasis.html'
+    kwargs = unpickle_all()
+    print()
+    report = make_glm_report(**kwargs)
+    print()
+    report.save_as_html(output_filepath)
+
     
+
 if __name__ == '__main__':
-    create_report_oasis()
+    make_report_oasis()
+    # make_report_with_prepickled_data()
