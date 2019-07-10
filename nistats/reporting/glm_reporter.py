@@ -38,6 +38,8 @@ def make_glm_report(
         plot_type='stat',
         display_mode=None,
         cut_coords=None,
+        nb_width=1600,
+        nb_height=800,
         ):
     """ Returns HTMLDocument object for a report which shows
     all important aspects of a fitted GLM.
@@ -92,7 +94,7 @@ def make_glm_report(
         if plot_type == 'stat':
             display_mode = 'z'
         elif plot_type == 'glass':
-            display_mode = 'ortho'
+            display_mode = 'lzry'
     pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
@@ -119,7 +121,7 @@ def make_glm_report(
     roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
     all_components = _make_report_components(
             statistical_maps=statistical_maps,
-            contrasts=contrasts,
+            contrasts_plots=contrast_plots,
             threshold=threshold,
             alpha=alpha,
             cluster_threshold=cluster_threshold,
@@ -134,16 +136,15 @@ def make_glm_report(
                      'page_heading_1': page_heading_1,
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
-                     'contrasts': contrasts_display_text,
-                     'contrasts_plot': contrast_plots_text,
+                     'all_contrasts_with_plots': contrast_plots_text,
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
     report = HTMLDocument(report_text)
-    report.width = 1600  # for better visual experience in Jupyter Notebooks.
-    report.height = 800
+    report.width = nb_width  # for better visual experience in Jupyter Notebooks.
+    report.height = nb_height
     return report
 
 
@@ -343,7 +344,7 @@ def _make_roi_plot(roi_img, bg_img):
     return roi_plot_html_code
     
 
-def _make_report_components(statistical_maps, contrasts, threshold, alpha,
+def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
                             cluster_threshold, height_control, min_distance, bg_img,
                             display_mode, plot_type):
     """ Populates a smaller HTML sub-template with the proper values,
@@ -356,7 +357,7 @@ def _make_report_components(statistical_maps, contrasts, threshold, alpha,
     ----------
     statistical_maps: Nifti images
     
-    contrasts: Dict[str, ndarray or str]
+    contrasts_plots: Dict[str, ndarray or str]
     
     threshold: float
     
@@ -378,10 +379,10 @@ def _make_report_components(statistical_maps, contrasts, threshold, alpha,
                                             )
     with open(components_template_path) as html_template_obj:
         components_template_text = html_template_obj.read()
-    for stat_map_name, stat_map_img in statistical_maps.items():
+    for contrast_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
-        contrast_html = _make_html_for_contrast(stat_map_name, contrasts)
-        stat_map_html_code = _make_html_for_stat_maps(statistical_map_name=stat_map_name,
+        contrast_html = '{} <p> {}'.format(contrast_name, contrasts_plots[contrast_name])
+        stat_map_html_code = _make_html_for_stat_maps(statistical_map_name=contrast_name,
                                                       statistical_map_img=stat_map_img,
                                                       threshold=threshold,
                                                       alpha=alpha,
@@ -401,7 +402,8 @@ def _make_report_components(statistical_maps, contrasts, threshold, alpha,
                                          )
         )
         components_values = {
-            'contrast': contrast_html,
+            'contrast_name': contrast_name,
+            'contrast_plot': contrasts_plots[contrast_name],
             'stat_map_img': stat_map_html_code,
             'cluster_table_details': cluster_table_details_html,
             'cluster_table': cluster_table_html,
@@ -476,12 +478,12 @@ def _make_html_for_stat_maps(statistical_map_name,
                                                 )
     if plot_type == 'glass':
         stat_map_plot = plot_glass_brain(thresholded_stat_map_img,
-                                         title=statistical_map_name,
                                          display_mode=display_mode,
+                                         colorbar=True,
+                                         plot_abs=False,
                                          )
     else:
         stat_map_plot = plot_stat_map(thresholded_stat_map_img,
-                                      title=statistical_map_name,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )

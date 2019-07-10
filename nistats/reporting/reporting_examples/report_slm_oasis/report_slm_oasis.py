@@ -1,7 +1,6 @@
 import os
 import pickle
 
-import nibabel
 import pandas as pd
 import numpy as np
 
@@ -70,23 +69,13 @@ def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
     report = make_glm_report(
-            # output_filepath,
             model=model,
             roi_img=mask_img,
             contrasts=contrast,
-            # contrasts={'age', 'sex'},
             bg_img=icbm152_2009['t1'],
             )
     report.save_as_html(output_filepath)
-    # generate_subject_stats_report(
-    #         output_filepath,
-    #         contrasts=contrast,
-    #         z_maps=z_maps,
-    #         mask=mask_img,
-    #         design_matrices=[design_matrix],
-    #         anat=icbm152_2009['t1'],
-    #         )
-
+    
 
 def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
     zmap_filepath = os.path.join(os.path.dirname(__file__), 'oasis_zmap.nii.gz')
@@ -100,9 +89,8 @@ def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
 
 
 def make_report_oasis():
-    n_subjects = 100  # more subjects requires more memory
+    n_subjects = 5  # more subjects requires more memory
     contrast = {'age': [1, 0, 0], 'sex':[0, 1, 0]}
-    # contrast = {'age', 'sex'}
     oasis_dataset = datasets.fetch_oasis_vbm(n_subjects=n_subjects)
     mask_img, gray_matter_map_filenames = prepare_data(oasis_dataset)
     design_matrix = make_design_matrix(oasis_dataset, n_subjects)
