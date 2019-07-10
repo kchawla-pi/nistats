@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 from nose.tools import assert_true, assert_equal
 
@@ -80,7 +82,12 @@ def test_make_contrast_matrix_html():
                                           drift_order=3,
                                           )
     contrast = {'test': np.ones(4)}
-    with open('data_for_testing_glm_reporter/expected_contrast_plot.txt') as f:
+    dirpath = os.path.dirname(__file__)
+    test_data_filepath = os.path.join(
+            dirpath,
+            'data_for_testing_glm_reporter/expected_contrast_plots.txt',
+            )
+    with open(test_data_filepath) as f:
         expected_contrast_plot_text = f.read()
     flm = FirstLevelModel()
     flm.design_matrices_ = [dmtx]
@@ -93,7 +100,9 @@ def test_make_contrast_matrix_html():
     assert_equal(expected_contrast_plot_text, contrast_plots_html)
 
 
-# if __name__ == '__main__':
-#     test_make_contrast_matrix_html()
+if __name__ == '__main__':
+    test_make_contrast_matrix_html()
 #     data_to_test_make_contrasts_dict = _make_data_to_test_make_contrasts_dict()
 #     test_make_contrasts_dict(data_to_test_make_contrasts_dict)
+
+
