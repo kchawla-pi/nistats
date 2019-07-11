@@ -103,12 +103,12 @@ def make_glm_report(
         html_template_text = html_file_obj.read()
     report_template = string.Template(html_template_text)
     
-    contrasts, contrasts_display_text = _make_all_contrasts(contrasts=contrasts)
+    contrasts = _make_contrasts_dict(contrasts)
     contrast_plots = _make_dict_of_contrast_plots(contrasts, model)
-    contrast_plots_text = ['{}<p>{}'.format(key, item)
+    all_contrast_plots_html = ['{}<p>{}'.format(key, item)
                            for key, item in contrast_plots.items()
                            ]
-    contrast_plots_text = '<p>'.join(contrast_plots_text)
+    all_contrast_plots_text = '<p>'.join(all_contrast_plots_html)
 
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
@@ -136,7 +136,7 @@ def make_glm_report(
                      'page_heading_1': page_heading_1,
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
-                     'all_contrasts_with_plots': contrast_plots_text,
+                     'all_contrasts_with_plots': all_contrast_plots_text,
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
@@ -146,24 +146,6 @@ def make_glm_report(
     report.width = nb_width  # for better visual experience in Jupyter Notebooks.
     report.height = nb_height
     return report
-
-
-def _make_all_contrasts(contrasts):
-    contrasts = _make_contrasts_dict(contrasts)
-    contrast_arrays_not_supplied = any([contrast_name == contrast_value
-                                        for contrast_name, contrast_value
-                                        in contrasts.items()
-                                        ]
-                                       )
-    if contrast_arrays_not_supplied:
-        contrasts_display_text = ', '.join(sorted(contrasts))
-    else:
-        contrasts_display_text = pd.DataFrame.from_dict(contrasts,
-                                                        orient='index'
-                                                        ).to_html(border=0,
-                                                                  header=False,
-                                                                  )
-    return contrasts, contrasts_display_text
 
 
 def _make_contrasts_dict(contrasts):
@@ -192,6 +174,24 @@ def _make_contrasts_dict(contrasts):
 
 
 def _make_dict_of_contrast_plots(contrasts, model):
+    """
+    Accepts dict of contrasts and First or Second Level Model
+    with fitted design matrices and generates
+    a dict of contrast name & svg code for corresponding contrast plot.
+    
+    Parameters
+    ----------
+    contrasts: Dict[str, np.array or str]
+        Contrast information, as a dict
+    
+    model: FirstLevelModel or SecondLevelModel object
+        FLM or SLM with fitted design matrices.
+
+    Returns
+    -------
+    contrast_plots: Dict[str, svg img]
+        Dict of contrast name and svg code for corresponding contrast plot.
+    """
     contrast_plots = {}
     for design_matrix in model.design_matrices_:
         for contrast_name, contrast_data in contrasts.items():
@@ -334,6 +334,23 @@ def _report_design_matrices(model):
 
 
 def _make_roi_plot(roi_img, bg_img):
+    """
+    Accepts an ROI image and background image
+    to create svg code for a ROI plot.
+    
+    Parameters
+    ----------
+    roi_img: niimg
+        ROI mask image
+        
+    bg_img: niimg
+        Background image
+
+    Returns
+    -------
+    roi_plot_html_code: str
+        SVG code for the ROI plot, can be inlined into an HTML document
+    """
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
         buffer = io.StringIO()
@@ -381,17 +398,16 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
         components_template_text = html_template_obj.read()
     for contrast_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
-        contrast_html = '{} <p> {}'.format(contrast_name, contrasts_plots[contrast_name])
-        stat_map_html_code = _make_html_for_stat_maps(statistical_map_name=contrast_name,
-                                                      statistical_map_img=stat_map_img,
-                                                      threshold=threshold,
-                                                      alpha=alpha,
-                                                      cluster_threshold=cluster_threshold,
-                                                      height_control=height_control,
-                                                      bg_img=bg_img,
-                                                      display_mode=display_mode,
-                                                      plot_type=plot_type,
-                                                      )
+        stat_map_html_code = _make_html_for_stat_maps(
+                statistical_map_img=stat_map_img,
+                threshold=threshold,
+                alpha=alpha,
+                cluster_threshold=cluster_threshold,
+                height_control=height_control,
+                bg_img=bg_img,
+                display_mode=display_mode,
+                plot_type=plot_type,
+                )
         cluster_table_details_html, cluster_table_html = (
             _make_html_for_cluster_table(statistical_map_img=stat_map_img,
                                          threshold=threshold,
@@ -438,8 +454,7 @@ def _make_html_for_contrast(contrast_name, contrasts):
     return contrast_html
 
 
-def _make_html_for_stat_maps(statistical_map_name,
-                             statistical_map_img,
+def _make_html_for_stat_maps(statistical_map_img,
                              threshold,
                              alpha,
                              cluster_threshold,
@@ -452,8 +467,6 @@ def _make_html_for_stat_maps(statistical_map_name,
     
     Parameters
     ----------
-    statistical_map_name: String
-    
     statistical_map_img: Ndarray
     
     threshold: float
@@ -469,7 +482,6 @@ def _make_html_for_stat_maps(statistical_map_name,
     stat_map_html_code: String
         String of HTML code representing a statistical map.
     """
-    # thresholded_stat_map_img = statistical_map_img
     thresholded_stat_map_img, _ = map_threshold(statistical_map_img,
                                                 threshold=threshold,
                                                 alpha=alpha,
@@ -493,9 +505,13 @@ def _make_html_for_stat_maps(statistical_map_name,
     return stat_map_html_code
 
 
-def _make_html_for_cluster_table(statistical_map_img, threshold, alpha,
-                                 cluster_threshold, height_control,
-                                 min_distance):
+def _make_html_for_cluster_table(statistical_map_img,
+                                 threshold,
+                                 alpha,
+                                 cluster_threshold,
+                                 height_control,
+                                 min_distance
+                                 ):
     """ Generates string of HTML code for a cluster table.
 
     Parameters
@@ -525,7 +541,9 @@ def _make_html_for_cluster_table(statistical_map_img, threshold, alpha,
     cluster_threshold_display = cluster_threshold if cluster_threshold else 0
     cluster_table_details = OrderedDict()
     cluster_table_details.update({'Threshold Z': threshold})
-    cluster_table_details.update({'Cluster size threshold (voxels)': cluster_threshold_display})
+    cluster_table_details.update({'Cluster size threshold (voxels)':
+                                      cluster_threshold_display}
+                                 )
     cluster_table_details.update({'Minimum distance (mm)': min_distance})
     cluster_table_details.update({'Height control': height_control})
     cluster_table_details.update({'Cluster Level p-value Threshold': alpha})
