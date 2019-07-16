@@ -95,6 +95,7 @@ def make_glm_report(
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
+    cluster_threshold = cluster_threshold if cluster_threshold else 0
     pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
@@ -117,7 +118,7 @@ def make_glm_report(
     pd.set_option('display.max_colwidth', 50)
     model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
-    html_design_matrices = _report_design_matrices(model)
+    html_design_matrices = _make_html_for_design_matrices(model)
     roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
     all_components = _make_report_components(
             statistical_maps=statistical_maps,
@@ -305,7 +306,7 @@ def make_statistical_maps(model, contrasts):
     return statistical_maps
 
 
-def _report_design_matrices(model):
+def _make_html_for_design_matrices(model):
     """ Accepts a FirstLevelModel or SecondLevelModel object
     with fitted design matrices & generates HTML code
     to insert their plots into the report.
@@ -429,31 +430,6 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
     return all_components
 
 
-def _make_html_for_contrast(contrast_name, contrasts):
-    """ Generates string of HTML code for a Pandas DataFrame of contrast name and array.
-    Accepts statistical map name, dict of contrasts.
-    
-    Parameters
-    ----------
-    contrast_name: String
-        Name of the individual contrast
-        
-    contrasts: Dict[str, ndarray or str]
-        Dict of all contrasts.
-        
-    Returns
-    -------
-    contrast_html: String
-        HTML code to insert individual contrast name, its array into a webpage.
-    """
-    contrast_val = contrasts[contrast_name]
-    contrast_val = '' if isinstance(contrast_val, str) else contrast_val
-    current_contrast = {contrast_name: contrast_val}
-    contrast_html = pd.DataFrame.from_dict(current_contrast, orient='index'
-                                           ).to_html(header=False, border=0)
-    return contrast_html
-
-
 def _make_html_for_stat_maps(statistical_map_img,
                              threshold,
                              alpha,
@@ -538,11 +514,10 @@ def _make_html_for_cluster_table(statistical_map_img,
                                        cluster_threshold=cluster_threshold,
                                        min_distance=min_distance,
                                        )
-    cluster_threshold_display = cluster_threshold if cluster_threshold else 0
     cluster_table_details = OrderedDict()
     cluster_table_details.update({'Threshold Z': threshold})
     cluster_table_details.update({'Cluster size threshold (voxels)':
-                                      cluster_threshold_display}
+                                      cluster_threshold}
                                  )
     cluster_table_details.update({'Minimum distance (mm)': min_distance})
     cluster_table_details.update({'Height control': height_control})
@@ -557,8 +532,14 @@ def _make_html_for_cluster_table(statistical_map_img,
     return cluster_table_details_html, single_cluster_table_html_code
 
 
-if __name__ == '__main__':
-    make_glm_report('generated_report.html', None)
+
+
+def _test_make_html_for_contrast():
+    pass
+
+
+# if __name__ == '__main__':
+
 
 # TODO: Add effect size of contrast?
 # TODO: Diagnostic things like Image of variance? Plot variance maps, effects size maps?
@@ -571,3 +552,4 @@ if __name__ == '__main__':
 # TODO: Plot stat maps on Glass Brains? DONE
 # TODO: Less peak value precision DONE
 # TODO: Limit number of voxel clusters in table DONE
+

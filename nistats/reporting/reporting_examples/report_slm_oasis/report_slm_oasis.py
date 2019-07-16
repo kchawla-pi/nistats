@@ -1,6 +1,7 @@
 import os
 import pickle
 
+import joblib
 import pandas as pd
 import numpy as np
 
@@ -10,6 +11,10 @@ from nilearn.image import resample_to_img
 from nistats.reporting.glm_reporter import make_glm_report
 from nistats.second_level_model import SecondLevelModel
 from nistats.thresholding import map_threshold
+
+
+MEMORY = joblib.Memory('/tmp/nistats_cache')
+
 
 def make_zmaps(model, contrasts):
     """ Given a model and contrasts, return the corresponding z-maps"""
@@ -87,7 +92,7 @@ def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
     z_maps['age'].to_filename(zmap_filepath)
     return second_level_model, z_maps
 
-
+@MEMORY.cache
 def make_report_oasis():
     n_subjects = 5  # more subjects requires more memory
     contrast = {'age': [1, 0, 0], 'sex':[0, 1, 0]}

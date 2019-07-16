@@ -38,5 +38,8 @@ def test_flm_fiac_test():
                  }
     report = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
                                   roi_img=data['mask'])
-    output_filepath = 'generated_report_flm_fiac'
+    output_filepath = 'generated_report_flm_fiac.html'
     report.save_as_html(output_filepath)
+
+if __name__ == '__main__':
+    test_flm_fiac_test()
