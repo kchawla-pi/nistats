@@ -1,2 +1,4 @@
+graft ./nistats/reporting
+
 include ./nistats/reporting/report_template.html
 include ./nistats/reporting/report_components_template.html
