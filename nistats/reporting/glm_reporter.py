@@ -100,7 +100,7 @@ def make_glm_report(
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
                                       'report_template.html')
-    with open('./report_template.html') as html_file_obj:
+    with open('report_template.html') as html_file_obj:
         html_template_text = html_file_obj.read()
     report_template = string.Template(html_template_text)
     
