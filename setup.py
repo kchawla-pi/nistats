@@ -86,4 +86,5 @@ if __name__ == "__main__":
                         'nistats.reporting': ['*.html'],
                         #'nistats.description': ['*.rst'],
                         },
+          include_package_data=True,
           install_requires=install_requires,)
