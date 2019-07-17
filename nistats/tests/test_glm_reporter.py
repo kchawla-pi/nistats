@@ -3,7 +3,6 @@ import os
 import nibabel as nib
 import numpy as np
 
-import matplotlib as mpl
 from nose import SkipTest
 
 import pandas as pd
@@ -16,8 +15,17 @@ from nistats.first_level_model import FirstLevelModel
 from nistats.reporting import glm_reporter as glmr
 from nistats.second_level_model import SecondLevelModel
 from nistats import datasets
+from numpy.testing import dec
+
+try:
+    import matplotlib as mpl
+except ImportError:
+    not_have_mpl = True
+else:
+    not_have_mpl = False
 
 
+@dec.skipif(not_have_mpl)
 def test_flm_fiac_test():
     if mpl.__version__ == '1.5.1':
         raise SkipTest('Skipping test in Matplotlib v1.5.1')
