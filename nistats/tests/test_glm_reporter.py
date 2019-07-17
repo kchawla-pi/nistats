@@ -3,6 +3,9 @@ import os
 import nibabel as nib
 import numpy as np
 
+import matplotlib as mpl
+from nose import SkipTest
+
 import pandas as pd
 from nilearn.image import concat_imgs
 from nose.tools import assert_true, assert_equal
@@ -16,6 +19,8 @@ from nistats import datasets
 
 
 def test_flm_fiac_test():
+    if mpl.__version__ == '1.5.1':
+        raise SkipTest('Skipping test in Matplotlib v1.5.1')
     data = datasets.fetch_fiac_first_level()
     fmri_img = [data['func1'], data['func2']]
     
