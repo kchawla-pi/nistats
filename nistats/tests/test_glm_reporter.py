@@ -119,7 +119,6 @@ def test_make_html_for_cluster_table():
             )
     
     expected_html_fragments_table_details = [
-        '<table border="0" class="dataframe">',
         '<th>Threshold Z</th>',
         '<th>Cluster size threshold (voxels)</th>',
         '<th>Minimum distance (mm)</th>',
@@ -133,7 +132,6 @@ def test_make_html_for_cluster_table():
     assert all(table_details_check)
     
     expected_html_fragments_table_code = [
-        '<table border="1" class="dataframe">',
         '<th>Cluster ID</th>',
         '<th>X</th>',
         '<th>Y</th>',
