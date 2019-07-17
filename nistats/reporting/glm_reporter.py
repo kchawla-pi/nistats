@@ -523,10 +523,16 @@ def _make_html_for_cluster_table(statistical_map_img,
     cluster_table_details.update({'Height control': height_control})
     cluster_table_details.update({'Cluster Level p-value Threshold': alpha})
     pd.set_option('display.precision', 2)
-    cluster_table_details_html = pd.DataFrame.from_dict(
-            cluster_table_details, orient='index').to_html(border=0,
-                                                           header=False,
-                                                           )
+    try:
+        cluster_table_details_html = pd.DataFrame.from_dict(
+                cluster_table_details, orient='index').to_html(border=0,
+                                                               header=False,
+                                                               )
+    except TypeError:  # pandas < 0.19
+        cluster_table_details_html = pd.DataFrame.from_dict(
+                cluster_table_details, orient='index').to_html(
+                                                               header=False,
+                                                               )
     single_cluster_table_html_code = cluster_table.to_html()
     pd.reset_option('display.precision')
     return cluster_table_details_html, single_cluster_table_html_code
