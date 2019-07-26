@@ -32,7 +32,7 @@ def make_glm_report(
         bg_img='MNI 152 Template',
         threshold=3.09,
         alpha=0.01,
-        cluster_threshold=None,
+        cluster_threshold=0,
         height_control='fpr',
         min_distance=8.,
         plot_type='stat',
@@ -68,8 +68,9 @@ def make_glm_report(
     alpha: float
         P- value for clustering.
 
-    cluster_threshold : int or None, optional
+    cluster_threshold : int, optional
         Cluster size threshold, in voxels.
+        Default is 0
         
     height_control: str
 
@@ -95,7 +96,6 @@ def make_glm_report(
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
-    cluster_threshold = cluster_threshold if cluster_threshold else 0
     pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
@@ -194,7 +194,7 @@ def _make_dict_of_contrast_plots(contrasts, model):
         Dict of contrast name and svg code for corresponding contrast plot.
     """
     contrast_plots = {}
-    for design_matrix in model.design_matrices_:
+    for dmtx_count, design_matrix in enumerate(model.design_matrices_):
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
             contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
