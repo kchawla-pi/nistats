@@ -208,7 +208,9 @@ def _make_dummy_contrasts_dmtx_model():
 
 def test_make_contrast_matrix_html():
     contrast, dmtx, flm = _make_dummy_contrasts_dmtx_model()
-    contrast_plots = glmr._make_dict_of_contrast_plots(contrast, flm)
+    contrast_plots = glmr._make_dict_of_contrast_plots(contrast,
+                                                       flm.design_matrices_,
+                                                       )
     assert True
 
 
