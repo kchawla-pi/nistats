@@ -96,7 +96,6 @@ def make_glm_report(
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
-    pd.set_option('display.max_colwidth', -1)
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
                                       'report_template.html')
@@ -114,8 +113,8 @@ def make_glm_report(
         contrasts,
         title,
         )
-    pd.set_option('display.max_colwidth', 50)
-    model_attributes_html = _make_model_attributes_html_table(model)
+    with pd.option_context('display.max_colwidth', 100):
+        model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _make_html_for_design_matrices(model)
     roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
@@ -521,7 +520,6 @@ def _make_html_for_cluster_table(statistical_map_img,
     cluster_table_details.update({'Minimum distance (mm)': min_distance})
     cluster_table_details.update({'Height control': height_control})
     cluster_table_details.update({'Cluster Level p-value Threshold': alpha})
-    pd.set_option('display.precision', 2)
     try:
         cluster_table_details_html = pd.DataFrame.from_dict(
                 cluster_table_details, orient='index').to_html(border=0,
@@ -532,6 +530,6 @@ def _make_html_for_cluster_table(statistical_map_img,
                 cluster_table_details, orient='index').to_html(
                                                                header=False,
                                                                )
-    single_cluster_table_html_code = cluster_table.to_html()
-    pd.reset_option('display.precision')
+    with pd.option_context('display.precision', 2):
+        single_cluster_table_html_code = cluster_table.to_html()
     return cluster_table_details_html, single_cluster_table_html_code
