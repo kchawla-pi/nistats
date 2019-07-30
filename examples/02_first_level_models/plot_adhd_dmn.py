@@ -73,3 +73,33 @@ display = plotting.plot_stat_map(z_map, threshold=3.0, title='Seed based GLM',
 display.add_markers(marker_coords=[pcc_coords], marker_color='g',marker_size=300)
 display.savefig(filename)
 print("Save z-map in '{0}'.".format(filename))
+
+###########################################################################
+# It can be useful to quickly generate a
+# portable, ready-to-view report with most of the pertinent information.
+# This is easy to do if you have a fitted model and the list of contrasts,
+# which we do here.
+
+from nistats.reporting import make_glm_report
+
+output_filepath = 'generated_report_flm_adhd_dmn.html'
+report = make_glm_report(
+        first_level_model,
+        contrasts=contrasts,
+        title='ADHD DMN Report',
+        min_distance=8.,
+        cluster_threshold=15,
+        plot_type='glass',
+        )
+
+###########################################################################
+# This report can be viewed in a notebook
+report
+
+###########################################################################
+# and/or opened in a new browser tab
+report.open_in_browser()
+
+###########################################################################
+# and/or saved as a portable HTML file
+report.save_as_html(output_filepath)

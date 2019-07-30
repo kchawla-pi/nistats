@@ -12,6 +12,7 @@ from nilearn.plotting import (plot_glass_brain,
                               plot_roi,
                               plot_stat_map,
                               )
+from nilearn.plotting.img_plotting import MNI152TEMPLATE
 from nilearn.plotting.js_plotting_utils import HTMLDocument
 
 from nistats.reporting import (plot_contrast_matrix,
@@ -29,7 +30,7 @@ def make_glm_report(
         contrasts,
         title='auto',
         roi_img=None,
-        bg_img='MNI 152 Template',
+        bg_img=MNI152TEMPLATE,
         threshold=3.09,
         alpha=0.01,
         cluster_threshold=0,
@@ -102,7 +103,6 @@ def make_glm_report(
     except AttributeError:
         design_matrices = [model.design_matrix_]
 
-    bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
                                       'report_template.html')
     with open(html_template_path) as html_file_obj:

@@ -148,5 +148,9 @@ report = make_glm_report(
 report
 
 ###########################################################################
-# or saved as a portable HTML file
+# and/or opened in a new browser tab
+report.open_in_browser()
+
+###########################################################################
+# and/or saved as a portable HTML file
 report.save_as_html(output_filepath)
