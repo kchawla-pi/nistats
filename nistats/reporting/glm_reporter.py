@@ -96,6 +96,12 @@ def make_glm_report(
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
+            
+    try:
+        design_matrices = model.design_matrices_
+    except AttributeError:
+        design_matrices = [model.design_matrix_]
+
     bg_img = load_mni152_template() if bg_img == 'MNI 152 Template' else bg_img
     html_template_path = os.path.join(html_template_root_path,
                                       'report_template.html')
@@ -104,7 +110,7 @@ def make_glm_report(
     report_template = string.Template(html_template_text)
     
     contrasts = _make_contrasts_dict(contrasts)
-    contrast_plots = _make_dict_of_contrast_plots(contrasts, model)
+    contrast_plots = _make_dict_of_contrast_plots(contrasts, design_matrices)
     all_contrast_plots_html = [item
                            for key, item in contrast_plots.items()
                            ]
@@ -116,7 +122,7 @@ def make_glm_report(
     with pd.option_context('display.max_colwidth', 100):
         model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
-    html_design_matrices = _make_html_for_design_matrices(model)
+    html_design_matrices = _make_html_for_design_matrices(design_matrices)
     roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
     all_components = _make_report_components(
             statistical_maps=statistical_maps,
@@ -142,7 +148,7 @@ def make_glm_report(
                      }
     report_text = report_template.safe_substitute(**report_values)
     report = HTMLDocument(report_text)
-    report.width = nb_width  # for better visual experience in Jupyter Notebooks.
+    report.width = nb_width  # better visual experience in Jupyter Notebooks.
     report.height = nb_height
     return report
 
@@ -172,7 +178,7 @@ def _make_contrasts_dict(contrasts):
     return contrasts
 
 
-def _make_dict_of_contrast_plots(contrasts, model):
+def _make_dict_of_contrast_plots(contrasts, design_matrices):
     """
     Accepts dict of contrasts and First or Second Level Model
     with fitted design matrices and generates
@@ -183,8 +189,7 @@ def _make_dict_of_contrast_plots(contrasts, model):
     contrasts: Dict[str, np.array or str]
         Contrast information, as a dict
     
-    model: FirstLevelModel or SecondLevelModel object
-        FLM or SLM with fitted design matrices.
+    design_matrices: design_matrices
 
     Returns
     -------
@@ -192,7 +197,7 @@ def _make_dict_of_contrast_plots(contrasts, model):
         Dict of contrast name and svg code for corresponding contrast plot.
     """
     contrast_plots = {}
-    for design_matrix in model.design_matrices_:
+    for design_matrix in design_matrices:
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
             contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
@@ -304,15 +309,14 @@ def make_statistical_maps(model, contrasts):
     return statistical_maps
 
 
-def _make_html_for_design_matrices(model):
+def _make_html_for_design_matrices(design_matrices):
     """ Accepts a FirstLevelModel or SecondLevelModel object
     with fitted design matrices & generates HTML code
     to insert their plots into the report.
     
     Parameters
     ----------
-    model: FirstLevelModel or SecondLevelModel object
-        First or Second Level Model objects with fitted design matrices.
+    desin_matrices: design_matrices
         
     Returns
     -------
@@ -321,7 +325,7 @@ def _make_html_for_design_matrices(model):
         to be inserted into the HTML template.
     """
     html_design_matrices = []
-    for dmtx_count, design_matrix in enumerate(model.design_matrices_, start=1):
+    for dmtx_count, design_matrix in enumerate(design_matrices, start=1):
         design_matrix_image_axes = plot_design_matrix(design_matrix)
         plt.title(dmtx_count, y=0.987)
         buffer = io.StringIO()

@@ -70,7 +70,7 @@ def make_design_matrix(oasis_dataset, n_subjects):
     return design_matrix
 
 
-def run_reporter(model, mask_img, design_matrix, contrast, z_maps):
+def run_reporter(model, mask_img, contrast):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
     report = make_glm_report(
@@ -92,7 +92,7 @@ def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
     z_maps['age'].to_filename(zmap_filepath)
     return second_level_model, z_maps
 
-@MEMORY.cache
+# @MEMORY.cache
 def make_report_oasis():
     n_subjects = 5  # more subjects requires more memory
     contrast = {'age': [1, 0, 0], 'sex':[0, 1, 0]}
@@ -104,8 +104,7 @@ def make_report_oasis():
                       design_matrix,
                       contrast,
                       )
-    model.design_matrices_ = [model.design_matrix_]
-    run_reporter(model, mask_img, design_matrix, contrast, z_maps)
+    run_reporter(model, mask_img, contrast)
 
 
 def pickle_this(name, obj):
