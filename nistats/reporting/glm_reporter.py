@@ -194,7 +194,7 @@ def _make_dict_of_contrast_plots(contrasts, model):
         Dict of contrast name and svg code for corresponding contrast plot.
     """
     contrast_plots = {}
-    for dmtx_count, design_matrix in enumerate(model.design_matrices_):
+    for design_matrix in model.design_matrices_:
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
             contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
@@ -240,7 +240,6 @@ def _make_page_title_heading(contrasts, title):
 
 def _make_model_attributes_html_table(model):
     """ Returns an HTML table with pertinent model attributes & information.
-    Does not contain derived attributes.
     
     Parameters
     ----------
@@ -323,8 +322,9 @@ def _make_html_for_design_matrices(model):
         to be inserted into the HTML template.
     """
     html_design_matrices = []
-    for count, design_matrix in enumerate(model.design_matrices_):
+    for dmtx_count, design_matrix in enumerate(model.design_matrices_, start=1):
         design_matrix_image_axes = plot_design_matrix(design_matrix)
+        plt.title(dmtx_count, y=0.987)
         buffer = io.StringIO()
         design_matrix_image_axes.figure.savefig(buffer, format='svg')
         html_design_matrix = (
@@ -443,7 +443,7 @@ def _make_html_for_stat_maps(statistical_map_img,
     
     Parameters
     ----------
-    statistical_map_img: Ndarray
+    statistical_map_img: Nifti image
     
     threshold: float
     
