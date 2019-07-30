@@ -136,12 +136,11 @@ from nistats.reporting import make_glm_report
 
 icbm152_2009 = datasets.fetch_icbm152_2009()
 output_filepath = 'generated_report_slm_oasis.html'
-report = make_glm_report(
-        model=second_level_model,
-        roi_img=mask_img,
-        contrasts=['age', 'sex'],
-        bg_img=icbm152_2009['t1'],
-        )
+report = make_glm_report(model=second_level_model,
+                         roi_img=mask_img,
+                         contrasts=['age', 'sex'],
+                         bg_img=icbm152_2009['t1'],
+                         )
 
 ###########################################################################
 # This report can be viewed in a notebook

@@ -83,14 +83,13 @@ print("Save z-map in '{0}'.".format(filename))
 from nistats.reporting import make_glm_report
 
 output_filepath = 'generated_report_flm_adhd_dmn.html'
-report = make_glm_report(
-        first_level_model,
-        contrasts=contrasts,
-        title='ADHD DMN Report',
-        min_distance=8.,
-        cluster_threshold=15,
-        plot_type='glass',
-        )
+report = make_glm_report(first_level_model,
+                         contrasts=contrasts,
+                         title='ADHD DMN Report',
+                         min_distance=8.,
+                         cluster_threshold=15,
+                         plot_type='glass',
+                         )
 
 ###########################################################################
 # This report can be viewed in a notebook
