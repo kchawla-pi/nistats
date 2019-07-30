@@ -201,7 +201,7 @@ def _make_dict_of_contrast_plots(contrasts, design_matrices):
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
             contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
-            plt.title(contrast_name, loc='left', y=1.5)
+            contrast_matrix_plot.set_xlabel(contrast_name)
             contrast_matrix_plot.figure.set_tight_layout(True)
             contrast_matrix_plot.figure.set_figheight(2)
             plt.savefig(buffer, format='svg')

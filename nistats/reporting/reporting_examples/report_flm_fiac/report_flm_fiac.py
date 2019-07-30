@@ -27,14 +27,15 @@ def test_flm_fiac_test():
     n_columns = design_matrices[0].shape[1]
     
     
-    contrasts = {'SStSSp_minus_DStDSp': pad_vector([1, 0, 0, -1], n_columns),
-                 'DStDSp_minus_SStSSp': pad_vector([-1, 0, 0, 1], n_columns),
-                 # 'DSt_minus_SSt': pad_vector([-1, -1, 1, 1], n_columns),
-                 # 'DSp_minus_SSp': pad_vector([-1, 1, -1, 1], n_columns),
-                 # 'DSt_minus_SSt_for_DSp': pad_vector([0, -1, 0, 1], n_columns),
-                 # 'DSp_minus_SSp_for_DSt': pad_vector([0, 0, -1, 1], n_columns),
-                 # 'Deactivation': pad_vector([-1, -1, -1, -1, 4], n_columns),
-                 # 'Effects_of_interest': np.eye(n_columns)[:5]
+    contrasts = {
+        'SStSSp_minus_DStDSp': pad_vector([1, 0, 0, -1], n_columns),
+        'DStDSp_minus_SStSSp': pad_vector([-1, 0, 0, 1], n_columns),
+        'DSt_minus_SSt': pad_vector([-1, -1, 1, 1], n_columns),
+        'DSp_minus_SSp': pad_vector([-1, 1, -1, 1], n_columns),
+        'DSt_minus_SSt_for_DSp': pad_vector([0, -1, 0, 1], n_columns),
+        'DSp_minus_SSp_for_DSt': pad_vector([0, 0, -1, 1], n_columns),
+        'Deactivation': pad_vector([-1, -1, -1, -1, 4], n_columns),
+        'Effects_of_interest': np.eye(n_columns)[:5]
                  }
     report = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
                                   roi_img=data['mask'])
