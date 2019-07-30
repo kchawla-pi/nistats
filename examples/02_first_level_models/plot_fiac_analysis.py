@@ -147,3 +147,13 @@ plotting.plot_stat_map(
 # Not unexpectedly, the fixed effects version looks displays higher peaks than the input sessions. Computing fixed effects enhances the signal-to-noise ratio of the resulting brain maps
 
 plotting.show()
+
+from nistats.reporting import make_glm_report
+
+#########################################################################
+# Since we have already computed the FirstLevelModel and
+# and have the contrast, we can quickly create a summary report.
+report = make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
+                              roi_img=data['mask'])
+output_filepath = 'generated_report_flm_fiac.html'
+report.save_as_html(output_filepath)
