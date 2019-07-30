@@ -106,11 +106,10 @@ def make_glm_report(
     
     contrasts = _make_contrasts_dict(contrasts)
     contrast_plots = _make_dict_of_contrast_plots(contrasts, model)
-    all_contrast_plots_html = ['{}<p>{}'.format(key, item)
+    all_contrast_plots_html = [item
                            for key, item in contrast_plots.items()
                            ]
-    all_contrast_plots_text = '<p>'.join(all_contrast_plots_html)
-
+    all_contrast_plots_text = ''.join(all_contrast_plots_html)
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
         title,
@@ -198,6 +197,7 @@ def _make_dict_of_contrast_plots(contrasts, model):
         for contrast_name, contrast_data in contrasts.items():
             buffer = io.StringIO()
             contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
+            plt.title(contrast_name, loc='left', y=1.5)
             contrast_matrix_plot.figure.set_tight_layout(True)
             contrast_matrix_plot.figure.set_figheight(2)
             plt.savefig(buffer, format='svg')
@@ -327,8 +327,7 @@ def _make_html_for_design_matrices(model):
         plt.title(dmtx_count, y=0.987)
         buffer = io.StringIO()
         design_matrix_image_axes.figure.savefig(buffer, format='svg')
-        html_design_matrix = (
-            '<svg class="dmtx">{}</svg>'.format(buffer.getvalue()))
+        html_design_matrix = buffer.getvalue()
         html_design_matrices.append(html_design_matrix)
     html_design_matrices = '\n'.join(html_design_matrices)
     return html_design_matrices
