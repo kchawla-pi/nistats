@@ -535,26 +535,3 @@ def _make_html_for_cluster_table(statistical_map_img,
     single_cluster_table_html_code = cluster_table.to_html()
     pd.reset_option('display.precision')
     return cluster_table_details_html, single_cluster_table_html_code
-
-
-
-
-def _test_make_html_for_contrast():
-    pass
-
-
-# if __name__ == '__main__':
-
-
-# TODO: Add effect size of contrast?
-# TODO: Diagnostic things like Image of variance? Plot variance maps, effects size maps?
-# TODO: Oasis VBM Example, check age effect. It is positive. It should be negative (expected reduction in cortex).
-# TODO: Should we output in Markdown? Easy to cut-paste, insert in Latex.
-
-# TODO: Variance of the model
-# TODO: Noise model
-
-# TODO: Plot stat maps on Glass Brains? DONE
-# TODO: Less peak value precision DONE
-# TODO: Limit number of voxel clusters in table DONE
-
