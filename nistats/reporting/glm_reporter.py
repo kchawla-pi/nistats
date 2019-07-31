@@ -503,9 +503,8 @@ def _make_html_for_stat_maps(statistical_map_img,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
-    buffer = io.StringIO()
-    plt.savefig(buffer, format='svg')
-    stat_map_html_code = buffer.getvalue()
+    
+    stat_map_html_code = make_svg_image_data_url(plt.gcf())
     return stat_map_html_code
 
 
