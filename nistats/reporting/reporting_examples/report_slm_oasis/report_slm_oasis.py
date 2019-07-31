@@ -73,6 +73,7 @@ def make_design_matrix(oasis_dataset, n_subjects):
 def run_reporter(model, mask_img, contrast):
     icbm152_2009 = datasets.fetch_icbm152_2009()
     output_filepath = 'generated_report_slm_oasis.html'
+    contrast = [[1, 0, 0], [0, 1, 0]]
     report = make_glm_report(
             model=model,
             roi_img=mask_img,
@@ -96,6 +97,7 @@ def get_zmap(mask_img, gray_matter_map_filenames, design_matrix, contrast):
 def make_report_oasis():
     n_subjects = 5  # more subjects requires more memory
     contrast = {'age': [1, 0, 0], 'sex':[0, 1, 0]}
+    # contrast = [[1, 0, 0], [0, 1, 0]]
     oasis_dataset = datasets.fetch_oasis_vbm(n_subjects=n_subjects)
     mask_img, gray_matter_map_filenames = prepare_data(oasis_dataset)
     design_matrix = make_design_matrix(oasis_dataset, n_subjects)
@@ -106,29 +108,6 @@ def make_report_oasis():
                       )
     run_reporter(model, mask_img, contrast)
 
-
-def pickle_this(name, obj):
-    with open(name + '.pickle', 'wb') as pobj:
-        pickle.dump(obj, pobj)
-
-
-def unpickle_all():
-    keys = ['model', 'roi_img', 'contrasts', 'bg_img']
-    kwargs = dict.fromkeys(keys)
-    for item in keys:
-        with open(item + '.pickle', 'rb') as upobj:
-            kwargs[item] = pickle.load(upobj)
-    return kwargs
-    
-def make_report_with_prepickled_data():
-    output_filepath = 'generated_report_slm_oasis.html'
-    kwargs = unpickle_all()
-    print()
-    report = make_glm_report(**kwargs)
-    print()
-    report.save_as_html(output_filepath)
-
-    
 
 if __name__ == '__main__':
     make_report_oasis()

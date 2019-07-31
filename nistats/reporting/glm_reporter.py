@@ -173,7 +173,7 @@ def _make_contrasts_dict(contrasts):
     """
     contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
     if not isinstance(contrasts, dict):
-        contrasts = {contrast_: contrast_ for contrast_ in contrasts}
+        contrasts = {str(contrast_): contrast_ for contrast_ in contrasts}
     return contrasts
 
 
