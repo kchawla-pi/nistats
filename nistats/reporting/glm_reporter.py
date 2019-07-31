@@ -354,7 +354,7 @@ def _make_html_for_design_matrices(design_matrices):
 
 
 def make_svg_image_data_url(plot):
-    with io.StringIO() as buffer:
+    with io.BytesIO() as buffer:
         try:
             plot.figure.savefig(buffer, format='svg')
         except AttributeError:
