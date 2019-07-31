@@ -3,11 +3,14 @@ import string
 import os
 
 from collections import OrderedDict
+try:
+    from urllib.parse import quote
+except ImportError:
+    from urllib import quote
 
 import pandas as pd
 
 from matplotlib import pyplot as plt
-from nilearn.datasets import load_mni152_template
 from nilearn.plotting import (plot_glass_brain,
                               plot_roi,
                               plot_stat_map,
@@ -111,10 +114,6 @@ def make_glm_report(
     
     contrasts = _make_contrasts_dict(contrasts)
     contrast_plots = _make_dict_of_contrast_plots(contrasts, design_matrices)
-    all_contrast_plots_html = [item
-                           for key, item in contrast_plots.items()
-                           ]
-    all_contrast_plots_text = ''.join(all_contrast_plots_html)
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
         contrasts,
         title,
@@ -141,7 +140,7 @@ def make_glm_report(
                      'page_heading_1': page_heading_1,
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
-                     'all_contrasts_with_plots': all_contrast_plots_text,
+                     'all_contrasts_with_plots': ''.join(contrast_plots.values()),
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
@@ -196,17 +195,27 @@ def _make_dict_of_contrast_plots(contrasts, design_matrices):
     contrast_plots: Dict[str, svg img]
         Dict of contrast name and svg code for corresponding contrast plot.
     """
-    contrast_plots = {}
+    all_contrasts_plots = {}
+    contrast_template_path = os.path.join(html_template_root_path,
+                                            'contrast_template.html'
+                                            )
+    with open(contrast_template_path) as html_template_obj:
+        contrast_template_text = html_template_obj.read()
+
     for design_matrix in design_matrices:
         for contrast_name, contrast_data in contrasts.items():
-            buffer = io.StringIO()
-            contrast_matrix_plot = plot_contrast_matrix(contrast_data, design_matrix)
-            contrast_matrix_plot.set_xlabel(contrast_name)
-            contrast_matrix_plot.figure.set_tight_layout(True)
-            contrast_matrix_plot.figure.set_figheight(2)
-            plt.savefig(buffer, format='svg')
-            contrast_plots[contrast_name] = buffer.getvalue()
-    return contrast_plots
+            contrast_text_ = string.Template(contrast_template_text)
+            contrast_plot = plot_contrast_matrix(contrast_data, design_matrix)
+            contrast_plot.set_xlabel(contrast_name)
+            contrast_plot.figure.set_tight_layout(True)
+            contrast_plot.figure.set_figheight(2)
+            url_contrast_plot_svg = make_svg_image_data_url(contrast_plot)
+            contrasts_for_subsitution = {'contrast_plot': url_contrast_plot_svg}
+            contrast_text_ = contrast_text_.safe_substitute(
+                    contrasts_for_subsitution
+                    )
+            all_contrasts_plots[contrast_name] = contrast_text_
+    return all_contrasts_plots
     
     
 def _make_page_title_heading(contrasts, title):
@@ -325,16 +334,35 @@ def _make_html_for_design_matrices(design_matrices):
         to be inserted into the HTML template.
     """
     html_design_matrices = []
+    dmtx_template_path = os.path.join(html_template_root_path,
+                                            'design_matrix_template.html'
+                                            )
+    with open(dmtx_template_path) as html_template_obj:
+        dmtx_template_text = html_template_obj.read()
+
     for dmtx_count, design_matrix in enumerate(design_matrices, start=1):
-        design_matrix_image_axes = plot_design_matrix(design_matrix)
+        dmtx_text_ = string.Template(dmtx_template_text)
+        dmtx_plot = plot_design_matrix(design_matrix)
         plt.title(dmtx_count, y=0.987)
-        buffer = io.StringIO()
-        design_matrix_image_axes.figure.savefig(buffer, format='svg')
-        html_design_matrix = buffer.getvalue()
-        html_design_matrices.append(html_design_matrix)
-    html_design_matrices = '\n'.join(html_design_matrices)
+        url_design_matrix_svg = make_svg_image_data_url(dmtx_plot)
+        dmtx_text_ = dmtx_text_.safe_substitute(
+                {'design_matrix': url_design_matrix_svg}
+                )
+        html_design_matrices.append(dmtx_text_)
+    html_design_matrices = ''.join(html_design_matrices)
     return html_design_matrices
 
+
+def make_svg_image_data_url(plot):
+    with io.StringIO() as buffer:
+        try:
+            plot.figure.savefig(buffer, format='svg')
+        except AttributeError:
+            plot.savefig(buffer, format='svg')
+        plot_svg = buffer.getvalue()
+    url_plot_svg = quote(plot_svg.decode('utf8'))
+    return url_plot_svg
+    
 
 def _make_roi_plot(roi_img, bg_img):
     """
@@ -356,9 +384,7 @@ def _make_roi_plot(roi_img, bg_img):
     """
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
-        buffer = io.StringIO()
-        plt.savefig(buffer, format='svg')
-        roi_plot_html_code = buffer.getvalue()
+        roi_plot_html_code = make_svg_image_data_url(plt.gcf())
     else:
         roi_plot_html_code = 'Pass the mask with the `roi_img` parameter to plot the ROI'
     return roi_plot_html_code
