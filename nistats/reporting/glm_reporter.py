@@ -133,7 +133,7 @@ def make_glm_report(
     html_design_matrices = _make_html_for_design_matrices(design_matrices)
     roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
     all_components = _make_report_components(
-            statistical_maps=statistical_maps,
+            stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
             threshold=threshold,
             alpha=alpha,
@@ -405,7 +405,7 @@ def _make_roi_plot(roi_img, bg_img):
     return roi_plot_html_code
 
 
-def _make_report_components(statistical_maps, contrasts_plots, threshold,
+def _make_report_components(stat_img, contrasts_plots, threshold,
                             alpha,
                             cluster_threshold, height_control, min_distance,
                             bg_img,
@@ -418,23 +418,53 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold,
     
     Parameters
     ----------
-    statistical_maps: Nifti images
+    stat_img : Niimg-like object or None
+       statistical image (presumably in z scale)
+       whenever height_control is 'fpr' or None,
+       stat_img=None is acceptable.
+       If it is 'fdr' or 'bonferroni',
+       an error is raised if stat_img is None.
     
-    contrasts_plots: Dict[str, ndarray or str]
+    contrasts_plots: Dict[str, str]
+        Contains the contrast names & the HTML code of the contrast's SVG plot.
     
     threshold: float
+       desired threshold in z-scale.
+       This is used only if height_control is None
+
     
     alpha: float
+        number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
     
-    bg_img: Nifti image
+    bg_img : Niimg-like object
+        Only used when plot_type is 'slices'.
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The background image that the ROI/mask will be plotted on top of.
+        If nothing is specified, the MNI152 template will be used.
+        To turn off background image, just pass "bg_img=False".
     
     display_mode: string
+        Choose the direction of the cuts:
+        'x' - sagittal, 'y' - coronal, 'z' - axial,
+        'l' - sagittal left hemisphere only,
+        'r' - sagittal right hemisphere only,
+        'ortho' - three cuts are performed in orthogonal directions.
+        
+        Possible values are:
+        'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
+        'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
+
+    plot_type: string
+        ['slices', 'glass']
+        The type of plot to be drawn.
     
     Returns
     -------
-    all_components: String
-        HTML code representing each set of
-        contrast, statistical map, cluster table.
+    all_components: List[String]
+        Each element is a set of HTML code for
+        contrast name, contrast plot, statistical map, cluster table.
     """
     all_components = []
     components_template_path = os.path.join(html_template_root_path,
@@ -442,7 +472,7 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold,
                                             )
     with open(components_template_path) as html_template_obj:
         components_template_text = html_template_obj.read()
-    for contrast_name, stat_map_img in statistical_maps.items():
+    for contrast_name, stat_map_img in stat_img.items():
         component_text_ = string.Template(components_template_text)
         stat_map_html_code = _make_stat_map_svg(
                 stat_img=stat_map_img,
@@ -496,8 +526,7 @@ def _make_stat_map_svg(stat_img,
        stat_img=None is acceptable.
        If it is 'fdr' or 'bonferroni',
        an error is raised if stat_img is None.
-    
-    
+       
     threshold: float
        desired threshold in z-scale.
        This is used only if height_control is None
