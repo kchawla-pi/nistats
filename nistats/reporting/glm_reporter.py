@@ -27,7 +27,6 @@ from nistats.reporting import (plot_contrast_matrix,
                                )
 from nistats.thresholding import map_threshold
 
-
 html_template_root_path = os.path.dirname(__file__)
 
 
@@ -44,13 +43,13 @@ def make_glm_report(
         min_distance=8.,
         plot_type='slices',
         display_mode=None,
-        cut_coords=None,
         nb_width=1600,
         nb_height=800,
         ):
     """ Returns HTMLDocument object for a report which shows
     all important aspects of a fitted GLM.
-    The object can be opened in a browser or saved to disk.
+    The object can be opened in a browser, displayed in a notebook,
+    or saved to disk as a portable HTML file.
     
     Usage:
         report = make_glm_report(model, contrasts)
@@ -61,11 +60,17 @@ def make_glm_report(
     ----------
     model: FirstLevelModel or SecondLevelModel object
         A fitted first or second level model object.
+        Must have the computed design matrix(ces).
         
-    contrasts: Dict[string, ndarray] , String
+    contrasts: Dict[string, ndarray] , String, List[ndarrays]
     
     title: str, default 'auto'
         Text to represnt the web page's title and primary heading.
+        
+    roi_img:
+    
+    bg_img: Nifti image
+        Default is the MNI152 template
         
     threshold: float
         Cluster forming threshold in same scale as `stat_img` (either a
@@ -84,15 +89,16 @@ def make_glm_report(
     min_distance: float, optional
         Minimum distance between subpeaks in mm. Default is 8 mm.
         
-    bg_img: Nifti image
-        Default is the MNI152 template
+    plot_type: String. ['slices' (default)| 'glass']
+        Specifies the type of plot to be drawn for the statistical maps.
         
     display_mode: String, optional
         Default is 'z' if plot_type is 'slices'; 'ortho' if plot_type is 'glass'.
         
-    plot_type: String. ['slices' (default)| 'glass']
-        Specifies the type of plot to be drawn for the statistical maps.
-        
+    nb_width: int
+    
+    nb_height: int
+    
     Returns
     -------
     report_text: HTMLDocument Object
@@ -103,12 +109,12 @@ def make_glm_report(
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
-            
+    
     try:
         design_matrices = model.design_matrices_
     except AttributeError:
         design_matrices = [model.design_matrix_]
-
+    
     html_template_path = os.path.join(html_template_root_path,
                                       'report_template.html')
     with open(html_template_path) as html_file_obj:
@@ -118,9 +124,9 @@ def make_glm_report(
     contrasts = _make_contrasts_dict(contrasts)
     contrast_plots = _make_dict_of_contrast_plots(contrasts, design_matrices)
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
-        contrasts,
-        title,
-        )
+            contrasts,
+            title,
+            )
     with pd.option_context('display.max_colwidth', 100):
         model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
@@ -143,7 +149,8 @@ def make_glm_report(
                      'page_heading_1': page_heading_1,
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
-                     'all_contrasts_with_plots': ''.join(contrast_plots.values()),
+                     'all_contrasts_with_plots': ''.join(
+                         contrast_plots.values()),
                      'design_matrices': html_design_matrices,
                      'roi_plot': roi_plot_html_code,
                      'component': all_components_text,
@@ -200,11 +207,11 @@ def _make_dict_of_contrast_plots(contrasts, design_matrices):
     """
     all_contrasts_plots = {}
     contrast_template_path = os.path.join(html_template_root_path,
-                                            'contrast_template.html'
-                                            )
+                                          'contrast_template.html'
+                                          )
     with open(contrast_template_path) as html_template_obj:
         contrast_template_text = html_template_obj.read()
-
+    
     for design_matrix in design_matrices:
         for contrast_name, contrast_data in contrasts.items():
             contrast_text_ = string.Template(contrast_template_text)
@@ -213,14 +220,16 @@ def _make_dict_of_contrast_plots(contrasts, design_matrices):
             contrast_plot.figure.set_tight_layout(True)
             contrast_plot.figure.set_figheight(2)
             url_contrast_plot_svg = make_svg_image_data_url(contrast_plot)
-            contrasts_for_subsitution = {'contrast_plot': url_contrast_plot_svg}
+            contrasts_for_subsitution = {
+                'contrast_plot': url_contrast_plot_svg
+                }
             contrast_text_ = contrast_text_.safe_substitute(
                     contrasts_for_subsitution
                     )
             all_contrasts_plots[contrast_name] = contrast_text_
     return all_contrasts_plots
-    
-    
+
+
 def _make_page_title_heading(contrasts, title):
     """ Creates report page title, heading & sub-heading
      using title text or contrast names.
@@ -341,11 +350,11 @@ def _make_html_for_design_matrices(design_matrices):
     """
     html_design_matrices = []
     dmtx_template_path = os.path.join(html_template_root_path,
-                                            'design_matrix_template.html'
-                                            )
+                                      'design_matrix_template.html'
+                                      )
     with open(dmtx_template_path) as html_template_obj:
         dmtx_template_text = html_template_obj.read()
-
+    
     for dmtx_count, design_matrix in enumerate(design_matrices, start=1):
         dmtx_text_ = string.Template(dmtx_template_text)
         dmtx_plot = plot_design_matrix(design_matrix)
@@ -368,7 +377,7 @@ def make_svg_image_data_url(plot):
         plot_svg = buffer.getvalue()
     url_plot_svg = quote(plot_svg.decode('utf8'))
     return url_plot_svg
-    
+
 
 def _make_roi_plot(roi_img, bg_img):
     """
@@ -394,10 +403,12 @@ def _make_roi_plot(roi_img, bg_img):
     else:
         roi_plot_html_code = 'Pass the mask with the `roi_img` parameter to plot the ROI'
     return roi_plot_html_code
-    
 
-def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
-                            cluster_threshold, height_control, min_distance, bg_img,
+
+def _make_report_components(statistical_maps, contrasts_plots, threshold,
+                            alpha,
+                            cluster_threshold, height_control, min_distance,
+                            bg_img,
                             display_mode, plot_type):
     """ Populates a smaller HTML sub-template with the proper values,
      make a list containing one or more of such components
@@ -434,7 +445,7 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
     for contrast_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
         stat_map_html_code = _make_html_for_stat_maps(
-                statistical_map_img=stat_map_img,
+                stat_img=stat_map_img,
                 threshold=threshold,
                 alpha=alpha,
                 cluster_threshold=cluster_threshold,
@@ -452,6 +463,7 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
                                          min_distance=min_distance,
                                          )
         )
+        # Escaping HTML reserved chars < >
         contrast_name = contrast_name.replace('<', '&lt')
         contrast_name = contrast_name.replace('>', '&gt')
         components_values = {
@@ -466,7 +478,7 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
     return all_components
 
 
-def _make_html_for_stat_maps(statistical_map_img,
+def _make_html_for_stat_maps(stat_img,
                              threshold,
                              alpha,
                              cluster_threshold,
@@ -479,22 +491,55 @@ def _make_html_for_stat_maps(statistical_map_img,
     
     Parameters
     ----------
-    statistical_map_img: Nifti image
+    stat_img : Niimg-like object or None, optional
+       statistical image (presumably in z scale)
+       whenever height_control is 'fpr' or None,
+       stat_img=None is acceptable.
+       If it is 'fdr' or 'bonferroni', an error is raised if stat_img is None.
     
-    threshold: float
     
-    alpha: float
-    
+    threshold: float, optional
+       desired threshold in z-scale.
+       This is used only if height_control is None
+
+    alpha: float, optional
+        number controling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
+
+    cluster_threshold : float
+        cluster size threshold. In the returned thresholded map,
+        sets of connected voxels (`clusters`) with size smaller
+        than this number will be removed.
+
+    height_control: string, or None
+        false positive control meaning of cluster forming
+        threshold: 'fpr'|'fdr'|'bonferroni'\|None
+
     bg_img: Nifti image
     
-    display_mode: String
+    display_mode: str
+        Choose the direction of the cuts:
+        'x' - sagittal, 'y' - coronal, 'z' - axial,
+        'l' - sagittal left hemisphere only,
+        'r' - sagittal right hemisphere only,
+        'ortho' - three cuts are performed in orthogonal directions.
+        
+        Possible values are:
+        'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
+        'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
+    
+    plot_type: str
+        ['slices', 'glass']
+        The type of plot to be drawn.
+        
     
     Returns
     -------
     stat_map_html_code: String
         String of HTML code representing a statistical map.
     """
-    thresholded_stat_map_img, _ = map_threshold(statistical_map_img,
+    thresholded_stat_map_img, _ = map_threshold(stat_img,
                                                 threshold=threshold,
                                                 alpha=alpha,
                                                 cluster_threshold=cluster_threshold,
@@ -552,7 +597,8 @@ def _make_html_for_cluster_table(statistical_map_img,
     cluster_table_details = OrderedDict()
     cluster_table_details.update({'Threshold Z': threshold})
     cluster_table_details.update({'Cluster size threshold (voxels)':
-                                      cluster_threshold}
+                                      cluster_threshold
+                                  }
                                  )
     cluster_table_details.update({'Minimum distance (mm)': min_distance})
     cluster_table_details.update({'Height control': height_control})
@@ -564,8 +610,7 @@ def _make_html_for_cluster_table(statistical_map_img,
                                                                )
     except TypeError:  # pandas < 0.19
         cluster_table_details_html = pd.DataFrame.from_dict(
-                cluster_table_details, orient='index').to_html(
-                                                               header=False,
+                cluster_table_details, orient='index').to_html(header=False,
                                                                )
     with pd.option_context('display.precision', 2):
         single_cluster_table_html_code = cluster_table.to_html()
