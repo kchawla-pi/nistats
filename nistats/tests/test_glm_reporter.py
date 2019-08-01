@@ -179,15 +179,15 @@ def _generate_img():
 
 def test_make_html_for_stat_maps():
     img = _generate_img()
-    stat_map_html_code = glmr._make_html_for_stat_maps(stat_img=img,
-                                                       threshold=4,
-                                                       alpha=0.5,
-                                                       cluster_threshold=0,
-                                                       height_control='fdr',
-                                                       bg_img=None,
-                                                       display_mode='z',
-                                                       plot_type=None,
-                                                       )
+    stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
+                                                 threshold=4,
+                                                 alpha=0.5,
+                                                 cluster_threshold=0,
+                                                 height_control='fdr',
+                                                 bg_img=None,
+                                                 display_mode='z',
+                                                 plot_type=None,
+                                                 )
     assert True
 
 

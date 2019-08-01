@@ -444,7 +444,7 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold,
         components_template_text = html_template_obj.read()
     for contrast_name, stat_map_img in statistical_maps.items():
         component_text_ = string.Template(components_template_text)
-        stat_map_html_code = _make_html_for_stat_maps(
+        stat_map_html_code = _make_stat_map_svg(
                 stat_img=stat_map_img,
                 threshold=threshold,
                 alpha=alpha,
@@ -478,16 +478,16 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold,
     return all_components
 
 
-def _make_html_for_stat_maps(stat_img,
-                             threshold,
-                             alpha,
-                             cluster_threshold,
-                             height_control,
-                             bg_img,
-                             display_mode,
-                             plot_type,
-                             ):
-    """ Generates string of HTML code for a statistical map.
+def _make_stat_map_svg(stat_img,
+                       threshold,
+                       alpha,
+                       cluster_threshold,
+                       height_control,
+                       bg_img,
+                       display_mode,
+                       plot_type,
+                       ):
+    """ Generates SVG code for a statistical map.
     
     Parameters
     ----------
