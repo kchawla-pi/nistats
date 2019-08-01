@@ -131,7 +131,7 @@ def make_glm_report(
         model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _make_html_for_design_matrices(design_matrices)
-    roi_plot_html_code = _make_roi_plot_svg(roi_img, bg_img)
+    roi_plot_html_code = _make_roi_svg(roi_img, bg_img)
     all_components = _make_report_components(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
@@ -379,7 +379,7 @@ def make_svg_image_data_url(plot):
     return url_plot_svg
 
 
-def _make_roi_plot_svg(roi_img, bg_img):
+def _make_roi_svg(roi_img, bg_img):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
     
