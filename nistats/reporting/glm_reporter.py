@@ -491,19 +491,20 @@ def _make_html_for_stat_maps(stat_img,
     
     Parameters
     ----------
-    stat_img : Niimg-like object or None, optional
+    stat_img : Niimg-like object or None
        statistical image (presumably in z scale)
        whenever height_control is 'fpr' or None,
        stat_img=None is acceptable.
-       If it is 'fdr' or 'bonferroni', an error is raised if stat_img is None.
+       If it is 'fdr' or 'bonferroni',
+       an error is raised if stat_img is None.
     
     
-    threshold: float, optional
+    threshold: float
        desired threshold in z-scale.
        This is used only if height_control is None
 
-    alpha: float, optional
-        number controling the thresholding (either a p-value or q-value).
+    alpha: float
+        number controlling the thresholding (either a p-value or q-value).
         Its actual meaning depends on the height_control parameter.
         This function translates alpha to a z-scale threshold.
 
@@ -512,13 +513,18 @@ def _make_html_for_stat_maps(stat_img,
         sets of connected voxels (`clusters`) with size smaller
         than this number will be removed.
 
-    height_control: string, or None
+    height_control: string
         false positive control meaning of cluster forming
-        threshold: 'fpr'|'fdr'|'bonferroni'\|None
+        threshold: 'fpr'|'fdr'|'bonferroni'|None
 
-    bg_img: Nifti image
+    bg_img : Niimg-like object
+        Only used when plot_type is 'slices'.
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The background image that the ROI/mask will be plotted on top of.
+        If nothing is specified, the MNI152 template will be used.
+        To turn off background image, just pass "bg_img=False".
     
-    display_mode: str
+    display_mode: string
         Choose the direction of the cuts:
         'x' - sagittal, 'y' - coronal, 'z' - axial,
         'l' - sagittal left hemisphere only,
@@ -529,36 +535,39 @@ def _make_html_for_stat_maps(stat_img,
         'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
         'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
     
-    plot_type: str
+    plot_type: string
         ['slices', 'glass']
         The type of plot to be drawn.
         
     
     Returns
     -------
-    stat_map_html_code: String
-        String of HTML code representing a statistical map.
+    stat_map_svg: string
+        SVG code representing a statistical map.
     """
-    thresholded_stat_map_img, _ = map_threshold(stat_img,
+    thresholded_stat_map, _ = map_threshold(stat_img,
                                                 threshold=threshold,
                                                 alpha=alpha,
                                                 cluster_threshold=cluster_threshold,
                                                 height_control=height_control,
                                                 )
-    if plot_type == 'glass':
-        stat_map_plot = plot_glass_brain(thresholded_stat_map_img,
+    if plot_type == 'slices':
+        stat_map_plot = plot_stat_map(thresholded_stat_map,
+                                      bg_img=bg_img,
+                                      display_mode=display_mode,
+                                      )
+    elif plot_type == 'glass':
+        stat_map_plot = plot_glass_brain(thresholded_stat_map,
                                          display_mode=display_mode,
                                          colorbar=True,
                                          plot_abs=False,
                                          )
     else:
-        stat_map_plot = plot_stat_map(thresholded_stat_map_img,
-                                      bg_img=bg_img,
-                                      display_mode=display_mode,
-                                      )
+        raise ValueError('Invalid plot type provided. Acceptable options are\n'
+                         "'slices' or 'glass'.")
     
-    stat_map_html_code = make_svg_image_data_url(plt.gcf())
-    return stat_map_html_code
+    stat_map_svg = make_svg_image_data_url(plt.gcf())
+    return stat_map_svg
 
 
 def _make_html_for_cluster_table(statistical_map_img,
