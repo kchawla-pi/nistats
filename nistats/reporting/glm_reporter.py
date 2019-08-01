@@ -501,9 +501,8 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                                      min_distance=min_distance)
         )
         # Escaping HTML reserved chars < >
-        contrast_name = escape(contrast_name)
         components_values = {
-            'contrast_name': contrast_name,
+            'contrast_name': escape(contrast_name),
             'contrast_plot': contrasts_plots[contrast_name],
             'stat_map_img': stat_map_html_code,
             'cluster_table_details': cluster_table_details_html,
