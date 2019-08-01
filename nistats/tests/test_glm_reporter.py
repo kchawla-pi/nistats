@@ -6,14 +6,11 @@ import numpy as np
 from nose import SkipTest
 
 import pandas as pd
-from nilearn.image import concat_imgs
-from nose.tools import assert_true, assert_equal
+from nose.tools import assert_equal
 
-from nistats._utils.testing import _write_fake_fmri_data
 from nistats.design_matrix import make_first_level_design_matrix
 from nistats.first_level_model import FirstLevelModel
 from nistats.reporting import glm_reporter as glmr
-from nistats.second_level_model import SecondLevelModel
 from nistats import datasets
 from numpy.testing import dec
 

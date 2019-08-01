@@ -3,6 +3,9 @@ import string
 import os
 
 from collections import OrderedDict
+
+import numpy as np
+
 try:
     from urllib.parse import quote
 except ImportError:
@@ -39,7 +42,7 @@ def make_glm_report(
         cluster_threshold=0,
         height_control='fpr',
         min_distance=8.,
-        plot_type='stat',
+        plot_type='slices',
         display_mode=None,
         cut_coords=None,
         nb_width=1600,
@@ -85,9 +88,9 @@ def make_glm_report(
         Default is the MNI152 template
         
     display_mode: String, optional
-        Default is 'z' if plot_type is 'stat'; 'ortho' if plot_type is 'glass'.
+        Default is 'z' if plot_type is 'slices'; 'ortho' if plot_type is 'glass'.
         
-    plot_type: String. ['stat' (default)| 'glass']
+    plot_type: String. ['slices' (default)| 'glass']
         Specifies the type of plot to be drawn for the statistical maps.
         
     Returns
@@ -96,7 +99,7 @@ def make_glm_report(
         Contains the HTML code for the GLM Report.
     """
     if not display_mode:
-        if plot_type == 'stat':
+        if plot_type == 'slices':
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
@@ -283,12 +286,15 @@ def _make_model_attributes_html_table(model):
         'slice_time_ref',
         'fir_delays',
         ]
-    selected_model_attributes_values = {
+    display_attributes = {
         attr_name: model.__dict__[attr_name]
         for attr_name in selected_attributes
         if attr_name in model.__dict__
         }
-    model_attributes_table = pd.DataFrame.from_dict(selected_model_attributes_values,
+    labels_ = display_attributes['labels_']
+    if len(labels_) == 1 and isinstance(labels_[0], (np.ndarray, list, tuple)):
+        display_attributes['labels_'] = labels_[0]
+    model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
     model_attributes_table = model_attributes_table.to_html(header=False,
