@@ -11,7 +11,7 @@ def pad_vector(contrast_, n_columns):
     return np.hstack((contrast_, np.zeros(n_columns - len(contrast_))))
 
 
-def test_flm_fiac_test():
+def report_flm_fiac():
     data = datasets.fetch_fiac_first_level()
     fmri_img = [data['func1'], data['func2']]
     
@@ -43,4 +43,4 @@ def test_flm_fiac_test():
     report.save_as_html(output_filepath)
 
 if __name__ == '__main__':
-    test_flm_fiac_test()
+    report_flm_fiac()

@@ -452,6 +452,8 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold, alpha,
                                          min_distance=min_distance,
                                          )
         )
+        contrast_name = contrast_name.replace('<', '&lt')
+        contrast_name = contrast_name.replace('>', '&gt')
         components_values = {
             'contrast_name': contrast_name,
             'contrast_plot': contrasts_plots[contrast_name],
