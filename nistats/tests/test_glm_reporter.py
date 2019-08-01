@@ -124,9 +124,8 @@ def test_make_html_for_cluster_table():
     data = np.zeros(shape)
     data[2:4, 5:7, 6:8] = 5.
     stat_img = nib.Nifti1Image(data, np.eye(4))
-    table_details_html, table_html_code = glmr._make_html_for_cluster_table(
-            stat_img, 4, 0.5, 0, 'fdr', 8,
-            )
+    table_details_html, table_html_code = glmr._make_cluster_table_html(
+        stat_img, 4, 0, 0.5, 'fdr', 8)
     
     expected_html_fragments_table_details = [
         '<th>Threshold Z</th>',

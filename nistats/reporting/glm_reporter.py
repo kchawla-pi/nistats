@@ -455,13 +455,12 @@ def _make_report_components(statistical_maps, contrasts_plots, threshold,
                 plot_type=plot_type,
                 )
         cluster_table_details_html, cluster_table_html = (
-            _make_html_for_cluster_table(statistical_map_img=stat_map_img,
-                                         threshold=threshold,
-                                         alpha=alpha,
-                                         cluster_threshold=cluster_threshold,
-                                         height_control=height_control,
-                                         min_distance=min_distance,
-                                         )
+            _make_cluster_table_html(statistical_map_img=stat_map_img,
+                                     stat_threshold=threshold,
+                                     cluster_threshold=cluster_threshold,
+                                     alpha=alpha,
+                                     height_control=height_control,
+                                     min_distance=min_distance)
         )
         # Escaping HTML reserved chars < >
         contrast_name = contrast_name.replace('<', '&lt')
@@ -570,57 +569,72 @@ def _make_stat_map_svg(stat_img,
     return stat_map_svg
 
 
-def _make_html_for_cluster_table(statistical_map_img,
-                                 threshold,
-                                 alpha,
-                                 cluster_threshold,
-                                 height_control,
-                                 min_distance
-                                 ):
-    """ Generates string of HTML code for a cluster table.
+def _make_cluster_table_html(statistical_map_img,
+                             stat_threshold,
+                             cluster_threshold,
+                             alpha,
+                             height_control,
+                             min_distance,
+                             ):
+    """ Makes a HTML tables for clustering details & a cluster table.
 
     Parameters
     ----------
-    statistical_map_img: Nifti image
-    
-    thrshold: float
-    
+    stat_img : Niimg-like object,
+       Statistical image (presumably in z- or p-scale).
+
+    stat_threshold: `float`
+        Cluster forming threshold in same scale as `stat_img` (either a
+        p-value or z-scale value).
+
+    cluster_threshold : `int` or `None`, optional
+        Cluster size threshold, in voxels.
+
     alpha: float
+        For display purposes only.
+        Number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
+        
+    height_control: string
+        For display purposes only.
+        false positive control meaning of cluster forming
+        threshold: 'fpr'|'fdr'|'bonferroni'|None
     
-    cluster_threshold: int
-    
-    height_control: str
-    
-    min_distance: float
+    min_distance: `float`
+        For display purposes only.
+        Minimum distance between subpeaks in mm. Default is 8 mm.
 
     Returns
     -------
-    single_cluster_table_html_code: String
-        HTML code representing a cluster table.
+    table_details_html: String
+        HTML table with clustering details
+    cluster_table_html: String
+        HTML table with clusters.
     """
     cluster_table = get_clusters_table(statistical_map_img,
-                                       stat_threshold=threshold,
+                                       stat_threshold=stat_threshold,
                                        cluster_threshold=cluster_threshold,
                                        min_distance=min_distance,
                                        )
-    cluster_table_details = OrderedDict()
-    cluster_table_details.update({'Threshold Z': threshold})
-    cluster_table_details.update({'Cluster size threshold (voxels)':
+    table_details = OrderedDict()
+    table_details.update({'Threshold Z': stat_threshold})
+    table_details.update({'Cluster size threshold (voxels)':
                                       cluster_threshold
                                   }
                                  )
-    cluster_table_details.update({'Minimum distance (mm)': min_distance})
-    cluster_table_details.update({'Height control': height_control})
-    cluster_table_details.update({'Cluster Level p-value Threshold': alpha})
+    table_details.update({'Minimum distance (mm)': min_distance})
+    table_details.update({'Height control': height_control})
+    table_details.update({'Cluster Level p-value Threshold': alpha})
     try:
-        cluster_table_details_html = pd.DataFrame.from_dict(
-                cluster_table_details, orient='index').to_html(border=0,
+        table_details_html = pd.DataFrame.from_dict(
+                table_details, orient='index').to_html(border=0,
                                                                header=False,
                                                                )
     except TypeError:  # pandas < 0.19
-        cluster_table_details_html = pd.DataFrame.from_dict(
-                cluster_table_details, orient='index').to_html(header=False,
+        table_details_html = pd.DataFrame.from_dict(
+                table_details, orient='index').to_html(header=False,
                                                                )
     with pd.option_context('display.precision', 2):
-        single_cluster_table_html_code = cluster_table.to_html()
-    return cluster_table_details_html, single_cluster_table_html_code
+        cluster_table_html = cluster_table.to_html()
+    return table_details_html, cluster_table_html
