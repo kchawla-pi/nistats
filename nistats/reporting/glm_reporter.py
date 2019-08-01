@@ -11,6 +11,11 @@ try:
 except ImportError:
     from urllib import quote
 
+try:
+    from html import escape
+except ImportError:
+    from cgi import escape
+
 import pandas as pd
 
 from matplotlib import pyplot as plt
@@ -145,7 +150,7 @@ def make_glm_report(
             plot_type=plot_type,
             )
     all_components_text = '\n'.join(all_components)
-    report_values = {'page_title': page_title,
+    report_values = {'page_title': escape(page_title),
                      'page_heading_1': page_heading_1,
                      'page_heading_2': page_heading_2,
                      'model_attributes': model_attributes_html,
@@ -496,8 +501,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                                      min_distance=min_distance)
         )
         # Escaping HTML reserved chars < >
-        contrast_name = contrast_name.replace('<', '&lt')
-        contrast_name = contrast_name.replace('>', '&gt')
+        contrast_name = escape(contrast_name)
         components_values = {
             'contrast_name': contrast_name,
             'contrast_plot': contrasts_plots[contrast_name],
