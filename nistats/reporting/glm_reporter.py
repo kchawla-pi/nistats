@@ -46,7 +46,7 @@ def make_glm_report(
         cluster_threshold=0,
         height_control='fpr',
         min_distance=8.,
-        plot_type='slices',
+        plot_type='slice',
         display_mode=None,
         nb_width=1600,
         nb_height=800,
@@ -94,11 +94,11 @@ def make_glm_report(
     min_distance: float, optional
         Minimum distance between subpeaks in mm. Default is 8 mm.
         
-    plot_type: String. ['slices' (default)| 'glass']
+    plot_type: String. ['slice' (default)| 'glass']
         Specifies the type of plot to be drawn for the statistical maps.
         
     display_mode: String, optional
-        Default is 'z' if plot_type is 'slices'; 'ortho' if plot_type is 'glass'.
+        Default is 'z' if plot_type is 'slice'; 'ortho' if plot_type is 'glass'.
         
     nb_width: int
     
@@ -110,7 +110,7 @@ def make_glm_report(
         Contains the HTML code for the GLM Report.
     """
     if not display_mode:
-        if plot_type == 'slices':
+        if plot_type == 'slice':
             display_mode = 'z'
         elif plot_type == 'glass':
             display_mode = 'lzry'
@@ -447,7 +447,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         This function translates alpha to a z-scale threshold.
     
     bg_img : Niimg-like object
-        Only used when plot_type is 'slices'.
+        Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
         The background image that the ROI/mask will be plotted on top of.
         If nothing is specified, the MNI152 template will be used.
@@ -465,7 +465,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
 
     plot_type: string
-        ['slices', 'glass']
+        ['slice', 'glass']
         The type of plot to be drawn.
     
     Returns
@@ -552,7 +552,7 @@ def _make_stat_map_svg(stat_img,
         threshold: 'fpr'|'fdr'|'bonferroni'|None
 
     bg_img : Niimg-like object
-        Only used when plot_type is 'slices'.
+        Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
         The background image that the ROI/mask will be plotted on top of.
         If nothing is specified, the MNI152 template will be used.
@@ -570,7 +570,7 @@ def _make_stat_map_svg(stat_img,
         'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
     
     plot_type: string
-        ['slices', 'glass']
+        ['slice', 'glass']
         The type of plot to be drawn.
         
     
@@ -585,7 +585,7 @@ def _make_stat_map_svg(stat_img,
                                                 cluster_threshold=cluster_threshold,
                                                 height_control=height_control,
                                                 )
-    if plot_type == 'slices':
+    if plot_type == 'slice':
         stat_map_plot = plot_stat_map(thresholded_stat_map,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
@@ -598,7 +598,7 @@ def _make_stat_map_svg(stat_img,
                                          )
     else:
         raise ValueError('Invalid plot type provided. Acceptable options are\n'
-                         "'slices' or 'glass'.")
+                         "'slice' or 'glass'.")
     
     stat_map_svg = make_svg_image_data_url(plt.gcf())
     return stat_map_svg
