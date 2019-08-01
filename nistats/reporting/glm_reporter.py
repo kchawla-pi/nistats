@@ -131,7 +131,7 @@ def make_glm_report(
         model_attributes_html = _make_model_attributes_html_table(model)
     statistical_maps = make_statistical_maps(model, contrasts)
     html_design_matrices = _make_html_for_design_matrices(design_matrices)
-    roi_plot_html_code = _make_roi_plot(roi_img, bg_img)
+    roi_plot_html_code = _make_roi_plot_svg(roi_img, bg_img)
     all_components = _make_report_components(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
@@ -379,30 +379,33 @@ def make_svg_image_data_url(plot):
     return url_plot_svg
 
 
-def _make_roi_plot(roi_img, bg_img):
+def _make_roi_plot_svg(roi_img, bg_img):
     """
-    Accepts an ROI image and background image
-    to create svg code for a ROI plot.
+    Plot cuts of an ROI/mask image and creates SVG code of it.
     
     Parameters
     ----------
-    roi_img: niimg
-        ROI mask image
-        
-    bg_img: niimg
-        Background image
+    roi_img : Niimg-like object
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The ROI/mask image, it could be binary mask or an atlas or ROIs
+        with integer values.
+
+    bg_img : Niimg-like object
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The background image that the ROI/mask will be plotted on top of.
+        To turn off background image, just pass "bg_img=None".
 
     Returns
     -------
-    roi_plot_html_code: str
-        SVG code for the ROI plot, can be inlined into an HTML document
+    roi_plot_svg: str
+        SVG code for the ROI plot.
     """
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
-        roi_plot_html_code = make_svg_image_data_url(plt.gcf())
+        roi_plot_svg = make_svg_image_data_url(plt.gcf())
     else:
-        roi_plot_html_code = 'Pass the mask with the `roi_img` parameter to plot the ROI'
-    return roi_plot_html_code
+        roi_plot_svg = None  # HTML image tag's alt attribute is used.
+    return roi_plot_svg
 
 
 def _make_report_components(stat_img, contrasts_plots, threshold,
