@@ -554,7 +554,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
     """
     all_components = []
     components_template_path = os.path.join(html_template_root_path,
-                                            'report_components_template.html'
+                                            'components_template.html'
                                             )
     with open(components_template_path) as html_template_obj:
         components_template_text = html_template_obj.read()

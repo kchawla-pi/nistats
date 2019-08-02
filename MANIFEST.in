@@ -1,4 +1,6 @@
-graft ./nistats/reporting
+graft ./nistats/reporting/glm_reporter_templates
 
-include ./nistats/reporting/report_template.html
-include ./nistats/reporting/report_components_template.html
+include ./nistats/reporting/glm_reporter_templates/components_template.html
+include ./nistats/reporting/glm_reporter_templates/contrast_template.html
+include ./nistats/reporting/glm_reporter_templates/design_matrix_template.html
+include ./nistats/reporting/glm_reporter_templates/report_template.html
