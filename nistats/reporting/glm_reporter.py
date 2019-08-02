@@ -88,23 +88,23 @@ def make_glm_report(
         To turn off background image, just pass "bg_img=None".
         
     threshold: float
+        Default is 3.09
         Cluster forming threshold in same scale as `stat_img` (either a
         p-value or z-scale value).
-        Default is 3.09
         
     alpha: float
+        Default is 0.01
         Number controlling the thresholding (either a p-value or q-value).
         Its actual meaning depends on the height_control parameter.
         This function translates alpha to a z-scale threshold.
 
     cluster_threshold : int, optional
-        Cluster size threshold, in voxels.
         Default is 0
+        Cluster size threshold, in voxels.
         
     height_control: string
-        For display purposes only.
         false positive control meaning of cluster forming
-        threshold: 'fpr'|'fdr'|'bonferroni'|None
+        threshold: 'fpr' (default)|'fdr'|'bonferroni'|None
     
     min_distance: `float`
         For display purposes only.
