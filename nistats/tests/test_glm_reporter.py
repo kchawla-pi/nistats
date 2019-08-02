@@ -115,7 +115,7 @@ def _make_data_to_test_make_page_title_heading():
     
 def test_make_page_title_heading(test_cases=_make_data_to_test_make_page_title_heading()):
     for test_case_ in test_cases:
-        actual_output = glmr._make_page_title_heading(*test_case_['test_input'])
+        actual_output = glmr._make_headings(*test_case_['test_input'])
         assert_equal(test_case_['expected_output'], actual_output)
 
 

@@ -168,14 +168,14 @@ def make_glm_report(
     
     contrasts = _make_contrasts_dict(contrasts)
     contrast_plots = _make_contrast_plots(contrasts, design_matrices)
-    page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
+    page_title, page_heading_1, page_heading_2 = _make_headings(
             contrasts,
             title,
             )
     with pd.option_context('display.max_colwidth', 100):
-        model_attributes_html = _make_model_attributes_html_table(model)
-    statistical_maps = make_statistical_maps(model, contrasts)
-    html_design_matrices = _make_html_for_design_matrices(design_matrices)
+        model_attributes_html = _make_attributes_table(model)
+    statistical_maps = make_stat_maps(model, contrasts)
+    html_design_matrices = _make_svg_url_design_matrices(design_matrices)
     roi_plot_html_code = _make_roi_svg(roi_img, bg_img)
     all_components = _make_report_components(
             stat_img=statistical_maps,
@@ -273,7 +273,7 @@ def _make_contrast_plots(contrasts, design_matrices):
             contrast_plot.set_xlabel(contrast_name)
             contrast_plot.figure.set_tight_layout(True)
             contrast_plot.figure.set_figheight(2)
-            url_contrast_plot_svg = make_svg_image_data_url(contrast_plot)
+            url_contrast_plot_svg = plot_to_svg(contrast_plot)
             contrasts_for_subsitution = {
                 'contrast_plot': url_contrast_plot_svg
                 }
@@ -284,7 +284,7 @@ def _make_contrast_plots(contrasts, design_matrices):
     return all_contrasts_plots
 
 
-def _make_page_title_heading(contrasts, title):
+def _make_headings(contrasts, title):
     """ Creates report page title, heading & sub-heading
      using title text or contrast names.
     Accepts contrasts and user supplied title string.
@@ -322,7 +322,7 @@ def _make_page_title_heading(contrasts, title):
         return page_title, page_heading_1, page_heading_2
 
 
-def _make_model_attributes_html_table(model):
+def _make_attributes_table(model):
     """ Returns an HTML table with pertinent model attributes & information.
     
     Parameters
@@ -371,7 +371,7 @@ def _make_model_attributes_html_table(model):
     return model_attributes_table
 
 
-def make_statistical_maps(model, contrasts):
+def make_stat_maps(model, contrasts):
     """ Given a model and contrasts, return the corresponding z-maps
     
     Parameters
@@ -401,7 +401,7 @@ def make_statistical_maps(model, contrasts):
     return statistical_maps
 
 
-def _make_html_for_design_matrices(design_matrices):
+def _make_svg_url_design_matrices(design_matrices):
     """ Accepts a FirstLevelModel or SecondLevelModel object
     with fitted design matrices & generates SVG Image URL,
     which can be inserted into an HTML template.
@@ -427,7 +427,7 @@ def _make_html_for_design_matrices(design_matrices):
         dmtx_text_ = string.Template(dmtx_template_text)
         dmtx_plot = plot_design_matrix(design_matrix)
         plt.title(dmtx_count, y=0.987)
-        url_design_matrix_svg = make_svg_image_data_url(dmtx_plot)
+        url_design_matrix_svg = plot_to_svg(dmtx_plot)
         dmtx_text_ = dmtx_text_.safe_substitute(
                 {'design_matrix': url_design_matrix_svg}
                 )
@@ -436,7 +436,7 @@ def _make_html_for_design_matrices(design_matrices):
     return svg_url_design_matrices
 
 
-def make_svg_image_data_url(plot):
+def plot_to_svg(plot):
     """
     Creates an SVG image as a data URL
     from a Matplotlib Axes or Figure object.
@@ -484,7 +484,7 @@ def _make_roi_svg(roi_img, bg_img):
     """
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
-        roi_plot_svg = make_svg_image_data_url(plt.gcf())
+        roi_plot_svg = plot_to_svg(plt.gcf())
     else:
         roi_plot_svg = None  # HTML image tag's alt attribute is used.
     return roi_plot_svg
@@ -676,7 +676,7 @@ def _make_stat_map_svg(stat_img,
         raise ValueError('Invalid plot type provided. Acceptable options are\n'
                          "'slice' or 'glass'.")
     
-    stat_map_svg = make_svg_image_data_url(plt.gcf())
+    stat_map_svg = plot_to_svg(plt.gcf())
     return stat_map_svg
 
 
