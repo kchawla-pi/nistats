@@ -68,14 +68,24 @@ def make_glm_report(
         Must have the computed design matrix(ces).
         
     contrasts: Dict[string, ndarray] , String, List[ndarrays]
+        Contrasts information for a first or second level model.
+        Corresponds to the contrast_def for the FirstLevelModel [1]_
+        & second_level_contrast for a SecondLevelModel [2]_ .
     
-    title: str, default 'auto'
-        Text to represnt the web page's title and primary heading.
+    title: String, default 'auto'
+        Text to represent the web page's title and primary heading.
+        If 'auto', uses the contrast titles to generate a title.
         
-    roi_img:
+    roi_img : Niimg-like object
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The ROI/mask image, it could be binary mask or an atlas or ROIs
+        with integer values.
     
-    bg_img: Nifti image
+    bg_img : Niimg-like object
         Default is the MNI152 template
+        See http://nilearn.github.io/manipulating_images/input_output.html
+        The background image that the ROI/mask will be plotted on top of.
+        To turn off background image, just pass "bg_img=None".
         
     threshold: float
         Cluster forming threshold in same scale as `stat_img` (either a
@@ -83,31 +93,61 @@ def make_glm_report(
         Default is 3.09
         
     alpha: float
-        P- value for clustering.
+        Number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
 
     cluster_threshold : int, optional
         Cluster size threshold, in voxels.
         Default is 0
         
-    height_control: str
-
-    min_distance: float, optional
+    height_control: string
+        For display purposes only.
+        false positive control meaning of cluster forming
+        threshold: 'fpr'|'fdr'|'bonferroni'|None
+    
+    min_distance: `float`
+        For display purposes only.
         Minimum distance between subpeaks in mm. Default is 8 mm.
         
     plot_type: String. ['slice' (default)| 'glass']
         Specifies the type of plot to be drawn for the statistical maps.
         
-    display_mode: String, optional
-        Default is 'z' if plot_type is 'slice'; 'ortho' if plot_type is 'glass'.
+    display_mode: string
+        Default is 'z' if plot_type is 'slice'; '
+        ortho' if plot_type is 'glass'.
+        
+        Choose the direction of the cuts:
+        'x' - sagittal, 'y' - coronal, 'z' - axial,
+        'l' - sagittal left hemisphere only,
+        'r' - sagittal right hemisphere only,
+        'ortho' - three cuts are performed in orthogonal directions.
+        
+        Possible values are:
+        'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
+        'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
         
     nb_width: int
-    
+        Default is 1600 (px).
+        Specifies width (in pixels) of report window within the notebook.
+        Only applicable when inserting the report into a Jupyter notebook.
+        
     nb_height: int
+        Default is 800 (px).
+        Specifies height (in pixels) of report window within the notebook.
+        Only applicable when inserting the report into a Jupyter notebook.
     
     Returns
     -------
     report_text: HTMLDocument Object
-        Contains the HTML code for the GLM Report.
+        Contains the HTML code for the GLM Report [3]_ .
+        
+    See Also
+    --------
+    .. [1] nistats.first_level_model.FirstLevelModel.compute_contrast
+    .. [2] nistats.second_level_model.SecondLevelModel.compute_contrast
+    .. [3] nilearn.plotting.js_plotting_utils.HTMLDocument
+
     """
     if not display_mode:
         if plot_type == 'slice':
@@ -337,6 +377,7 @@ def make_statistical_maps(model, contrasts):
     Parameters
     ----------
     model: FirstLevelModel or SecondLevelModel object
+        Must have a fitted design matrix(ces).
     
     contrasts: Dict[str, ndarray or str]
         Dict of contrasts for a first or second level model.
@@ -347,7 +388,7 @@ def make_statistical_maps(model, contrasts):
     Returns
     -------
     statistical_maps: Dict[str, niimg]
-        Dict of statistical maps keyed to contrast names.
+        Dict of statistical z-maps keyed to contrast names/titles.
         
     See Also
     --------
