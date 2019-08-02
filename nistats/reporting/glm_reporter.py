@@ -32,7 +32,8 @@ from nistats.reporting import (plot_contrast_matrix,
                                )
 from nistats.thresholding import map_threshold
 
-html_template_root_path = os.path.dirname(__file__)
+html_template_root_path = os.path.join(os.path.dirname(__file__),
+                                       'glm_reporter_templates')
 
 
 def make_glm_report(
