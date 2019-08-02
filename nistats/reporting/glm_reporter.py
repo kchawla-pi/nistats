@@ -127,7 +127,7 @@ def make_glm_report(
     report_template = string.Template(html_template_text)
     
     contrasts = _make_contrasts_dict(contrasts)
-    contrast_plots = _make_dict_of_contrast_plots(contrasts, design_matrices)
+    contrast_plots = _make_contrast_plots(contrasts, design_matrices)
     page_title, page_heading_1, page_heading_2 = _make_page_title_heading(
             contrasts,
             title,
@@ -174,17 +174,23 @@ def _make_contrasts_dict(contrasts):
     If contrasts is:
       dict then returns it unchanged.
       
-      string or list/tuple of strings, returns a dict where key==values
+      string or collection of Strings or Sequence[int],
+      returns a dict where key==values
     
     Parameters
     ----------
-    contrasts: str, List/Tuple[str], Dict[str, str or np.array]
-        Contrast information
+    contrasts: String or Collection[str or Sequence[Int]] or Dict[str, str or np.array]
+        Contrast information. Can be a dict of the form
+         {'contrast_name_1': contrast list/array1, 'contrast_name_1': contrast list/array1}
+         ['contast_name_1', 'contast_name_2', ...]
+         [contrast_array_1, contrast_array_2, ...]
+         'contrast_name'
     
     Returns
     -------
     contrasts: Dict[str, np.array or str]
-        Contrast information, as a dict
+        Contrast information, as a dict in the form
+            {'contrast_title_1': contrast_info_1/title_1, ...}
     """
     contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
     if not isinstance(contrasts, dict):
@@ -192,23 +198,26 @@ def _make_contrasts_dict(contrasts):
     return contrasts
 
 
-def _make_dict_of_contrast_plots(contrasts, design_matrices):
+def _make_contrast_plots(contrasts, design_matrices):
     """
-    Accepts dict of contrasts and First or Second Level Model
-    with fitted design matrices and generates
-    a dict of contrast name & svg code for corresponding contrast plot.
+    Accepts dict of contrasts and list of design matrices and generates
+    a dict of contrast titles & HTML for SVG Image data url
+    for corresponding contrast plot.
     
     Parameters
     ----------
     contrasts: Dict[str, np.array or str]
         Contrast information, as a dict
+          {'contrast_title_1, contrast_info_1/title_1, ...}
     
-    design_matrices: design_matrices
+    design_matrices: List[pd.Dataframe]
+        Design matrices computed in the model.
 
     Returns
     -------
     contrast_plots: Dict[str, svg img]
-        Dict of contrast name and svg code for corresponding contrast plot.
+        Dict of contrast title and svg image data url
+        for corresponding contrast plot.
     """
     all_contrasts_plots = {}
     contrast_template_path = os.path.join(html_template_root_path,
@@ -244,15 +253,20 @@ def _make_page_title_heading(contrasts, title):
     
     Parameters
     ----------
-    contrasts: Dict[str, np.array or str] or List/Tuple[str] or String
-        Needed for contrast names.
+    contrasts: Dict[str, np.array or str]
+        Contrast information, as a dict in the form
+            {'contrast_title_1': contrast_info_1/title_1, ...}
+        Contrast titles are used in page title and secondary heading
+        if `title` is not 'auto' or None.
     
-    title: str
+    title: String
         User supplied text for HTML Page title and primary heading.
+        Overrides title auto-generation.
     
     Returns
     -------
     (HTML page title, heading, sub-heading): Tuple[str, str, str]
+        If title is user-supplied, then subheading is empty string.
     """
     if title not in ('auto', None):
         return title, title, ''
@@ -278,7 +292,7 @@ def _make_model_attributes_html_table(model):
     Returns
     -------
     HTML Table: String
-        HTML code for creating a table.
+        HTML table with the pertinent attributes of the model.
     """
     selected_attributes = [
         'subject_label',
@@ -325,12 +339,20 @@ def make_statistical_maps(model, contrasts):
     model: FirstLevelModel or SecondLevelModel object
     
     contrasts: Dict[str, ndarray or str]
-        Dict of contrasts
+        Dict of contrasts for a first or second level model.
+        Corresponds to the contrast_def for the FirstLevelModel [1]_
+        & second_level_contrast for a SecondLevelModel [2]_ .
+
     
     Returns
     -------
     statistical_maps: Dict[str, niimg]
         Dict of statistical maps keyed to contrast names.
+        
+    See Also
+    --------
+    .. [1] nistats.first_level_model.FirstLevelModel.compute_contrast
+    .. [2] nistats.second_level_model.SecondLevelModel.compute_contrast
     """
     statistical_maps = {contrast_id: model.compute_contrast(contrast_val)
                         for contrast_id, contrast_val in contrasts.items()
@@ -340,18 +362,18 @@ def make_statistical_maps(model, contrasts):
 
 def _make_html_for_design_matrices(design_matrices):
     """ Accepts a FirstLevelModel or SecondLevelModel object
-    with fitted design matrices & generates HTML code
-    to insert their plots into the report.
+    with fitted design matrices & generates SVG Image URL,
+    which can be inserted into an HTML template.
     
     Parameters
     ----------
-    desin_matrices: design_matrices
+    design_matrices: List[pd.Dataframe]
+        Design matrices computed in the model.
         
     Returns
     -------
-    html_design_matrices: String
-        HTML code for the plotted design matrices,
-        to be inserted into the HTML template.
+    svg_url_design_matrices: String
+        SVG Image URL for the plotted design matrices,
     """
     html_design_matrices = []
     dmtx_template_path = os.path.join(html_template_root_path,
@@ -369,11 +391,25 @@ def _make_html_for_design_matrices(design_matrices):
                 {'design_matrix': url_design_matrix_svg}
                 )
         html_design_matrices.append(dmtx_text_)
-    html_design_matrices = ''.join(html_design_matrices)
-    return html_design_matrices
+    svg_url_design_matrices = ''.join(html_design_matrices)
+    return svg_url_design_matrices
 
 
 def make_svg_image_data_url(plot):
+    """
+    Creates an SVG image as a data URL
+    from a Matplotlib Axes or Figure object.
+    
+    Parameters
+    ----------
+    plot: Matplotlib Axes or Figure object
+        Contains the plot information.
+
+    Returns
+    -------
+    url_plot_svg: String
+        SVG Image Data URL
+    """
     with io.BytesIO() as buffer:
         try:
             plot.figure.savefig(buffer, format='svg')
@@ -403,7 +439,7 @@ def _make_roi_svg(roi_img, bg_img):
     Returns
     -------
     roi_plot_svg: str
-        SVG code for the ROI plot.
+        SVG Image Data URL for the ROI plot.
     """
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
@@ -500,7 +536,6 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                                      height_control=height_control,
                                      min_distance=min_distance)
         )
-        # Escaping HTML reserved chars < >
         components_values = {
             'contrast_name': escape(contrast_name),
             'contrast_plot': contrasts_plots[contrast_name],
@@ -577,7 +612,7 @@ def _make_stat_map_svg(stat_img,
     Returns
     -------
     stat_map_svg: string
-        SVG code representing a statistical map.
+        SVG Image Data URL representing a statistical map.
     """
     thresholded_stat_map, _ = map_threshold(stat_img,
                                                 threshold=threshold,
