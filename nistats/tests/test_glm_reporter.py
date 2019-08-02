@@ -185,6 +185,7 @@ def test_make_html_for_stat_maps():
                                                  height_control='fdr',
                                                  bg_img=None,
                                                  display_mode='z',
+                                                 plot_type='slice'
                                                  )
     assert True
 
