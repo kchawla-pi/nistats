@@ -52,10 +52,7 @@ def make_glm_report(
         nb_width=1600,
         nb_height=800,
         ):
-    """ Returns HTMLDocument object for a report which shows
-    all important aspects of a fitted GLM.
-    The object can be opened in a browser, displayed in a notebook,
-    or saved to disk as a portable HTML file.
+    """ Returns HTMLDocument object for a report which shows all important aspects of a fitted GLM. The object can be opened in a browser, displayed in a notebook, or saved to disk as a portable HTML file.
     
     Usage:
         report = make_glm_report(model, contrasts)
@@ -141,13 +138,12 @@ def make_glm_report(
     Returns
     -------
     report_text: HTMLDocument Object
-        Contains the HTML code for the GLM Report [3]_ .
+        Contains the HTML code for the GLM Report [3] .
         
-    See Also
-    --------
-    .. [1] nistats.first_level_model.FirstLevelModel.compute_contrast
-    .. [2] nistats.second_level_model.SecondLevelModel.compute_contrast
-    .. [3] nilearn.plotting.js_plotting_utils.HTMLDocument
+    References
+    ----------
+    .. [1] https://nistats.github.io/modules/generated/nistats.first_level_model.FirstLevelModel.html#nistats.first_level_model.FirstLevelModel.compute_contrast
+    .. [2] https://nistats.github.io/modules/generated/nistats.second_level_model.SecondLevelModel.html#nistats.second_level_model.SecondLevelModel.compute_contrast
 
     """
     if not display_mode:

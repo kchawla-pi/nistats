@@ -86,5 +86,5 @@ if __name__ == "__main__":
                         'nistats/reporting/glm_reporter_templates': ['*.html'],
                         #'nistats.description': ['*.rst'],
                         },
-          data_files={'nistats/reporting/glm_reporter_templates': ['nistats/reporting/glm_reporter_templates']},
+          include_package_data=True,
           install_requires=install_requires,)
