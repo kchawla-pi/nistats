@@ -1,2 +1,3 @@
 graft ./nistats/reporting/glm_reporter_templates
 
+recursive-include ./nistats/reporting/glm_reporter_templates/
