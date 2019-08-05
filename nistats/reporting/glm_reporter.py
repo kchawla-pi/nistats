@@ -67,7 +67,7 @@ def make_glm_report(
         
     contrasts: Dict[string, ndarray] , String, List[ndarrays]
         Contrasts information for a first or second level model.
-        Corresponds to the contrast_def for the FirstLevelModel [1]_
+        Corresponds to the ``contrast_def`` for the FirstLevelModel [1]_
         & second_level_contrast for a SecondLevelModel [2]_ .
     
     title: String, default 'auto'
@@ -138,12 +138,12 @@ def make_glm_report(
     Returns
     -------
     report_text: HTMLDocument Object
-        Contains the HTML code for the GLM Report [3] .
+        Contains the HTML code for the GLM Report.
         
     References
     ----------
-    .. [1] https://nistats.github.io/modules/generated/nistats.first_level_model.FirstLevelModel.html#nistats.first_level_model.FirstLevelModel.compute_contrast
-    .. [2] https://nistats.github.io/modules/generated/nistats.second_level_model.SecondLevelModel.html#nistats.second_level_model.SecondLevelModel.compute_contrast
+    .. [1] :func:`nistats.first_level_model.FirstLevelModel.compute_contrast`
+    .. [2] :func:`nistats.second_level_model.SecondLevelModel.compute_contrast`
 
     """
     if not display_mode:
