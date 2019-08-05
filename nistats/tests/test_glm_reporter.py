@@ -202,22 +202,20 @@ def test_make_html_for_stat_maps():
     assert True
 
 
-def _make_dummy_contrasts_dmtx_model():
+def _make_dummy_contrasts_dmtx():
     frame_times = np.linspace(0, 127 * 1., 128)
     dmtx = make_first_level_design_matrix(frame_times,
                                           drift_model='polynomial',
                                           drift_order=3,
                                           )
     contrast = {'test': np.ones(4)}
-    flm = FirstLevelModel()
-    flm.design_matrices_ = [dmtx]
-    return contrast, dmtx, flm
+    return contrast, dmtx
 
 
 def test_make_contrast_matrix_html():
-    contrast, dmtx, flm = _make_dummy_contrasts_dmtx_model()
+    contrast, dmtx = _make_dummy_contrasts_dmtx()
     contrast_plots = glmr._make_contrast_plots(contrast,
-                                               flm.design_matrices_,
+                                               [dmtx],
                                                )
     assert True
 

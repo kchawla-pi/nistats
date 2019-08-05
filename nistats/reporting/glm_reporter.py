@@ -770,5 +770,7 @@ def _make_cluster_table_details(stat_threshold,
     table_details.update({'Minimum distance (mm)': min_distance})
     table_details.update({'Height control': height_control})
     table_details.update({'Cluster Level p-value Threshold': alpha})
-    table_details = pd.DataFrame.from_dict(table_details)
+    table_details = pd.DataFrame.from_dict(table_details,
+                                           orient='index',
+                                           )
     return table_details
