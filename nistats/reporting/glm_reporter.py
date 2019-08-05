@@ -229,8 +229,12 @@ def _make_contrasts_dict(contrasts):
         Contrast information, as a dict in the form
             {'contrast_title_1': contrast_info_1/title_1, ...}
     """
-    contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
     if not isinstance(contrasts, dict):
+        excluded_types = (list, tuple, np.ndarray, str)
+        if isinstance(contrasts, excluded_types):
+            if not isinstance(contrasts[0], excluded_types):
+                contrasts = [contrasts]
+        contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
         contrasts = {str(contrast_): contrast_ for contrast_ in contrasts}
     return contrasts
 

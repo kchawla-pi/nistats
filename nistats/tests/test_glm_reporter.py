@@ -50,32 +50,74 @@ def test_flm_fiac_test():
     report = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
                                   roi_img=data['mask'])
     benchmark_filepath = 'fiac_flm_report_benchmark.html'
-    
-    
-def _make_data_to_test_make_contrasts_dict():
-    test_cases = [{'test_input': 'StopSuccess - Go',
-                   'expected_output': {'StopSuccess - Go': 'StopSuccess - Go'}
-                   },
-                  {'test_input': ['contrast_name_0', 'contrast_name_1'],
-                   'expected_output': {'contrast_name_0': 'contrast_name_0',
-                                       'contrast_name_1': 'contrast_name_1',
-                                       }
-                   },
-                  {'test_input': {'contrast_0': [0, 0, 1],
-                                  'contrast_1': [0, 1, 1],
-                                  },
-                   'expected_output': {'contrast_0': [0, 0, 1],
-                                       'contrast_1': [0, 1, 1],
-                                       },
-                   },
-                  ]
-    return test_cases
 
 
-def test_make_contrasts_dict(test_cases=_make_data_to_test_make_contrasts_dict()):
-    for test_case_ in test_cases:
-        actual_output = glmr._make_contrasts_dict(test_case_['test_input'])
-        assert_equal(test_case_['expected_output'], actual_output)
+def test_make_contrasts_dict_with_string():
+    test_input = 'StopSuccess - Go'
+    expected_output = {'StopSuccess - Go': 'StopSuccess - Go'}
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert actual_output == expected_output
+
+
+def test_make_contrasts_dict_with_list_of_strings():
+    test_input = ['contrast_name_0', 'contrast_name_1']
+    expected_output = {'contrast_name_0': 'contrast_name_0',
+                       'contrast_name_1': 'contrast_name_1',
+                       }
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert actual_output == expected_output
+
+
+def test_make_contrasts_dict_with_dict():
+    test_input = {'contrast_0': [0, 0, 1],
+                  'contrast_1': [0, 1, 1],
+                  }
+    expected_output = {'contrast_0': [0, 0, 1],
+                       'contrast_1': [0, 1, 1],
+                       }
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert actual_output == expected_output
+
+
+def test_make_contrasts_dict_with_list_of_lists():
+    test_input = [[0, 0, 1], [0, 1, 0]]
+    expected_output = {'[0, 0, 1]': [0, 0, 1],
+                       '[0, 1, 0]': [0, 1, 0],
+                       }
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert actual_output == expected_output
+
+
+def test_make_contrasts_dict_with_list_of_arrays():
+    test_input = [np.array([0, 0, 1]), np.array([0, 1, 0])]
+    expected_output = {'[0 0 1]': np.array([0, 0, 1]),
+                       '[0 1 0]': np.array([0, 1, 0]),
+                       }
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert actual_output.keys() == expected_output.keys()
+    for key in actual_output:
+        assert np.array_equal(actual_output[key],
+                              expected_output[key],
+                              )
+
+
+
+def test_make_contrasts_dict_with_list_of_ints():
+    test_input = [1, 0, 1]
+    expected_output = {'[1, 0, 1]': [1, 0, 1]}
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert np.array_equal(actual_output['[1, 0, 1]'],
+                          expected_output['[1, 0, 1]'],
+                          )
+
+def test_make_contrasts_dict_with_array_of_ints():
+    test_input = np.array([1, 0, 1])
+    expected_output = {'[1 0 1]': np.array([1, 0, 1])}
+    actual_output = glmr._make_contrasts_dict(test_input)
+    assert expected_output.keys() == actual_output.keys()
+    assert np.array_equal(actual_output['[1 0 1]'],
+                          expected_output['[1 0 1]'],
+                          )
 
 
 def _make_data_to_test_make_page_title_heading():
