@@ -120,88 +120,58 @@ def test_make_contrasts_dict_with_array_of_ints():
                           )
 
 
-def _make_data_to_test_make_page_title_heading():
-    test_cases = [
-        {'test_input': ({'contrast_0': [0, 0, 1], 'contrast_1': [0, 1, 1]},
-                        None),
-         'expected_output': ('Report: contrast_0, contrast_1',
-                             'Statistical Report for contrasts',
-                             'contrast_0, contrast_1',
-                             )
-         },
-        {'test_input': ({'contrast_0': [0, 0, 1], 'contrast_1': [0, 1, 1]},
-                        'auto'),
-         'expected_output': ('Report: contrast_0, contrast_1',
-                             'Statistical Report for contrasts',
-                             'contrast_0, contrast_1',
-                             )
-         },
-        {'test_input': ({'contrast_0': [0, 0, 1], 'contrast_1': [0, 1, 1]},
-                        'Custom Title for report'),
-         'expected_output': ('Custom Title for report',
-                             'Custom Title for report',
-                             '',
-                             )
-         },
-        {'test_input': (None,
-                        'Custom Title for report'),
-         'expected_output': ('Custom Title for report',
-                             'Custom Title for report',
-                             '',
-                             )
-         },
-    
-        ]
-    return test_cases
-    
-    
-def test_make_page_title_heading(test_cases=_make_data_to_test_make_page_title_heading()):
-    for test_case_ in test_cases:
-        actual_output = glmr._make_headings(*test_case_['test_input'])
-        assert_equal(test_case_['expected_output'], actual_output)
+def test_make_page_title_heading_with_contrasts_title_none():
+    test_input = ({'contrast_0': [0, 0, 1],
+                   'contrast_1': [0, 1, 1],
+                   },
+                  None,
+                  )
+    expected_output = ('Report: contrast_0, contrast_1',
+                       'Statistical Report for contrasts',
+                       'contrast_0, contrast_1',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
 
 
-def test_make_html_for_cluster_table():
-    shape = (9, 10, 11)
-    data = np.zeros(shape)
-    data[2:4, 5:7, 6:8] = 5.
-    stat_img = nib.Nifti1Image(data, np.eye(4))
-    table_details_html, table_html_code = glmr._make_cluster_table_html(
-        stat_img, 4, 0, 0.5, 'fdr', 8)
-    
-    expected_html_fragments_table_details = [
-        '<th>Threshold Z</th>',
-        '<th>Cluster size threshold (voxels)</th>',
-        '<th>Minimum distance (mm)</th>',
-        '<th>Height control</th>',
-        '<th>Cluster Level p-value Threshold</th>',
-        ]
-    table_details_check = [
-        fragment in table_details_html
-        for fragment in expected_html_fragments_table_details
-        ]
-    assert all(table_details_check)
-    
-    expected_html_fragments_table_code = [
-        '<th>Cluster ID</th>',
-        '<th>X</th>',
-        '<th>Y</th>',
-        '<th>Z</th>',
-        '<th>Peak Stat</th>',
-        '<th>Cluster Size (mm3)</th>',
-        '<th>0</th>',
-        '<td>1</td>',
-        '<td>2.0</td>',
-        '<td>6.0</td>',
-        '<td>6.0</td>',
-        '<td>5.0</td>',
-        '<td>8</td>',
-        ]
-    table_code_check = [
-        fragment in table_details_html
-        for fragment in expected_html_fragments_table_details
-        ]
-    assert all(table_code_check)
+def test_make_page_title_heading_with_contrasts_title_auto():
+    test_input = ({'contrast_0': [0, 0, 1],
+                   'contrast_1': [0, 1, 1],
+                   },
+                  'auto',
+                  )
+    expected_output = ('Report: contrast_0, contrast_1',
+                       'Statistical Report for contrasts',
+                       'contrast_0, contrast_1',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
+
+
+def test_make_page_title_heading_with_contrasts_title_custom():
+    test_input = ({'contrast_0': [0, 0, 1],
+                   'contrast_1': [0, 1, 1],
+                   },
+                  'Custom Title for report',
+                  )
+    expected_output = ('Custom Title for report',
+                       'Custom Title for report',
+                       '',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
+
+
+def test_make_page_title_heading_with_contrasts_none_title_custom():
+    test_input = (None,
+                  'Custom Title for report',
+                  )
+    expected_output = ('Custom Title for report',
+                       'Custom Title for report',
+                       '',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
 
 
 def _generate_img():

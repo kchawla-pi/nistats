@@ -729,6 +729,38 @@ def _make_cluster_table_html(statistical_map_img,
                                        cluster_threshold=cluster_threshold,
                                        min_distance=min_distance,
                                        )
+    table_details = _make_cluster_table_details(stat_threshold,
+                                                cluster_threshold,
+                                                min_distance,
+                                                height_control,
+                                                alpha,
+                                                )
+    try:
+        table_details_html = table_details.to_html(header=False,
+                                                   border=0,
+                                                   )
+    except TypeError:  # pandas < 0.19
+        table_details_html = table_details.to_html(header=False,
+                                                   )
+    with pd.option_context('display.precision', 2):
+        cluster_table_html = cluster_table.to_html()
+    return table_details_html, cluster_table_html
+
+
+def _make_cluster_table_details(stat_threshold,
+                                cluster_threshold,
+                                min_distance,
+                                height_control,
+                                alpha,
+                                ):
+    """
+    Creates a Pandas DataFrame from the supplied arguments.
+    For use as part of the Cluster Table.
+    
+    Returns
+    -------
+    Pandas.DataFrame
+    """
     table_details = OrderedDict()
     table_details.update({'Threshold Z': stat_threshold})
     table_details.update({'Cluster size threshold (voxels)':
@@ -738,15 +770,5 @@ def _make_cluster_table_html(statistical_map_img,
     table_details.update({'Minimum distance (mm)': min_distance})
     table_details.update({'Height control': height_control})
     table_details.update({'Cluster Level p-value Threshold': alpha})
-    try:
-        table_details_html = pd.DataFrame.from_dict(
-                table_details, orient='index').to_html(border=0,
-                                                               header=False,
-                                                               )
-    except TypeError:  # pandas < 0.19
-        table_details_html = pd.DataFrame.from_dict(
-                table_details, orient='index').to_html(header=False,
-                                                               )
-    with pd.option_context('display.precision', 2):
-        cluster_table_html = cluster_table.to_html()
-    return table_details_html, cluster_table_html
+    table_details = pd.DataFrame.from_dict(table_details)
+    return table_details
