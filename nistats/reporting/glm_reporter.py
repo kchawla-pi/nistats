@@ -102,13 +102,13 @@ def make_glm_report(
         
     height_control: string
         false positive control meaning of cluster forming
-        threshold: 'fpr' (default)|'fdr'|'bonferroni'|None
+        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
     
     min_distance: `float`
         For display purposes only.
         Minimum distance between subpeaks in mm. Default is 8 mm.
         
-    plot_type: String. ['slice' (default)| 'glass']
+    plot_type: String. ['slice' (default)\| 'glass']
         Specifies the type of plot to be drawn for the statistical maps.
         
     display_mode: string
@@ -626,7 +626,7 @@ def _make_stat_map_svg(stat_img,
 
     height_control: string
         false positive control meaning of cluster forming
-        threshold: 'fpr'|'fdr'|'bonferroni'|None
+        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
 
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
@@ -711,7 +711,7 @@ def _make_cluster_table_html(statistical_map_img,
     height_control: string
         For display purposes only.
         false positive control meaning of cluster forming
-        threshold: 'fpr'|'fdr'|'bonferroni'|None
+        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
     
     min_distance: `float`
         For display purposes only.
