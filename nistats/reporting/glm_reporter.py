@@ -461,12 +461,12 @@ def plot_to_svg(plot):
             plot.figure.savefig(buffer, format='svg')
         except AttributeError:
             plot.savefig(buffer, format='svg')
-        plot_svg = buffer.getvalue()
+        svg_plot = buffer.getvalue()
     try:
-        url_plot_svg = quote(plot_svg.decode('utf8'))
+        url_svg_plot = quote(svg_plot.decode('utf8'))
     except KeyError:  # Fails on Python2.
-        url_plot_svg = quote(plot_svg)
-    return url_plot_svg
+        url_svg_plot = quote(svg_plot)
+    return url_svg_plot
 
 
 def _make_roi_svg(roi_img, bg_img):

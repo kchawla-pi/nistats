@@ -149,6 +149,27 @@ def test_make_contrasts_dict_with_array_of_ints():
                           expected_output['[1 0 1]'],
                           )
 
+def test_make_page_title_heading_with_contrast_string():
+    test_input = ('SStSSp_minus_DStDSp', None)
+    expected_output = ('Report: SStSSp_minus_DStDSp',
+                       'Statistical Report for contrasts',
+                       'SStSSp_minus_DStDSp',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
+
+
+def test_make_page_title_heading_with_contrast_list_of_strings():
+    test_input = (['SStSSp_minus_DStDSp', 'DStDSp_minus_SStSSp'],
+                  None,
+                  )
+    expected_output = ('Report: DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
+                       'Statistical Report for contrasts',
+                       'DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
+
 
 def test_make_page_title_heading_with_contrasts_title_none():
     test_input = ({'contrast_0': [0, 0, 1],
