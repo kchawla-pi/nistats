@@ -6,13 +6,15 @@ import numpy as np
 from nose import SkipTest
 
 import pandas as pd
-from nose.tools import assert_equal
+from nilearn.datasets import fetch_oasis_vbm
 
 from nistats.design_matrix import make_first_level_design_matrix
 from nistats.first_level_model import FirstLevelModel
 from nistats.reporting import glm_reporter as glmr
 from nistats import datasets
 from numpy.testing import dec
+
+from nistats.second_level_model import SecondLevelModel
 
 try:
     import matplotlib as mpl
@@ -47,9 +49,37 @@ def test_flm_fiac_test():
     contrasts = {'SStSSp_minus_DStDSp': pad_vector([1, 0, 0, -1], n_columns),
                  'DStDSp_minus_SStSSp': pad_vector([-1, 0, 0, 1], n_columns),
                  }
-    report = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
+    report_flm = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
                                   roi_img=data['mask'])
-    benchmark_filepath = 'fiac_flm_report_benchmark.html'
+
+
+def _make_design_matrix(oasis_dataset, n_subjects):
+    age = oasis_dataset.ext_vars['age'].astype(float)
+    sex = oasis_dataset.ext_vars['mf'] == b'F'
+    intercept = np.ones(n_subjects)
+    design_matrix = pd.DataFrame(np.vstack((age, sex, intercept)).T,
+                                 columns=['age', 'sex', 'intercept'])
+    design_matrix = pd.DataFrame(design_matrix, columns=['age', 'sex',
+                                                         'intercept']
+                                 )
+    return design_matrix
+
+@dec.skipif(not_have_mpl)
+def test_slm_oasis_glass():
+    n_subjects = 4
+    contrast = [[1, 0, 0], [0, 1, 0]]
+    oasis_dataset = fetch_oasis_vbm(n_subjects)
+    design_matrix = _make_design_matrix(oasis_dataset, n_subjects)
+    
+    second_level_model = SecondLevelModel(smoothing_fwhm=2.0)
+    second_level_model.fit(oasis_dataset.gray_matter_maps,
+                           design_matrix=design_matrix)
+
+    report_oasis = glmr.make_glm_report(
+            model=second_level_model,
+            contrasts=contrast,
+            plot_type='glass',
+            )
 
 
 def test_make_contrasts_dict_with_string():
@@ -218,9 +248,3 @@ def test_make_contrast_matrix_html():
                                                [dmtx],
                                                )
     assert True
-
-
-# if __name__ == '__main__':
-#     test_make_contrast_matrix_html()
-    # data_to_test_make_contrasts_dict = _make_data_to_test_make_contrasts_dict()
-    # test_make_contrasts_dict(data_to_test_make_contrasts_dict)

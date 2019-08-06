@@ -360,9 +360,13 @@ def _make_attributes_table(model):
         for attr_name in selected_attributes
         if attr_name in model.__dict__
         }
-    labels_ = display_attributes['labels_']
-    if len(labels_) == 1 and isinstance(labels_[0], (np.ndarray, list, tuple)):
-        display_attributes['labels_'] = labels_[0]
+    try:
+        labels_ = display_attributes['labels_']
+    except KeyError:
+        pass
+    else:
+        if len(labels_) == 1 and isinstance(labels_[0], (np.ndarray, list, tuple)):
+            display_attributes['labels_'] = labels_[0]
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
