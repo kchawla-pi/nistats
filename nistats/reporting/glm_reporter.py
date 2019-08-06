@@ -9,7 +9,7 @@ import numpy as np
 try:
     from urllib.parse import quote
 except ImportError:
-    from urllib import quote
+    from urllib import quote  # Python2
 
 try:
     from html import escape
@@ -462,7 +462,10 @@ def plot_to_svg(plot):
         except AttributeError:
             plot.savefig(buffer, format='svg')
         plot_svg = buffer.getvalue()
-    url_plot_svg = quote(plot_svg.decode('utf8'))
+    try:
+        url_plot_svg = quote(plot_svg.decode('utf8'))
+    except KeyError:  # Fails on Python2.
+        url_plot_svg = quote(plot_svg)
     return url_plot_svg
 
 
