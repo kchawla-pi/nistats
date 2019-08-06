@@ -681,7 +681,7 @@ def _make_stat_map_svg(stat_img,
                                          plot_abs=False,
                                          )
     else:
-        raise ValueError('Invalid plot type provided. Acceptable options are\n'
+        raise ValueError('Invalid plot type provided. Acceptable options are'
                          "'slice' or 'glass'.")
     
     stat_map_svg = plot_to_svg(plt.gcf())

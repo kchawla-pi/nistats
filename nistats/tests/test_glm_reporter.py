@@ -1,5 +1,3 @@
-import os
-
 import nibabel as nib
 import numpy as np
 
@@ -239,7 +237,7 @@ def _generate_img():
     return nib.Nifti1Image(data_positive, mni_affine)
 
 
-def test_make_html_for_stat_maps():
+def test_make_html_for_stat_maps_slice_z():
     img = _generate_img()
     stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
                                                  threshold=4,
@@ -247,10 +245,40 @@ def test_make_html_for_stat_maps():
                                                  cluster_threshold=0,
                                                  height_control='fdr',
                                                  bg_img=None,
-                                                 display_mode='z',
-                                                 plot_type='slice'
+                                                 display_mode='ortho',
+                                                 plot_type='slice',
                                                  )
-    assert True
+
+
+def test_make_html_for_stat_maps_slice_z():
+    img = _generate_img()
+    stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
+                                                 threshold=-4,
+                                                 alpha=1,
+                                                 cluster_threshold=5,
+                                                 height_control='fpr',
+                                                 bg_img=None,
+                                                 display_mode='z',
+                                                 plot_type='glass',
+                                                 )
+
+
+def test_make_html_for_stat_maps_invalid_plot_type():
+    img = _generate_img()
+    expected_error = ValueError('Invalid plot type provided. Acceptable options are'
+                         "'slice' or 'glass'.")
+    try:
+        stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
+                                                     threshold=4,
+                                                     alpha=0.5,
+                                                     cluster_threshold=0,
+                                                     height_control='fdr',
+                                                     bg_img=None,
+                                                     display_mode='z',
+                                                     plot_type='junk',
+                                                     )
+    except ValueError as raised_exception:
+        assert str(raised_exception) == str(expected_error)
 
 
 def _make_dummy_contrasts_dmtx():
@@ -263,9 +291,8 @@ def _make_dummy_contrasts_dmtx():
     return contrast, dmtx
 
 
-# def test_make_contrast_matrix_html():
-#     contrast, dmtx = _make_dummy_contrasts_dmtx()
-#     contrast_plots = glmr._make_contrast_plots(contrast,
-#                                                [dmtx],
-#                                                )
-#     assert True
+def test_make_contrast_matrix_html():
+    contrast, dmtx = _make_dummy_contrasts_dmtx()
+    contrast_plots = glmr._make_contrast_plots(contrast,
+                                               [dmtx],
+                                               )
