@@ -263,9 +263,9 @@ def _make_dummy_contrasts_dmtx():
     return contrast, dmtx
 
 
-def test_make_contrast_matrix_html():
-    contrast, dmtx = _make_dummy_contrasts_dmtx()
-    contrast_plots = glmr._make_contrast_plots(contrast,
-                                               [dmtx],
-                                               )
-    assert True
+# def test_make_contrast_matrix_html():
+#     contrast, dmtx = _make_dummy_contrasts_dmtx()
+#     contrast_plots = glmr._make_contrast_plots(contrast,
+#                                                [dmtx],
+#                                                )
+#     assert True
