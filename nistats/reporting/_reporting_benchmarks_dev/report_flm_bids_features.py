@@ -62,6 +62,7 @@ def create_report_bids_features():
     output_filepath = 'generated_report_flm_bids_features.html'
     report = make_glm_report(model=model,
                              contrasts='StopSuccess - Go',
+                             cluster_threshold=3,
                              )
     report.save_as_html(output_filepath)
     

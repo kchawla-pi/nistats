@@ -80,48 +80,48 @@ def test_slm_oasis_glass():
             )
 
 
-def test_make_contrasts_dict_with_string():
+def test_coerce_to_dict_with_string():
     test_input = 'StopSuccess - Go'
     expected_output = {'StopSuccess - Go': 'StopSuccess - Go'}
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert actual_output == expected_output
 
 
-def test_make_contrasts_dict_with_list_of_strings():
+def test_coerce_to_dict_with_list_of_strings():
     test_input = ['contrast_name_0', 'contrast_name_1']
     expected_output = {'contrast_name_0': 'contrast_name_0',
                        'contrast_name_1': 'contrast_name_1',
                        }
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert actual_output == expected_output
 
 
-def test_make_contrasts_dict_with_dict():
+def test_coerce_to_dict_with_dict():
     test_input = {'contrast_0': [0, 0, 1],
                   'contrast_1': [0, 1, 1],
                   }
     expected_output = {'contrast_0': [0, 0, 1],
                        'contrast_1': [0, 1, 1],
                        }
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert actual_output == expected_output
 
 
-def test_make_contrasts_dict_with_list_of_lists():
+def test_coerce_to_dict_with_list_of_lists():
     test_input = [[0, 0, 1], [0, 1, 0]]
     expected_output = {'[0, 0, 1]': [0, 0, 1],
                        '[0, 1, 0]': [0, 1, 0],
                        }
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert actual_output == expected_output
 
 
-def test_make_contrasts_dict_with_list_of_arrays():
+def test_coerce_to_dict_with_list_of_arrays():
     test_input = [np.array([0, 0, 1]), np.array([0, 1, 0])]
     expected_output = {'[0 0 1]': np.array([0, 0, 1]),
                        '[0 1 0]': np.array([0, 1, 0]),
                        }
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert actual_output.keys() == expected_output.keys()
     for key in actual_output:
         assert np.array_equal(actual_output[key],
@@ -130,24 +130,24 @@ def test_make_contrasts_dict_with_list_of_arrays():
 
 
 
-def test_make_contrasts_dict_with_list_of_ints():
+def test_coerce_to_dict_with_list_of_ints():
     test_input = [1, 0, 1]
     expected_output = {'[1, 0, 1]': [1, 0, 1]}
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert np.array_equal(actual_output['[1, 0, 1]'],
                           expected_output['[1, 0, 1]'],
                           )
 
-def test_make_contrasts_dict_with_array_of_ints():
+def test_coerce_to_dict_with_array_of_ints():
     test_input = np.array([1, 0, 1])
     expected_output = {'[1 0 1]': np.array([1, 0, 1])}
-    actual_output = glmr._make_contrasts_dict(test_input)
+    actual_output = glmr._coerce_to_dict(test_input)
     assert expected_output.keys() == actual_output.keys()
     assert np.array_equal(actual_output['[1 0 1]'],
                           expected_output['[1 0 1]'],
                           )
 
-def test_make_page_title_heading_with_contrast_string():
+def test_make_headings_with_contrast_string():
     test_input = ('SStSSp_minus_DStDSp', None)
     expected_output = ('Report: SStSSp_minus_DStDSp',
                        'Statistical Report for contrasts',
@@ -157,7 +157,7 @@ def test_make_page_title_heading_with_contrast_string():
     assert actual_output == expected_output
 
 
-def test_make_page_title_heading_with_contrast_list_of_strings():
+def test_make_headings_with_contrast_list_of_strings():
     test_input = (['SStSSp_minus_DStDSp', 'DStDSp_minus_SStSSp'],
                   None,
                   )
@@ -169,7 +169,7 @@ def test_make_page_title_heading_with_contrast_list_of_strings():
     assert actual_output == expected_output
 
 
-def test_make_page_title_heading_with_contrasts_title_none():
+def test_make_headings_with_contrasts_title_none():
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
@@ -183,7 +183,7 @@ def test_make_page_title_heading_with_contrasts_title_none():
     assert actual_output == expected_output
 
 
-def test_make_page_title_heading_with_contrasts_title_auto():
+def test_make_headings_with_contrasts_title_auto():
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
@@ -197,7 +197,7 @@ def test_make_page_title_heading_with_contrasts_title_auto():
     assert actual_output == expected_output
 
 
-def test_make_page_title_heading_with_contrasts_title_custom():
+def test_make_headings_with_contrasts_title_custom():
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
@@ -211,7 +211,7 @@ def test_make_page_title_heading_with_contrasts_title_custom():
     assert actual_output == expected_output
 
 
-def test_make_page_title_heading_with_contrasts_none_title_custom():
+def test_make_headings_with_contrasts_none_title_custom():
     test_input = (None,
                   'Custom Title for report',
                   )
@@ -237,46 +237,46 @@ def _generate_img():
     return nib.Nifti1Image(data_positive, mni_affine)
 
 
-def test_make_html_for_stat_maps_slice_z():
+def test_stat_map_to_svg_slice_z():
     img = _generate_img()
-    stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
-                                                 threshold=4,
-                                                 alpha=0.5,
-                                                 cluster_threshold=0,
-                                                 height_control='fdr',
-                                                 bg_img=None,
-                                                 display_mode='ortho',
-                                                 plot_type='slice',
-                                                 )
+    stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
+                                               threshold=3,
+                                               alpha=0.5,
+                                               cluster_threshold=0,
+                                               height_control='fdr',
+                                               bg_img=None,
+                                               display_mode='ortho',
+                                               plot_type='slice',
+                                               )
 
 
-def test_make_html_for_stat_maps_slice_z():
+def test_stat_map_to_svg_slice_z():
     img = _generate_img()
-    stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
-                                                 threshold=-4,
-                                                 alpha=1,
-                                                 cluster_threshold=5,
-                                                 height_control='fpr',
-                                                 bg_img=None,
-                                                 display_mode='z',
-                                                 plot_type='glass',
-                                                 )
+    stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
+                                               threshold=3,
+                                               alpha=0.5,
+                                               cluster_threshold=5,
+                                               height_control='fpr',
+                                               bg_img=None,
+                                               display_mode='z',
+                                               plot_type='glass',
+                                               )
 
 
-def test_make_html_for_stat_maps_invalid_plot_type():
+def test_stat_map_to_svg_invalid_plot_type():
     img = _generate_img()
     expected_error = ValueError('Invalid plot type provided. Acceptable options are'
                          "'slice' or 'glass'.")
     try:
-        stat_map_html_code = glmr._make_stat_map_svg(stat_img=img,
-                                                     threshold=4,
-                                                     alpha=0.5,
-                                                     cluster_threshold=0,
-                                                     height_control='fdr',
-                                                     bg_img=None,
-                                                     display_mode='z',
-                                                     plot_type='junk',
-                                                     )
+        stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
+                                                   threshold=3,
+                                                   alpha=0.5,
+                                                   cluster_threshold=0,
+                                                   height_control='fdr',
+                                                   bg_img=None,
+                                                   display_mode='z',
+                                                   plot_type='junk',
+                                                   )
     except ValueError as raised_exception:
         assert str(raised_exception) == str(expected_error)
 

@@ -88,7 +88,7 @@ def make_glm_report(
     threshold: float
         Default is 3.09
         Cluster forming threshold in same scale as `stat_img` (either a
-        p-value or z-scale value).
+        t-scale or z-scale value).
         
     alpha: float
         Default is 0.01
@@ -163,7 +163,7 @@ def make_glm_report(
         html_template_text = html_file_obj.read()
     report_template = string.Template(html_template_text)
     
-    contrasts = _make_contrasts_dict(contrasts)
+    contrasts = _coerce_to_dict(contrasts)
     contrast_plots = _make_contrast_plots(contrasts, design_matrices)
     page_title, page_heading_1, page_heading_2 = _make_headings(
             contrasts,
@@ -172,8 +172,8 @@ def make_glm_report(
     with pd.option_context('display.max_colwidth', 100):
         model_attributes_html = _make_attributes_table(model)
     statistical_maps = make_stat_maps(model, contrasts)
-    html_design_matrices = _make_svg_url_design_matrices(design_matrices)
-    roi_plot_html_code = _make_roi_svg(roi_img, bg_img)
+    html_design_matrices = _dmtx_to_svg_url(design_matrices)
+    roi_plot_html_code = _roi_to_svg(roi_img, bg_img)
     all_components = _make_report_components(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
@@ -204,39 +204,38 @@ def make_glm_report(
     return report
 
 
-def _make_contrasts_dict(contrasts):
-    """ Accepts contrasts and returns a dict of them.
-    with the names of contrasts as keys.
+def _coerce_to_dict(input_arg):
+    """ Constructs a dict from the provided arg.
     
-    If contrasts is:
+    If input_arg is:
       dict then returns it unchanged.
       
       string or collection of Strings or Sequence[int],
-      returns a dict where key==values
+      returns a dict {str(value): value, ...}
     
     Parameters
     ----------
-    contrasts: String or Collection[str or Sequence[Int]] or Dict[str, str or np.array]
-        Contrast information. Can be a dict of the form
-         {'contrast_name_1': contrast list/array1, 'contrast_name_1': contrast list/array1}
-         ['contast_name_1', 'contast_name_2', ...]
-         [contrast_array_1, contrast_array_2, ...]
-         'contrast_name'
+    input_arg: String or Collection[str or Int or Sequence[Int]] or Dict[str, str or np.array]
+        Can be of the form:
+         'string'
+         ['string_1', 'string_2', ...]
+         list/array
+         [list/array_1, list/array_2, ...]
+         {'string_1': list/array1, ...}
     
     Returns
     -------
-    contrasts: Dict[str, np.array or str]
-        Contrast information, as a dict in the form
-            {'contrast_title_1': contrast_info_1/title_1, ...}
+    Dict[str, np.array or str]
+
     """
-    if not isinstance(contrasts, dict):
+    if not isinstance(input_arg, dict):
         excluded_types = (list, tuple, np.ndarray, str)
-        if isinstance(contrasts, excluded_types):
-            if not isinstance(contrasts[0], excluded_types):
-                contrasts = [contrasts]
-        contrasts = [contrasts] if isinstance(contrasts, str) else contrasts
-        contrasts = {str(contrast_): contrast_ for contrast_ in contrasts}
-    return contrasts
+        if isinstance(input_arg, excluded_types):
+            if not isinstance(input_arg[0], excluded_types):
+                input_arg = [input_arg]
+        input_arg = [input_arg] if isinstance(input_arg, str) else input_arg
+        input_arg = {str(contrast_): contrast_ for contrast_ in input_arg}
+    return input_arg
 
 
 def _make_contrast_plots(contrasts, design_matrices):
@@ -344,7 +343,6 @@ def _make_attributes_table(model):
         'noise_model',
         'min_onset',
         't_r',
-        'labels_',
         'high_pass',
         'target_shape',
         'signal_scaling',
@@ -360,13 +358,6 @@ def _make_attributes_table(model):
         for attr_name in selected_attributes
         if attr_name in model.__dict__
         }
-    try:
-        labels_ = display_attributes['labels_']
-    except KeyError:
-        pass
-    else:
-        if len(labels_) == 1 and isinstance(labels_[0], (np.ndarray, list, tuple)):
-            display_attributes['labels_'] = labels_[0]
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
@@ -406,7 +397,7 @@ def make_stat_maps(model, contrasts):
     return statistical_maps
 
 
-def _make_svg_url_design_matrices(design_matrices):
+def _dmtx_to_svg_url(design_matrices):
     """ Accepts a FirstLevelModel or SecondLevelModel object
     with fitted design matrices & generates SVG Image URL,
     which can be inserted into an HTML template.
@@ -469,7 +460,7 @@ def plot_to_svg(plot):
     return url_svg_plot
 
 
-def _make_roi_svg(roi_img, bg_img):
+def _roi_to_svg(roi_img, bg_img):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
     
@@ -531,6 +522,19 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         Its actual meaning depends on the height_control parameter.
         This function translates alpha to a z-scale threshold.
     
+    cluster_threshold : float
+        cluster size threshold. In the returned thresholded map,
+        sets of connected voxels (`clusters`) with size smaller
+        than this number will be removed.
+    
+    height_control: string
+        false positive control meaning of cluster forming
+        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
+    
+    min_distance: `float`
+        For display purposes only.
+        Minimum distance between subpeaks in mm. Default is 8 mm.
+    
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
@@ -567,7 +571,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         components_template_text = html_template_obj.read()
     for contrast_name, stat_map_img in stat_img.items():
         component_text_ = string.Template(components_template_text)
-        stat_map_html_code = _make_stat_map_svg(
+        stat_map_html_code = _stat_map_to_svg(
                 stat_img=stat_map_img,
                 threshold=threshold,
                 alpha=alpha,
@@ -597,15 +601,15 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
     return all_components
 
 
-def _make_stat_map_svg(stat_img,
-                       threshold,
-                       alpha,
-                       cluster_threshold,
-                       height_control,
-                       bg_img,
-                       display_mode,
-                       plot_type,
-                       ):
+def _stat_map_to_svg(stat_img,
+                     threshold,
+                     alpha,
+                     cluster_threshold,
+                     height_control,
+                     bg_img,
+                     display_mode,
+                     plot_type,
+                     ):
     """ Generates SVG code for a statistical map.
     
     Parameters
