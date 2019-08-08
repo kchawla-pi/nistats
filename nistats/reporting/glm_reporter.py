@@ -730,7 +730,7 @@ def _add_thresholding_params(table_details, stat_map_plot):
             
 
     suptitle_text = plt.suptitle(thresholding_params, fontsize=12, wrap=True,)
-    fig = stat_map_plot.axes.values()[0].ax.figure
+    fig = list(stat_map_plot.axes.values())[0].ax.figure
     orig_axes_size = fig.get_size_inches()
     new_axes_size = (orig_axes_size[0] + 3, orig_axes_size[1] + 2)
     fig.set_size_inches(new_axes_size)
