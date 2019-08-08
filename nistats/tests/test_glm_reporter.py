@@ -275,6 +275,7 @@ def test_stat_map_to_svg_invalid_plot_type():
                                                    alpha=0.5,
                                                    cluster_threshold=0,
                                                    height_control='fdr',
+                                                   min_distance=8,
                                                    bg_img=None,
                                                    display_mode='z',
                                                    plot_type='junk',
