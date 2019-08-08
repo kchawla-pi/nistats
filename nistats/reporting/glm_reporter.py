@@ -65,7 +65,7 @@ def make_glm_report(
         A fitted first or second level model object.
         Must have the computed design matrix(ces).
         
-    contrasts: Dict[string, ndarray] , String, List[ndarrays]
+    contrasts: Dict[string, ndarray] , String, List[String], ndarray, List[ndarray]
         Contrasts information for a first or second level model.
         Corresponds to the ``contrast_def`` for the FirstLevelModel [1]_
         & second_level_contrast for a SecondLevelModel [2]_ .
@@ -422,7 +422,8 @@ def _dmtx_to_svg_url(design_matrices):
     for dmtx_count, design_matrix in enumerate(design_matrices, start=1):
         dmtx_text_ = string.Template(dmtx_template_text)
         dmtx_plot = plot_design_matrix(design_matrix)
-        plt.title(dmtx_count, y=0.987)
+        dmtx_title = 'Session {}'.format(dmtx_count)
+        plt.title(dmtx_title, y=0.987)
         url_design_matrix_svg = plot_to_svg(dmtx_plot)
         dmtx_text_ = dmtx_text_.safe_substitute(
                 {'design_matrix': url_design_matrix_svg}
@@ -577,6 +578,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                 alpha=alpha,
                 cluster_threshold=cluster_threshold,
                 height_control=height_control,
+                min_distance=min_distance,
                 bg_img=bg_img,
                 display_mode=display_mode,
                 plot_type=plot_type,
@@ -587,7 +589,8 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                                      cluster_threshold=cluster_threshold,
                                      alpha=alpha,
                                      height_control=height_control,
-                                     min_distance=min_distance)
+                                     min_distance=min_distance,
+                                     )
         )
         components_values = {
             'contrast_name': escape(contrast_name),
@@ -606,6 +609,7 @@ def _stat_map_to_svg(stat_img,
                      alpha,
                      cluster_threshold,
                      height_control,
+                     min_distance,
                      bg_img,
                      display_mode,
                      plot_type,
@@ -639,6 +643,10 @@ def _stat_map_to_svg(stat_img,
         false positive control meaning of cluster forming
         threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
 
+    min_distance: `float`
+        For display purposes only.
+        Minimum distance between subpeaks in mm. Default is 8 mm.
+
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
@@ -668,11 +676,11 @@ def _stat_map_to_svg(stat_img,
         SVG Image Data URL representing a statistical map.
     """
     thresholded_stat_map, _ = map_threshold(stat_img,
-                                                threshold=threshold,
-                                                alpha=alpha,
-                                                cluster_threshold=cluster_threshold,
-                                                height_control=height_control,
-                                                )
+                                            threshold=threshold,
+                                            alpha=alpha,
+                                            cluster_threshold=cluster_threshold,
+                                            height_control=height_control,
+                                            )
     if plot_type == 'slice':
         stat_map_plot = plot_stat_map(thresholded_stat_map,
                                       bg_img=bg_img,
@@ -687,9 +695,49 @@ def _stat_map_to_svg(stat_img,
     else:
         raise ValueError('Invalid plot type provided. Acceptable options are'
                          "'slice' or 'glass'.")
-    
+    table_details = _make_cluster_table_details(threshold,
+                                                cluster_threshold,
+                                                min_distance,
+                                                height_control,
+                                                alpha,
+                                                )
+    stat_map_plot = _add_thresholding_params(table_details, stat_map_plot)
     stat_map_svg = plot_to_svg(plt.gcf())
     return stat_map_svg
+    
+    
+def _add_thresholding_params(table_details, stat_map_plot):
+    """
+    Inserts thresholding parameters into the stat map plot as a suptitle.
+    
+    Parameters
+    ----------
+    table_details: Dict[String, Any]
+        Dict of parameters and values used in thresholding.
+        
+    stat_map_plot: matplotlib.Axes
+        Axes object of the stat map plot.
+
+    Returns
+    -------
+    stat_map_plot: matplotlib.Axes
+        Axes object of the stat map plot, with the added suptitle .
+    """
+    thresholding_params =  [':'.join([name, str(val)]) for name, val in
+             table_details[0].items()]
+    thresholding_params.insert(int(round(len(thresholding_params)/2)), '\n')
+    thresholding_params = '  '.join(thresholding_params)
+            
+
+    suptitle_text = plt.suptitle(thresholding_params, fontsize=12, wrap=True,)
+    fig = stat_map_plot.axes.values()[0].ax.figure
+    orig_axes_size = fig.get_size_inches()
+    new_axes_size = (orig_axes_size[0] + 3, orig_axes_size[1] + 2)
+    fig.set_size_inches(new_axes_size)
+
+    if stat_map_plot._black_bg:
+        suptitle_text.set_color('w')
+    return stat_map_plot
 
 
 def _make_cluster_table_html(statistical_map_img,
@@ -780,7 +828,8 @@ def _make_cluster_table_details(stat_threshold,
                                  )
     table_details.update({'Minimum distance (mm)': min_distance})
     table_details.update({'Height control': height_control})
-    table_details.update({'Cluster Level p-value Threshold': alpha})
+    table_details.update({'Alpha': alpha})
+    table_details.update({'Cluster Level p-value Threshold': 'IMPLEMENTATION PENDING'})
     table_details = pd.DataFrame.from_dict(table_details,
                                            orient='index',
                                            )
