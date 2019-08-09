@@ -275,7 +275,8 @@ def _make_contrast_plots(contrasts, design_matrices):
             contrast_plot.figure.set_figheight(2)
             url_contrast_plot_svg = plot_to_svg(contrast_plot)
             contrasts_for_subsitution = {
-                'contrast_plot': url_contrast_plot_svg
+                'contrast_plot': url_contrast_plot_svg,
+                'contrast_name': contrast_name,
                 }
             contrast_text_ = contrast_text_.safe_substitute(
                     contrasts_for_subsitution
@@ -309,7 +310,7 @@ def _make_headings(contrasts, title):
         If title is user-supplied, then subheading is empty string.
     """
     if title not in ('auto', None):
-        return title, title, ''
+        return title, title, '  '
     else:
         if isinstance(contrasts, str):
             contrasts_text = contrasts
@@ -361,10 +362,13 @@ def _make_attributes_table(model):
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
-    model_attributes_table = model_attributes_table.to_html(header=False,
+    model_attributes_table_html = model_attributes_table.to_html(header=False,
                                                             sparsify=False,
                                                             )
-    return model_attributes_table
+    model_attributes_table_html = model_attributes_table_html.replace('border="1" ',
+                                                                      '',
+                                                                      )
+    return model_attributes_table_html
 
 
 def make_stat_maps(model, contrasts):
@@ -426,7 +430,9 @@ def _dmtx_to_svg_url(design_matrices):
         plt.title(dmtx_title, y=0.987)
         url_design_matrix_svg = plot_to_svg(dmtx_plot)
         dmtx_text_ = dmtx_text_.safe_substitute(
-                {'design_matrix': url_design_matrix_svg}
+                {'design_matrix': url_design_matrix_svg,
+                 'dmtx_title': dmtx_title,
+                 }
                 )
         html_design_matrices.append(dmtx_text_)
     svg_url_design_matrices = ''.join(html_design_matrices)
@@ -702,6 +708,7 @@ def _stat_map_to_svg(stat_img,
                                                 alpha,
                                                 )
     stat_map_plot = _add_thresholding_params(table_details, stat_map_plot)
+    
     stat_map_svg = plot_to_svg(plt.gcf())
     return stat_map_svg
     
@@ -794,15 +801,16 @@ def _make_cluster_table_html(statistical_map_img,
                                                 height_control,
                                                 alpha,
                                                 )
-    try:
-        table_details_html = table_details.to_html(header=False,
-                                                   border=0,
-                                                   )
-    except TypeError:  # pandas < 0.19
-        table_details_html = table_details.to_html(header=False,
-                                                   )
+    
+    table_details_html = table_details.to_html(header=False,
+                                               classes='cluster-details-table',
+                                               )
     with pd.option_context('display.precision', 2):
-        cluster_table_html = cluster_table.to_html()
+        cluster_table_html = cluster_table.to_html(index=False,
+                                                   classes='cluster-table',
+                                                   )
+    table_details_html = table_details_html.replace('border="1" ', '')
+    cluster_table_html= cluster_table_html.replace('border="1" ', '')
     return table_details_html, cluster_table_html
 
 
