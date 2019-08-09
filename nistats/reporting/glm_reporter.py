@@ -26,6 +26,7 @@ from nilearn.plotting import (plot_glass_brain,
 from nilearn.plotting.img_plotting import MNI152TEMPLATE
 from nilearn.plotting.js_plotting_utils import HTMLDocument
 
+import nistats
 from nistats.reporting import (plot_contrast_matrix,
                                plot_design_matrix,
                                get_clusters_table,
@@ -168,6 +169,7 @@ def make_glm_report(
     page_title, page_heading_1, page_heading_2 = _make_headings(
             contrasts,
             title,
+            model,
             )
     with pd.option_context('display.max_colwidth', 100):
         model_attributes_html = _make_attributes_table(model)
@@ -285,7 +287,7 @@ def _make_contrast_plots(contrasts, design_matrices):
     return all_contrasts_plots
 
 
-def _make_headings(contrasts, title):
+def _make_headings(contrasts, title, model):
     """ Creates report page title, heading & sub-heading
      using title text or contrast names.
     Accepts contrasts and user supplied title string.
@@ -304,22 +306,30 @@ def _make_headings(contrasts, title):
         User supplied text for HTML Page title and primary heading.
         Overrides title auto-generation.
     
+    model: FirstLevelModel or SecondLevelModel
+        The model, passed in to determine its type
+        to be used in page title & headings.
     Returns
     -------
     (HTML page title, heading, sub-heading): Tuple[str, str, str]
         If title is user-supplied, then subheading is empty string.
     """
+    if type(model) == nistats.first_level_model.FirstLevelModel:
+        model_type = 'First Level Model'
+    elif type(model) == nistats.second_level_model.SecondLevelModel:
+        model_type = 'Second Level Model'
+    
     if title not in ('auto', None):
-        return title, title, '  '
+        return title, title, model_type
     else:
         if isinstance(contrasts, str):
             contrasts_text = contrasts
         else:
             contrasts_names = sorted(contrasts)
             contrasts_text = ', '.join(contrasts_names)
-        page_title = 'Report: {}'.format(contrasts_text)
-        page_heading_1 = 'Statistical Report for contrasts'
-        page_heading_2 = '{}'.format(contrasts_text)
+        page_title = 'Report: {} for {}'.format(model_type, contrasts_text)
+        page_heading_1 = 'Statistical Report for {}'.format(model_type)
+        page_heading_2 = 'Contrasts: {}'.format(contrasts_text)
         return page_title, page_heading_1, page_heading_2
 
 

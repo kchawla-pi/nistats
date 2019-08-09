@@ -148,76 +148,88 @@ def test_coerce_to_dict_with_array_of_ints():
                           )
 
 def test_make_headings_with_contrast_string():
-    test_input = ('SStSSp_minus_DStDSp', None)
-    expected_output = ('Report: SStSSp_minus_DStDSp',
-                       'Statistical Report for contrasts',
-                       'SStSSp_minus_DStDSp',
+    model = FirstLevelModel()
+    test_input = ('SStSSp_minus_DStDSp', None, model)
+    expected_output = ('Report: First Level Model for SStSSp_minus_DStDSp',
+                       'Statistical Report for First Level Model',
+                       'Contrasts: SStSSp_minus_DStDSp',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
 
 def test_make_headings_with_contrast_list_of_strings():
+    model = FirstLevelModel()
     test_input = (['SStSSp_minus_DStDSp', 'DStDSp_minus_SStSSp'],
                   None,
+                  model
                   )
-    expected_output = ('Report: DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
-                       'Statistical Report for contrasts',
+    expected_output = ('Report: First Level Model for '
                        'DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
+                       'Statistical Report for First Level Model',
+                       'Contrasts: DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
 
 def test_make_headings_with_contrasts_title_none():
+    model = SecondLevelModel()
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
                   None,
+                  model
                   )
-    expected_output = ('Report: contrast_0, contrast_1',
-                       'Statistical Report for contrasts',
-                       'contrast_0, contrast_1',
+    expected_output = ('Report: Second Level Model for contrast_0, contrast_1',
+                       'Statistical Report for Second Level Model',
+                       'Contrasts: contrast_0, contrast_1',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
 
 def test_make_headings_with_contrasts_title_auto():
+    model = SecondLevelModel()
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
                   'auto',
+                  model,
                   )
-    expected_output = ('Report: contrast_0, contrast_1',
-                       'Statistical Report for contrasts',
-                       'contrast_0, contrast_1',
+    expected_output = ('Report: Second Level Model for contrast_0, contrast_1',
+                       'Statistical Report for Second Level Model',
+                       'Contrasts: contrast_0, contrast_1',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
 
 def test_make_headings_with_contrasts_title_custom():
+    model = SecondLevelModel()
     test_input = ({'contrast_0': [0, 0, 1],
                    'contrast_1': [0, 1, 1],
                    },
                   'Custom Title for report',
+                  model,
                   )
     expected_output = ('Custom Title for report',
                        'Custom Title for report',
-                       '',
+                       'Second Level Model',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
 
 def test_make_headings_with_contrasts_none_title_custom():
+    model = FirstLevelModel()
     test_input = (None,
                   'Custom Title for report',
+                  model,
                   )
     expected_output = ('Custom Title for report',
                        'Custom Title for report',
-                       '',
+                       'First Level Model',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
