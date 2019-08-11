@@ -1,20 +1,26 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta name="viewport" content="width=device=width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, inital-scale=1, shrink-to-fit=yes">
     <meta charset="utf-8">
     <title>${page_title}</title>
 
     <style>
-
-        html
-        {
+        html {
             font-family: sans-serif;
+        }
+
+        body {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         table, th, td {
             border: 1px solid black;
             border-collapse: collapse;
+            margin-left: auto;
+            margin-right: auto;
             padding: 5px;
             padding-left: 15px;
             padding-right: 15px;
@@ -34,42 +40,40 @@
             background-color: yellow;
         }
 
-        .cluster-details-table
-        {
-            border-width: 1px;
-            border-collapse: collapse;
+        details:hover {
+            cursor: pointer;
         }
-
-        .cluster-table td th
-        {
-            border: 2px solid black;
-            border-collapse: collapse;
+        details > summary {
+            margin-left: auto;
+            margin-right: auto;
+            width: 25%;
+            background-color: lightgray;
+            outline-color: lightgray;
         }
-
     </style>
 
 </head>
+    <body>
 
-<body>
-<h1>${page_heading_1}</h1>
-<h2>${page_heading_2}</h2>
+        <h1>${page_heading_1}</h1>
+        <h2>${page_heading_2}</h2>
 
-<h3>Model details:</h3>
-${model_attributes}
+        <h3>Model details:</h3>
+        ${model_attributes}
 
 
-<h3>Contrasts:</h3>
+        <h3 id="all-contrasts">Contrasts</h3>
 
-${all_contrasts_with_plots}
+        ${all_contrasts_with_plots}
 
-<h3>Design Matrix:</h3>
-${design_matrices}
+        <h3>Design Matrix:</h3>
+        ${design_matrices}
 
-<h3>ROI</h3>
-<img src="data:image/svg+xml,${roi_plot}" alt="Pass the mask with the `roi_img` parameter to plot the ROI"/>
+        <h3>ROI</h3>
+        <img src="data:image/svg+xml,${roi_plot}" alt="Pass the mask with the `roi_img` parameter to plot the ROI"/>
 
-<h3> Stat Maps with Cluster Tables</h3>
-${component}
+        <h3> Stat Maps with Cluster Tables</h3>
+        ${component}
 
-</body>
+    </body>
 </html>
