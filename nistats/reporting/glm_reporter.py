@@ -17,6 +17,7 @@ except ImportError:
     from cgi import escape
 
 import pandas as pd
+import nibabel
 
 from matplotlib import pyplot as plt
 from nilearn.plotting import (plot_glass_brain,
@@ -369,15 +370,24 @@ def _make_attributes_table(model):
         for attr_name in selected_attributes
         if attr_name in model.__dict__
         }
+    mask_img = display_attributes.get('mask_img', None)
+    img_types = (nibabel.nifti1.Nifti1Image,
+                 nibabel.nifti2.Nifti2Image
+                 )
+    if mask_img and isinstance(mask_img, img_types):
+        mask_img = '{} with shape {}'.format(type(mask_img),
+                                                  mask_img.shape)
+
+    display_attributes['mask_img'] = mask_img
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
     model_attributes_table_html = model_attributes_table.to_html(header=False,
                                                             sparsify=False,
                                                             )
-    model_attributes_table_html = model_attributes_table_html.replace('border="1" ',
-                                                                      '',
-                                                                      )
+    # table attribute added to HTML by Pandas breaks HTML5 spec.
+    model_attributes_table_html = model_attributes_table_html.replace(
+            'border="1" ', '',)
     return model_attributes_table_html
 
 
@@ -744,8 +754,7 @@ def _add_thresholding_params(table_details, stat_map_plot):
              table_details[0].items()]
     thresholding_params.insert(int(round(len(thresholding_params)/2)), '\n')
     thresholding_params = '  '.join(thresholding_params)
-            
-
+    
     suptitle_text = plt.suptitle(thresholding_params, fontsize=12, wrap=True,)
     fig = list(stat_map_plot.axes.values())[0].ax.figure
     orig_axes_size = fig.get_size_inches()
