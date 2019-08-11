@@ -72,8 +72,10 @@ def make_glm_report(
         Corresponds to the ``contrast_def`` for the FirstLevelModel [1]_
         & second_level_contrast for a SecondLevelModel [2]_ .
     
-    title: String, default 'auto'
-        Text to represent the web page's title and primary heading.
+    title: String or 3 element List/Tuple, default 'auto'
+        If string, represents the web page's title and primary heading,
+        model type is sub-heading.
+        If 3 element List/Tuple, represents page title heading, sub-heading.
         If 'auto', uses the contrast titles to generate a title.
         
     roi_img : Niimg-like object
@@ -291,9 +293,12 @@ def _make_contrast_plots(contrasts, design_matrices):
 def _make_headings(contrasts, title, model):
     """ Creates report page title, heading & sub-heading
      using title text or contrast names.
-    Accepts contrasts and user supplied title string.
+    Accepts contrasts and user supplied title string or
+    contrasts and user supplied 3 element list or tuple.
     
-    If title is not in (None, 'auto'), page title == heading, no sub-heading
+    If title is not in (None, 'auto'),
+    page title == heading,
+    model type == sub-heading
     
     Parameters
     ----------
@@ -303,8 +308,9 @@ def _make_headings(contrasts, title, model):
         Contrast titles are used in page title and secondary heading
         if `title` is not 'auto' or None.
     
-    title: String
+    title: String or List/Tuple with 3 elements
         User supplied text for HTML Page title and primary heading.
+        Or 3 element List/Tuple for Title Heading, sub-heading resp.
         Overrides title auto-generation.
     
     model: FirstLevelModel or SecondLevelModel
@@ -315,6 +321,9 @@ def _make_headings(contrasts, title, model):
     (HTML page title, heading, sub-heading): Tuple[str, str, str]
         If title is user-supplied, then subheading is empty string.
     """
+    if isinstance(title, (tuple, list)) and len(title) == 3:
+        return title
+
     if type(model) == nistats.first_level_model.FirstLevelModel:
         model_type = 'First Level Model'
     elif type(model) == nistats.second_level_model.SecondLevelModel:

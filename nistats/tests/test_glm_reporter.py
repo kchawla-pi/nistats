@@ -72,11 +72,15 @@ def test_slm_oasis_glass():
     second_level_model = SecondLevelModel(smoothing_fwhm=2.0)
     second_level_model.fit(oasis_dataset.gray_matter_maps,
                            design_matrix=design_matrix)
-
+    title = ('Report: Glass Brain ADHD DMN',
+             'Report: Glass Brain ADHD FLM',
+             0,
+             )
     report_oasis = glmr.make_glm_report(
             model=second_level_model,
             contrasts=contrast,
             plot_type='glass',
+            title=title
             )
 
 
@@ -234,6 +238,18 @@ def test_make_headings_with_contrasts_none_title_custom():
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
+
+def test_make_headings_with_tuple():
+    model = FirstLevelModel()
+    title = ('Custom Page Title', 'Heading', 2)
+    test_input = (None,
+                  title,
+                  model,
+                  )
+    expected_output = ('Custom Page Title', 'Heading', 2,
+                       )
+    actual_output = glmr._make_headings(*test_input)
+    assert actual_output == expected_output
 
 def _generate_img():
     mni_affine = np.array([[-2., 0., 0., 90.],

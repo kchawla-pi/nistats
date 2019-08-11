@@ -60,9 +60,14 @@ def create_report_bids_features():
     data_dir = fetch_bids_data()
     model, subject = make_flm(data_dir)
     output_filepath = 'generated_report_flm_bids_features.html'
+    title = ('Report: FLM Bids Features',
+             'FLM Bids Features Stat maps',
+             7,
+             )
     report = make_glm_report(model=model,
                              contrasts='StopSuccess - Go',
                              cluster_threshold=3,
+                             title=title,
                              )
     report.save_as_html(output_filepath)
     
