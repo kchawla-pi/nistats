@@ -378,11 +378,12 @@ def _make_attributes_table(model):
         'slice_time_ref',
         'fir_delays',
         ]
-    display_attributes = {
-        attr_name: model.__dict__[attr_name]
+    selected_attributes.sort()
+    display_attributes = OrderedDict(
+            (attr_name, model.__dict__[attr_name])
         for attr_name in selected_attributes
         if attr_name in model.__dict__
-        }
+        )
     mask_img = display_attributes.get('mask_img', None)
     img_types = (nibabel.nifti1.Nifti1Image,
                  nibabel.nifti2.Nifti2Image
