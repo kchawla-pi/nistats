@@ -178,7 +178,11 @@ def make_glm_report(
         model_attributes_html = _make_attributes_table(model)
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
-    roi_plot_html_code = _mask_to_svg(roi_img, bg_img)
+    roi_plot_html_code = _mask_to_svg(roi_img=roi_img,
+                                      bg_img=bg_img,
+                                      alpha=alpha, threshold=threshold,
+                                      display_mode=display_mode,
+                                      )
     all_components = _make_report_components(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
@@ -496,7 +500,7 @@ def plot_to_svg(plot):
     return url_svg_plot
 
 
-def _mask_to_svg(roi_img, bg_img):
+def _mask_to_svg(roi_img, bg_img, alpha, threshold, display_mode):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
     
@@ -512,13 +516,44 @@ def _mask_to_svg(roi_img, bg_img):
         The background image that the ROI/mask will be plotted on top of.
         To turn off background image, just pass "bg_img=None".
 
+    alpha: float
+        Default is 0.01
+        Number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
+
+    threshold : None, 'auto', or a number
+        If None is given, the image is not thresholded.
+        If a number is given, it is used to threshold the image:
+        values below the threshold (in absolute value) are plotted
+        as transparent. If auto is given, the threshold is determined
+        magically by analysis of the image.
+
+    display_mode: string
+        Choose the direction of the cuts:
+        'x' - sagittal, 'y' - coronal, 'z' - axial,
+        'l' - sagittal left hemisphere only,
+        'r' - sagittal right hemisphere only,
+        'ortho' - three cuts are performed in orthogonal directions.
+        
+        Possible values are:
+        'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
+        'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
+        
+        
     Returns
     -------
     roi_plot_svg: str
         SVG Image Data URL for the ROI plot.
     """
     if roi_img:
-        roi_plot = plot_roi(roi_img=roi_img, bg_img=bg_img)
+        roi_plot = plot_roi(roi_img=roi_img,
+                            bg_img=bg_img,
+                            alpha=alpha,
+                            threshold=threshold,
+                            display_mode=display_mode,
+                            cmap='Set1',
+                            )
         roi_plot_svg = plot_to_svg(plt.gcf())
     else:
         roi_plot_svg = None  # HTML image tag's alt attribute is used.
