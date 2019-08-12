@@ -66,20 +66,20 @@
         <h2>${page_heading_2}</h2>  <!-- func:glm_reporter._make_headings() -->
 
         <h3>Model details:</h3>
-        ${model_attributes}  <!-- func:glm_reporter._make_attributes_table() -->
+        ${model_attributes}  <!-- func:glm_reporter._tabulate_model_attributes() -->
 
         <h3>Design Matrix:</h3>
         ${design_matrices}  <!-- func:glm_reporter._dmtx_to_svg_url() -->
 
         <h3 id="all-contrasts">Contrasts</h3>
-        ${all_contrasts_with_plots}  <!-- func:glm_reporter._make_contrast_plots() -->
+        ${all_contrasts_with_plots}  <!-- func:glm_reporter._plot_contrasts() -->
 
         <h3>Mask</h3>  <!-- func:glm_reporter._mask_to_svg() -->
         <img src="data:image/svg+xml,${roi_plot}"
              alt="Pass the mask with the `roi_img` parameter to plot the ROI"/>
 
         <h3> Stat Maps with Cluster Tables</h3>
-        ${component}  <!-- func:glm_reporter._make_report_components() -->
+        ${component}  <!-- func:glm_reporter._make_stat_maps_contrast_clusters() -->
         <br>
     </body>
     <address>

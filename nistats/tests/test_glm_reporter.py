@@ -267,31 +267,25 @@ def _generate_img():
 
 def test_stat_map_to_svg_slice_z():
     img = _generate_img()
+    table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
     stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
-                                               threshold=3,
-                                               alpha=0.5,
-                                               cluster_threshold=0,
-                                               height_control='fdr',
-                                               min_distance=8,
                                                bg_img=None,
                                                display_mode='ortho',
                                                plot_type='slice',
+                                               table_details=table_details,
                                                )
 
 
-def test_stat_map_to_svg_slice_z():
+def test_stat_map_to_svg_glass_z():
     img = _generate_img()
+    table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
     stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
-                                               threshold=3,
-                                               alpha=0.5,
-                                               cluster_threshold=5,
-                                               height_control='fpr',
-                                               min_distance=8,
                                                bg_img=None,
                                                display_mode='z',
                                                plot_type='glass',
+                                               table_details=table_details,
                                                )
-
+    
 
 def test_stat_map_to_svg_invalid_plot_type():
     img = _generate_img()
@@ -299,14 +293,10 @@ def test_stat_map_to_svg_invalid_plot_type():
                          "'slice' or 'glass'.")
     try:
         stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
-                                                   threshold=3,
-                                                   alpha=0.5,
-                                                   cluster_threshold=0,
-                                                   height_control='fdr',
-                                                   min_distance=8,
                                                    bg_img=None,
                                                    display_mode='z',
                                                    plot_type='junk',
+                                                   table_details={'junk': 0},
                                                    )
     except ValueError as raised_exception:
         assert str(raised_exception) == str(expected_error)
@@ -322,8 +312,8 @@ def _make_dummy_contrasts_dmtx():
     return contrast, dmtx
 
 
-def test_make_contrast_matrix_html():
+def test_plot_contrasts():
     contrast, dmtx = _make_dummy_contrasts_dmtx()
-    contrast_plots = glmr._make_contrast_plots(contrast,
-                                               [dmtx],
-                                               )
+    contrast_plots = glmr._plot_contrasts(contrast,
+                                          [dmtx],
+                                          )

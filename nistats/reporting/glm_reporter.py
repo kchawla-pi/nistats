@@ -150,11 +150,9 @@ def make_glm_report(
     .. [2] :func:`nistats.second_level_model.SecondLevelModel.compute_contrast`
 
     """
+    display_mode_selector = {'slice': 'z', 'glass': 'lzry'}
     if not display_mode:
-        if plot_type == 'slice':
-            display_mode = 'z'
-        elif plot_type == 'glass':
-            display_mode = 'lzry'
+        display_mode = display_mode_selector[plot_type]
     
     try:
         design_matrices = model.design_matrices_
@@ -168,21 +166,21 @@ def make_glm_report(
     report_template = string.Template(html_template_text)
     
     contrasts = _coerce_to_dict(contrasts)
-    contrast_plots = _make_contrast_plots(contrasts, design_matrices)
+    contrast_plots = _plot_contrasts(contrasts, design_matrices)
     page_title, page_heading_1, page_heading_2 = _make_headings(
             contrasts,
             title,
             model,
             )
     with pd.option_context('display.max_colwidth', 100):
-        model_attributes_html = _make_attributes_table(model)
+        model_attributes_html = _tabulate_model_attributes(model)
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
     roi_plot_html_code = _mask_to_svg(roi_img=roi_img,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
-    all_components = _make_report_components(
+    all_components = _make_stat_maps_contrast_clusters(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
             threshold=threshold,
@@ -223,7 +221,8 @@ def _coerce_to_dict(input_arg):
     
     Parameters
     ----------
-    input_arg: String or Collection[str or Int or Sequence[Int]] or Dict[str, str or np.array]
+    input_arg: String or Collection[str or Int or Sequence[Int]]
+     or Dict[str, str or np.array]
         Can be of the form:
          'string'
          ['string_1', 'string_2', ...]
@@ -246,7 +245,35 @@ def _coerce_to_dict(input_arg):
     return input_arg
 
 
-def _make_contrast_plots(contrasts, design_matrices):
+def plot_to_svg(plot):
+    """
+    Creates an SVG image as a data URL
+    from a Matplotlib Axes or Figure object.
+
+    Parameters
+    ----------
+    plot: Matplotlib Axes or Figure object
+        Contains the plot information.
+
+    Returns
+    -------
+    url_plot_svg: String
+        SVG Image Data URL
+    """
+    with io.BytesIO() as buffer:
+        try:
+            plot.figure.savefig(buffer, format='svg')
+        except AttributeError:
+            plot.savefig(buffer, format='svg')
+        svg_plot = buffer.getvalue()
+    try:
+        url_svg_plot = quote(svg_plot.decode('utf8'))
+    except KeyError:  # Fails on Python2.
+        url_svg_plot = quote(svg_plot)
+    return url_svg_plot
+
+
+def _plot_contrasts(contrasts, design_matrices):
     """
     Accepts dict of contrasts and list of design matrices and generates
     a dict of contrast titles & HTML for SVG Image data url
@@ -346,7 +373,7 @@ def _make_headings(contrasts, title, model):
         return page_title, page_heading_1, page_heading_2
 
 
-def _make_attributes_table(model):
+def _tabulate_model_attributes(model):
     """ Returns an HTML table with pertinent model attributes & information.
     
     Parameters
@@ -483,34 +510,6 @@ def _dmtx_to_svg_url(design_matrices):
     return svg_url_design_matrices
 
 
-def plot_to_svg(plot):
-    """
-    Creates an SVG image as a data URL
-    from a Matplotlib Axes or Figure object.
-    
-    Parameters
-    ----------
-    plot: Matplotlib Axes or Figure object
-        Contains the plot information.
-
-    Returns
-    -------
-    url_plot_svg: String
-        SVG Image Data URL
-    """
-    with io.BytesIO() as buffer:
-        try:
-            plot.figure.savefig(buffer, format='svg')
-        except AttributeError:
-            plot.savefig(buffer, format='svg')
-        svg_plot = buffer.getvalue()
-    try:
-        url_svg_plot = quote(svg_plot.decode('utf8'))
-    except KeyError:  # Fails on Python2.
-        url_svg_plot = quote(svg_plot)
-    return url_svg_plot
-
-
 def _mask_to_svg(roi_img, bg_img, display_mode):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
@@ -555,11 +554,11 @@ def _mask_to_svg(roi_img, bg_img, display_mode):
     return roi_plot_svg
 
 
-def _make_report_components(stat_img, contrasts_plots, threshold,
-                            alpha,
-                            cluster_threshold, height_control, min_distance,
-                            bg_img,
-                            display_mode, plot_type):
+def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
+                                      alpha,
+                                      cluster_threshold, height_control, min_distance,
+                                      bg_img,
+                                      display_mode, plot_type):
     """ Populates a smaller HTML sub-template with the proper values,
      make a list containing one or more of such components
      & returns the list to be inserted into the HTML Report Template.
@@ -630,7 +629,7 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
     """
     all_components = []
     components_template_path = os.path.join(html_template_root_path,
-                                            'components_template.html'
+                                            'stat_maps_contrast_clusters_template.html'
                                             )
     with open(components_template_path) as html_template_obj:
         components_template_text = html_template_obj.read()
@@ -643,12 +642,12 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                 cluster_threshold=cluster_threshold,
                 height_control=height_control,
                 )
-        table_details = _make_cluster_table_details(threshold,
-                                                    cluster_threshold,
-                                                    min_distance,
-                                                    height_control,
-                                                    alpha,
-                                                    )
+        table_details = _clustering_params_to_dataframe(threshold,
+                                                        cluster_threshold,
+                                                        min_distance,
+                                                        height_control,
+                                                        alpha,
+                                                        )
         stat_map_html_code = _stat_map_to_svg(
                 stat_img=thresholded_stat_map,
                 bg_img=bg_img,
@@ -656,18 +655,12 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
                 plot_type=plot_type,
                 table_details=table_details,
                 )
-        cluster_table_html = _make_cluster_table_html(
+        cluster_table_html = _cluster_table_to_html(
                 statistical_map_img=stat_map_img,
                 threshold=threshold,
                 cluster_threshold=cluster_threshold,
                 min_distance=min_distance,
                 )
-        table_details = _make_cluster_table_details(threshold,
-                                                    cluster_threshold,
-                                                    min_distance,
-                                                    height_control,
-                                                    alpha,
-                                                    )
         table_details_html = table_details.to_html(header=False,
                                                    classes='cluster-details-table',
                                                    )
@@ -683,6 +676,62 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         component_text_ = component_text_.safe_substitute(**components_values)
         all_components.append(component_text_)
     return all_components
+
+
+def _clustering_params_to_dataframe(threshold,
+                                    cluster_threshold,
+                                    min_distance,
+                                    height_control,
+                                    alpha,
+                                    ):
+    """
+    Creates a Pandas DataFrame from the supplied arguments.
+    For use as part of the Cluster Table.
+
+    Parameters
+    ----------
+    threshold: `float`
+        Cluster forming threshold in same scale as `stat_img` (either a
+        p-value or z-scale value).
+
+    cluster_threshold : `int` or `None`, optional
+        Cluster size threshold, in voxels.
+
+    min_distance: `float`
+        For display purposes only.
+        Minimum distance between subpeaks in mm. Default is 8 mm.
+
+    height_control: string or None
+        false positive control meaning of cluster forming
+        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
+
+    alpha: float
+        Default is 0.01
+        Number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
+
+    Returns
+    -------
+    Pandas.DataFrame
+        Dataframe with clustering parameters
+    """
+    table_details = OrderedDict()
+    if height_control:
+        table_details.update({'Height control': height_control})
+        table_details.update({u'\u03B1': alpha})
+        table_details.update({'Threshold (computed)': threshold})
+    else:
+        table_details.update({'Height control': 'None'})
+        table_details.update({'Threshold Z': threshold})
+    table_details.update(
+            {'Cluster size threshold (voxels)': cluster_threshold}
+            )
+    table_details.update({'Minimum distance (mm)': min_distance})
+    table_details = pd.DataFrame.from_dict(table_details,
+                                           orient='index',
+                                           )
+    return table_details
 
 
 def _stat_map_to_svg(stat_img,
@@ -749,7 +798,6 @@ def _stat_map_to_svg(stat_img,
     stat_map_plot = _add_thresholding_params(table_details, stat_map_plot)
     fig = plt.gcf()
     stat_map_svg = plot_to_svg(fig)
-    # plt.close(fig)
     return stat_map_svg
 
     
@@ -785,11 +833,11 @@ def _add_thresholding_params(table_details, stat_map_plot):
     return stat_map_plot
 
 
-def _make_cluster_table_html(statistical_map_img,
-                             threshold,
-                             cluster_threshold,
-                             min_distance,
-                             ):
+def _cluster_table_to_html(statistical_map_img,
+                           threshold,
+                           cluster_threshold,
+                           min_distance,
+                           ):
     """ Makes a HTML tables for clustering details & a cluster table.
 
     Parameters
@@ -824,59 +872,3 @@ def _make_cluster_table_html(statistical_map_img,
                                                    )
     cluster_table_html= cluster_table_html.replace('border="1" ', '')
     return cluster_table_html
-
-
-def _make_cluster_table_details(threshold,
-                                cluster_threshold,
-                                min_distance,
-                                height_control,
-                                alpha,
-                                ):
-    """
-    Creates a Pandas DataFrame from the supplied arguments.
-    For use as part of the Cluster Table.
-    
-    Parameters
-    ----------
-    threshold: `float`
-        Cluster forming threshold in same scale as `stat_img` (either a
-        p-value or z-scale value).
-    
-    cluster_threshold : `int` or `None`, optional
-        Cluster size threshold, in voxels.
-
-    min_distance: `float`
-        For display purposes only.
-        Minimum distance between subpeaks in mm. Default is 8 mm.
-    
-    height_control: string or None
-        false positive control meaning of cluster forming
-        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
-    
-    alpha: float
-        Default is 0.01
-        Number controlling the thresholding (either a p-value or q-value).
-        Its actual meaning depends on the height_control parameter.
-        This function translates alpha to a z-scale threshold.
-    
-    Returns
-    -------
-    Pandas.DataFrame
-        Dataframe with clustering parameters
-    """
-    table_details = OrderedDict()
-    if height_control:
-        table_details.update({'Height control': height_control})
-        table_details.update({u'\u03B1': alpha})
-        table_details.update({'Threshold (computed)': threshold})
-    else:
-        table_details.update({'Height control': 'None'})
-        table_details.update({'Threshold Z': threshold})
-    table_details.update(
-            {'Cluster size threshold (voxels)': cluster_threshold}
-            )
-    table_details.update({'Minimum distance (mm)': min_distance})
-    table_details = pd.DataFrame.from_dict(table_details,
-                                           orient='index',
-                                           )
-    return table_details
