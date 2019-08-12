@@ -104,7 +104,7 @@ def make_glm_report(
         Default is 0
         Cluster size threshold, in voxels.
         
-    height_control: string
+    height_control: string or None
         false positive control meaning of cluster forming
         threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
     
@@ -180,7 +180,6 @@ def make_glm_report(
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
     roi_plot_html_code = _mask_to_svg(roi_img=roi_img,
                                       bg_img=bg_img,
-                                      alpha=alpha, threshold=threshold,
                                       display_mode=display_mode,
                                       )
     all_components = _make_report_components(
@@ -378,6 +377,11 @@ def _make_attributes_table(model):
         'slice_time_ref',
         'fir_delays',
         ]
+    attribute_units = {
+        't_r': 's',
+        'high_pass': 'Hz',
+        }
+
     selected_attributes.sort()
     display_attributes = OrderedDict(
             (attr_name, model.__dict__[attr_name])
@@ -391,14 +395,7 @@ def _make_attributes_table(model):
     if mask_img and isinstance(mask_img, img_types):
         mask_img = '{} with shape {}'.format(type(mask_img),
                                                   mask_img.shape)
-
     display_attributes['mask_img'] = mask_img
-    
-    attribute_units = {
-        't_r': 's',
-        'high_pass': 'Hz',
-        }
-    
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
@@ -514,7 +511,7 @@ def plot_to_svg(plot):
     return url_svg_plot
 
 
-def _mask_to_svg(roi_img, bg_img, alpha, threshold, display_mode):
+def _mask_to_svg(roi_img, bg_img, display_mode):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
     
@@ -540,7 +537,6 @@ def _mask_to_svg(roi_img, bg_img, alpha, threshold, display_mode):
         Possible values are:
         'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
         'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
-        
         
     Returns
     -------
@@ -640,31 +636,48 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
         components_template_text = html_template_obj.read()
     for contrast_name, stat_map_img in stat_img.items():
         component_text_ = string.Template(components_template_text)
-        stat_map_html_code = _stat_map_to_svg(
+        thresholded_stat_map, threshold = map_threshold(
                 stat_img=stat_map_img,
                 threshold=threshold,
                 alpha=alpha,
                 cluster_threshold=cluster_threshold,
                 height_control=height_control,
-                min_distance=min_distance,
+                )
+        table_details = _make_cluster_table_details(threshold,
+                                                    cluster_threshold,
+                                                    min_distance,
+                                                    height_control,
+                                                    alpha,
+                                                    )
+        stat_map_html_code = _stat_map_to_svg(
+                stat_img=thresholded_stat_map,
                 bg_img=bg_img,
                 display_mode=display_mode,
                 plot_type=plot_type,
+                table_details=table_details,
                 )
-        cluster_table_details_html, cluster_table_html = (
-            _make_cluster_table_html(statistical_map_img=stat_map_img,
-                                     stat_threshold=threshold,
-                                     cluster_threshold=cluster_threshold,
-                                     alpha=alpha,
-                                     height_control=height_control,
-                                     min_distance=min_distance,
-                                     )
-        )
+        cluster_table_html = _make_cluster_table_html(
+                statistical_map_img=stat_map_img,
+                threshold=threshold,
+                cluster_threshold=cluster_threshold,
+                min_distance=min_distance,
+                )
+        table_details = _make_cluster_table_details(threshold,
+                                                    cluster_threshold,
+                                                    min_distance,
+                                                    height_control,
+                                                    alpha,
+                                                    )
+        table_details_html = table_details.to_html(header=False,
+                                                   classes='cluster-details-table',
+                                                   )
+        table_details_html = table_details_html.replace('border="1" ', '')
+
         components_values = {
             'contrast_name': escape(contrast_name),
             'contrast_plot': contrasts_plots[contrast_name],
             'stat_map_img': stat_map_html_code,
-            'cluster_table_details': cluster_table_details_html,
+            'cluster_table_details': table_details_html,
             'cluster_table': cluster_table_html,
             }
         component_text_ = component_text_.safe_substitute(**components_values)
@@ -673,48 +686,21 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
 
 
 def _stat_map_to_svg(stat_img,
-                     threshold,
-                     alpha,
-                     cluster_threshold,
-                     height_control,
-                     min_distance,
                      bg_img,
                      display_mode,
                      plot_type,
+                     table_details,
                      ):
-    """ Generates SVG code for a statistical map.
+    """ Generates SVG code for a statistical map,
+    including its clustering parameters.
     
     Parameters
     ----------
     stat_img : Niimg-like object or None
-       statistical image (presumably in z scale)
-       whenever height_control is 'fpr' or None,
-       stat_img=None is acceptable.
-       If it is 'fdr' or 'bonferroni',
-       an error is raised if stat_img is None.
+       Statistical image (presumably in z scale),
+       to be plotted as slices or glass brain.
+       Does not perform any thresholding.
        
-    threshold: float
-       desired threshold in z-scale.
-       This is used only if height_control is None
-
-    alpha: float
-        number controlling the thresholding (either a p-value or q-value).
-        Its actual meaning depends on the height_control parameter.
-        This function translates alpha to a z-scale threshold.
-
-    cluster_threshold : float
-        cluster size threshold. In the returned thresholded map,
-        sets of connected voxels (`clusters`) with size smaller
-        than this number will be removed.
-
-    height_control: string
-        false positive control meaning of cluster forming
-        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
-
-    min_distance: `float`
-        For display purposes only.
-        Minimum distance between subpeaks in mm. Default is 8 mm.
-
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
@@ -737,25 +723,22 @@ def _stat_map_to_svg(stat_img,
         ['slice', 'glass']
         The type of plot to be drawn.
         
-    
+    table_details: pandas.Dataframe
+        Dataframe listing the parameters used for clustering,
+        to be included in the plot.
+        
     Returns
     -------
     stat_map_svg: string
         SVG Image Data URL representing a statistical map.
     """
-    thresholded_stat_map, _ = map_threshold(stat_img,
-                                            threshold=threshold,
-                                            alpha=alpha,
-                                            cluster_threshold=cluster_threshold,
-                                            height_control=height_control,
-                                            )
     if plot_type == 'slice':
-        stat_map_plot = plot_stat_map(thresholded_stat_map,
+        stat_map_plot = plot_stat_map(stat_img,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
     elif plot_type == 'glass':
-        stat_map_plot = plot_glass_brain(thresholded_stat_map,
+        stat_map_plot = plot_glass_brain(stat_img,
                                          display_mode=display_mode,
                                          colorbar=True,
                                          plot_abs=False,
@@ -763,17 +746,12 @@ def _stat_map_to_svg(stat_img,
     else:
         raise ValueError('Invalid plot type provided. Acceptable options are'
                          "'slice' or 'glass'.")
-    table_details = _make_cluster_table_details(threshold,
-                                                cluster_threshold,
-                                                min_distance,
-                                                height_control,
-                                                alpha,
-                                                )
     stat_map_plot = _add_thresholding_params(table_details, stat_map_plot)
-    
-    stat_map_svg = plot_to_svg(plt.gcf())
+    fig = plt.gcf()
+    stat_map_svg = plot_to_svg(fig)
+    # plt.close(fig)
     return stat_map_svg
-    
+
     
 def _add_thresholding_params(table_details, stat_map_plot):
     """
@@ -808,10 +786,8 @@ def _add_thresholding_params(table_details, stat_map_plot):
 
 
 def _make_cluster_table_html(statistical_map_img,
-                             stat_threshold,
+                             threshold,
                              cluster_threshold,
-                             alpha,
-                             height_control,
                              min_distance,
                              ):
     """ Makes a HTML tables for clustering details & a cluster table.
@@ -821,60 +797,36 @@ def _make_cluster_table_html(statistical_map_img,
     stat_img : Niimg-like object,
        Statistical image (presumably in z- or p-scale).
 
-    stat_threshold: `float`
+    threshold: `float`
         Cluster forming threshold in same scale as `stat_img` (either a
         p-value or z-scale value).
 
     cluster_threshold : `int` or `None`, optional
         Cluster size threshold, in voxels.
 
-    alpha: float
-        For display purposes only.
-        Number controlling the thresholding (either a p-value or q-value).
-        Its actual meaning depends on the height_control parameter.
-        This function translates alpha to a z-scale threshold.
-        
-    height_control: string
-        For display purposes only.
-        false positive control meaning of cluster forming
-        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
-    
     min_distance: `float`
         For display purposes only.
         Minimum distance between subpeaks in mm. Default is 8 mm.
 
     Returns
     -------
-    table_details_html: String
-        HTML table with clustering details
     cluster_table_html: String
         HTML table with clusters.
     """
     cluster_table = get_clusters_table(statistical_map_img,
-                                       stat_threshold=stat_threshold,
+                                       stat_threshold=threshold,
                                        cluster_threshold=cluster_threshold,
                                        min_distance=min_distance,
                                        )
-    table_details = _make_cluster_table_details(stat_threshold,
-                                                cluster_threshold,
-                                                min_distance,
-                                                height_control,
-                                                alpha,
-                                                )
-    
-    table_details_html = table_details.to_html(header=False,
-                                               classes='cluster-details-table',
-                                               )
     with pd.option_context('display.precision', 2):
         cluster_table_html = cluster_table.to_html(index=False,
                                                    classes='cluster-table',
                                                    )
-    table_details_html = table_details_html.replace('border="1" ', '')
     cluster_table_html= cluster_table_html.replace('border="1" ', '')
-    return table_details_html, cluster_table_html
+    return cluster_table_html
 
 
-def _make_cluster_table_details(stat_threshold,
+def _make_cluster_table_details(threshold,
                                 cluster_threshold,
                                 min_distance,
                                 height_control,
@@ -884,18 +836,45 @@ def _make_cluster_table_details(stat_threshold,
     Creates a Pandas DataFrame from the supplied arguments.
     For use as part of the Cluster Table.
     
+    Parameters
+    ----------
+    threshold: `float`
+        Cluster forming threshold in same scale as `stat_img` (either a
+        p-value or z-scale value).
+    
+    cluster_threshold : `int` or `None`, optional
+        Cluster size threshold, in voxels.
+
+    min_distance: `float`
+        For display purposes only.
+        Minimum distance between subpeaks in mm. Default is 8 mm.
+    
+    height_control: string or None
+        false positive control meaning of cluster forming
+        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
+    
+    alpha: float
+        Default is 0.01
+        Number controlling the thresholding (either a p-value or q-value).
+        Its actual meaning depends on the height_control parameter.
+        This function translates alpha to a z-scale threshold.
+    
     Returns
     -------
     Pandas.DataFrame
+        Dataframe with clustering parameters
     """
     table_details = OrderedDict()
-    table_details.update({'Height control': height_control})
-    table_details.update({u'\u03B1': alpha})
-    table_details.update({'Threshold Z': stat_threshold})
-    table_details.update({'Cluster size threshold (voxels)':
-                                      cluster_threshold
-                                  }
-                                 )
+    if height_control:
+        table_details.update({'Height control': height_control})
+        table_details.update({u'\u03B1': alpha})
+        table_details.update({'Threshold (computed)': threshold})
+    else:
+        table_details.update({'Height control': 'None'})
+        table_details.update({'Threshold Z': threshold})
+    table_details.update(
+            {'Cluster size threshold (voxels)': cluster_threshold}
+            )
     table_details.update({'Minimum distance (mm)': min_distance})
     table_details = pd.DataFrame.from_dict(table_details,
                                            orient='index',
