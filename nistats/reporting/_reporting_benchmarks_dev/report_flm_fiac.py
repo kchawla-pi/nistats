@@ -37,8 +37,11 @@ def report_flm_fiac():
         'Deactivation': pad_vector([-1, -1, -1, -1, 4], n_columns),
         'Effects_of_interest': np.eye(n_columns)[:5]
                  }
-    report = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
-                                  roi_img=data['mask'])
+    report = glmr.make_glm_report(fmri_glm, contrasts,
+                                  bg_img=mean_img_,
+                                  roi_img=data['mask'],
+                                  height_control='fdr',
+                                  )
     output_filepath = 'generated_report_flm_fiac.html'
     report.save_as_html(output_filepath)
 

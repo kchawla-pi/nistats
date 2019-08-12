@@ -38,10 +38,9 @@ def create_report_adhd_dmn():
             contrasts=contrasts,
             title='ADHD DMN Report',
             min_distance=8.,
-            # stat_threshold='bonferroni',  # needs an alpha value also. (significance)
+            height_control='bonferroni',
             cluster_threshold=15,
             plot_type='glass',
-            # display_mode='ortho',
             )
     # report.open_in_browser()
     report.save_as_html(output_filepath)

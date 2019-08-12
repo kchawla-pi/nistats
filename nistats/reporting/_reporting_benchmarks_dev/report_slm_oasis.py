@@ -39,6 +39,7 @@ def make_report_oasis():
             roi_img=mask_img,
             contrasts=contrast,
             bg_img=datasets.fetch_icbm152_2009()['t1'],
+            height_control=None,
             )
     output_filepath = 'generated_report_slm_oasis.html'
     report.save_as_html(output_filepath)
