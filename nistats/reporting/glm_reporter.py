@@ -392,9 +392,22 @@ def _make_attributes_table(model):
                                                   mask_img.shape)
 
     display_attributes['mask_img'] = mask_img
+    
+    attribute_units = {
+        't_r': 's',
+        'high_pass': 'Hz',
+        }
+    
     model_attributes_table = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
+    attribute_names_with_units = {
+        attribute_name_: attribute_name_+' ({})'.format(attribute_unit_)
+        for attribute_name_, attribute_unit_
+        in attribute_units.items()
+        }
+    model_attributes_table.rename(index=attribute_names_with_units,
+                                  inplace=True)
     model_attributes_table_html = model_attributes_table.to_html(header=False,
                                                             sparsify=False,
                                                             )
