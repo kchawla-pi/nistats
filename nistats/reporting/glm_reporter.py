@@ -516,19 +516,6 @@ def _mask_to_svg(roi_img, bg_img, alpha, threshold, display_mode):
         The background image that the ROI/mask will be plotted on top of.
         To turn off background image, just pass "bg_img=None".
 
-    alpha: float
-        Default is 0.01
-        Number controlling the thresholding (either a p-value or q-value).
-        Its actual meaning depends on the height_control parameter.
-        This function translates alpha to a z-scale threshold.
-
-    threshold : None, 'auto', or a number
-        If None is given, the image is not thresholded.
-        If a number is given, it is used to threshold the image:
-        values below the threshold (in absolute value) are plotted
-        as transparent. If auto is given, the threshold is determined
-        magically by analysis of the image.
-
     display_mode: string
         Choose the direction of the cuts:
         'x' - sagittal, 'y' - coronal, 'z' - axial,
@@ -549,8 +536,6 @@ def _mask_to_svg(roi_img, bg_img, alpha, threshold, display_mode):
     if roi_img:
         roi_plot = plot_roi(roi_img=roi_img,
                             bg_img=bg_img,
-                            alpha=alpha,
-                            threshold=threshold,
                             display_mode=display_mode,
                             cmap='Set1',
                             )
@@ -795,9 +780,8 @@ def _add_thresholding_params(table_details, stat_map_plot):
     """
     thresholding_params =  [':'.join([name, str(val)]) for name, val in
              table_details[0].items()]
-    thresholding_params.insert(int(round(len(thresholding_params)/2)), '\n')
+    # thresholding_params.insert(int(round(len(thresholding_params)/2)), '\n')
     thresholding_params = '  '.join(thresholding_params)
-    
     suptitle_text = plt.suptitle(thresholding_params, fontsize=12, wrap=True,)
     fig = list(stat_map_plot.axes.values())[0].ax.figure
     orig_axes_size = fig.get_size_inches()
@@ -891,15 +875,14 @@ def _make_cluster_table_details(stat_threshold,
     Pandas.DataFrame
     """
     table_details = OrderedDict()
+    table_details.update({'Height control': height_control})
+    table_details.update({u'\u03B1': alpha})
     table_details.update({'Threshold Z': stat_threshold})
     table_details.update({'Cluster size threshold (voxels)':
                                       cluster_threshold
                                   }
                                  )
     table_details.update({'Minimum distance (mm)': min_distance})
-    table_details.update({'Height control': height_control})
-    table_details.update({'Alpha': alpha})
-    table_details.update({'Cluster Level p-value Threshold': 'IMPLEMENTATION PENDING'})
     table_details = pd.DataFrame.from_dict(table_details,
                                            orient='index',
                                            )
