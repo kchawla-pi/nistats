@@ -178,7 +178,7 @@ def make_glm_report(
         model_attributes_html = _make_attributes_table(model)
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
-    roi_plot_html_code = _roi_to_svg(roi_img, bg_img)
+    roi_plot_html_code = _mask_to_svg(roi_img, bg_img)
     all_components = _make_report_components(
             stat_img=statistical_maps,
             contrasts_plots=contrast_plots,
@@ -496,7 +496,7 @@ def plot_to_svg(plot):
     return url_svg_plot
 
 
-def _roi_to_svg(roi_img, bg_img):
+def _mask_to_svg(roi_img, bg_img):
     """
     Plot cuts of an ROI/mask image and creates SVG code of it.
     
@@ -552,7 +552,6 @@ def _make_report_components(stat_img, contrasts_plots, threshold,
        desired threshold in z-scale.
        This is used only if height_control is None
 
-    
     alpha: float
         number controlling the thresholding (either a p-value or q-value).
         Its actual meaning depends on the height_control parameter.
