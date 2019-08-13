@@ -150,6 +150,11 @@ def make_glm_report(
     .. [2] :func:`nistats.second_level_model.SecondLevelModel.compute_contrast`
 
     """
+    '''
+    Bug in Pandas 0.18 : pd.set_option('display.precision', 2)
+    limits number of digits shown instead of precision.
+    Hence pd.option_context('display.precision', 2) has been used.
+    '''
     display_mode_selector = {'slice': 'z', 'glass': 'lzry'}
     if not display_mode:
         display_mode = display_mode_selector[plot_type]
@@ -433,9 +438,11 @@ def _tabulate_model_attributes(model):
         }
     model_attributes_table.rename(index=attribute_names_with_units,
                                   inplace=True)
-    model_attributes_table_html = model_attributes_table.to_html(header=False,
-                                                            sparsify=False,
-                                                            )
+    with pd.option_context('display.precision', 2):
+        model_attributes_table_html = model_attributes_table.to_html(
+                header=False,
+                sparsify=False,
+                )
     # table attribute added to HTML by Pandas breaks HTML5 spec.
     model_attributes_table_html = model_attributes_table_html.replace(
             'border="1" ', '',)
@@ -499,6 +506,7 @@ def _dmtx_to_svg_url(design_matrices):
         dmtx_plot = plot_design_matrix(design_matrix)
         dmtx_title = 'Session {}'.format(dmtx_count)
         plt.title(dmtx_title, y=0.987)
+        dmtx_plot = resize_plot_inches(dmtx_plot, height_change=.3)
         url_design_matrix_svg = plot_to_svg(dmtx_plot)
         dmtx_text_ = dmtx_text_.safe_substitute(
                 {'design_matrix': url_design_matrix_svg,
@@ -508,6 +516,43 @@ def _dmtx_to_svg_url(design_matrices):
         html_design_matrices.append(dmtx_text_)
     svg_url_design_matrices = ''.join(html_design_matrices)
     return svg_url_design_matrices
+
+
+def resize_plot_inches(plot, width_change=0, height_change=0):
+    """
+    Accepts a matplotlib figure or axes object and resizes it (in inches).
+    Returns the original object.
+    
+    Parameters
+    ----------
+    plot: matplotlib.Figure() or matplotlib.Axes()
+        The matplotlib Figure/Axes object to be resized.
+    
+    width_change: `float`
+        The amount of change to be added on to original width.
+        Use negative values for reducing figure dimensions.
+    
+    height_change `float`
+        The amount of change to be added on to original height.
+        Use negative values for reducing figure dimensions.
+
+    Returns
+    -------
+    plot: matplotlib.Figure() or matplotlib.Axes()
+        The matplotlib Figure/Axes object after being resized.
+    """
+    try:
+        orig_size = plot.figure.get_size_inches()
+    except AttributeError:
+        orig_size = plot.get_size_inches()
+    new_size = (orig_size[0] + width_change,
+                orig_size[1] + height_change,
+                )
+    try:
+        plot.figure.set_size_inches(new_size, forward=True)
+    except AttributeError:
+        plot.set_size_inches(new_size)
+    return plot
 
 
 def _mask_to_svg(roi_img, bg_img, display_mode):
@@ -648,7 +693,7 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
                                                         height_control,
                                                         alpha,
                                                         )
-        stat_map_html_code = _stat_map_to_svg(
+        stat_map_svg = _stat_map_to_svg(
                 stat_img=thresholded_stat_map,
                 bg_img=bg_img,
                 display_mode=display_mode,
@@ -661,15 +706,17 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
                 cluster_threshold=cluster_threshold,
                 min_distance=min_distance,
                 )
-        table_details_html = table_details.to_html(header=False,
-                                                   classes='cluster-details-table',
-                                                   )
+        with pd.option_context('display.precision', 2):
+            table_details_html = table_details.to_html(
+                    header=False,
+                    classes='cluster-details-table',
+                    )
         table_details_html = table_details_html.replace('border="1" ', '')
 
         components_values = {
             'contrast_name': escape(contrast_name),
             'contrast_plot': contrasts_plots[contrast_name],
-            'stat_map_img': stat_map_html_code,
+            'stat_map_img': stat_map_svg,
             'cluster_table_details': table_details_html,
             'cluster_table': cluster_table_html,
             }
@@ -717,6 +764,7 @@ def _clustering_params_to_dataframe(threshold,
         Dataframe with clustering parameters
     """
     table_details = OrderedDict()
+    threshold = np.around(threshold, 3)
     if height_control:
         table_details.update({'Height control': height_control})
         table_details.update({u'\u03B1': alpha})
@@ -795,15 +843,16 @@ def _stat_map_to_svg(stat_img,
     else:
         raise ValueError('Invalid plot type provided. Acceptable options are'
                          "'slice' or 'glass'.")
-    stat_map_plot = _add_thresholding_params(table_details, stat_map_plot)
+    with pd.option_context('display.precision', 2):
+        stat_map_plot = _add_params_to_plot(table_details, stat_map_plot)
     fig = plt.gcf()
     stat_map_svg = plot_to_svg(fig)
     return stat_map_svg
 
     
-def _add_thresholding_params(table_details, stat_map_plot):
+def _add_params_to_plot(table_details, stat_map_plot):
     """
-    Inserts thresholding parameters into the stat map plot as a suptitle.
+    Inserts thresholding parameters into the stat map plot as figure suptitle.
     
     Parameters
     ----------
@@ -820,14 +869,18 @@ def _add_thresholding_params(table_details, stat_map_plot):
     """
     thresholding_params =  [':'.join([name, str(val)]) for name, val in
              table_details[0].items()]
-    # thresholding_params.insert(int(round(len(thresholding_params)/2)), '\n')
     thresholding_params = '  '.join(thresholding_params)
-    suptitle_text = plt.suptitle(thresholding_params, fontsize=12, wrap=True,)
+    suptitle_text = plt.suptitle(thresholding_params,
+                                 fontsize=11,
+                                 x=.45,
+                                 wrap=True,
+                                 
+                                 )
     fig = list(stat_map_plot.axes.values())[0].ax.figure
-    orig_axes_size = fig.get_size_inches()
-    new_axes_size = (orig_axes_size[0] + 3, orig_axes_size[1] + 2)
-    fig.set_size_inches(new_axes_size)
-
+    fig = resize_plot_inches(plot=fig,
+                             width_change=.2,
+                             height_change=1,
+                             )
     if stat_map_plot._black_bg:
         suptitle_text.set_color('w')
     return stat_map_plot
