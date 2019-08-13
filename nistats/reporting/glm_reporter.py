@@ -317,6 +317,7 @@ def _plot_contrasts(contrasts, design_matrices):
             contrast_text_ = string.Template(contrast_template_text)
             contrast_plot = plot_contrast_matrix(contrast_data, design_matrix)
             contrast_plot.set_xlabel(contrast_name)
+            contrast_plot.figure.set_figheight(2)
             contrast_plot.figure.set_tight_layout(True)
             url_contrast_plot_svg = plot_to_svg(contrast_plot)
             contrasts_for_subsitution = {
