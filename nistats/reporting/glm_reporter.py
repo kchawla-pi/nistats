@@ -151,7 +151,8 @@ def make_glm_report(
 
     """
     '''
-    Bug in Pandas 0.18 : pd.set_option('display.precision', 2)
+    Bug in Pandas 0.18 : https://github.com/pandas-dev/pandas/issues/13257
+    pd.set_option('display.precision', 2)
     limits number of digits shown instead of precision.
     Hence pd.option_context('display.precision', 2) has been used.
     '''
@@ -178,7 +179,12 @@ def make_glm_report(
             model,
             )
     with pd.option_context('display.max_colwidth', 100):
-        model_attributes_html = _tabulate_model_attributes(model)
+        model_attributes = _model_attributes_to_dataframe(model)
+        model_attributes_html = _dataframe_to_html(model_attributes,
+                                                   precision=2,
+                                                   header=False,
+                                                   sparsify=False,
+                                                   )
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
     roi_plot_html_code = _mask_to_svg(roi_img=roi_img,
@@ -312,7 +318,6 @@ def _plot_contrasts(contrasts, design_matrices):
             contrast_plot = plot_contrast_matrix(contrast_data, design_matrix)
             contrast_plot.set_xlabel(contrast_name)
             contrast_plot.figure.set_tight_layout(True)
-            contrast_plot.figure.set_figheight(2)
             url_contrast_plot_svg = plot_to_svg(contrast_plot)
             contrasts_for_subsitution = {
                 'contrast_plot': url_contrast_plot_svg,
@@ -378,7 +383,7 @@ def _make_headings(contrasts, title, model):
         return page_title, page_heading_1, page_heading_2
 
 
-def _tabulate_model_attributes(model):
+def _model_attributes_to_dataframe(model):
     """ Returns an HTML table with pertinent model attributes & information.
     
     Parameters
@@ -428,7 +433,7 @@ def _tabulate_model_attributes(model):
         mask_img = '{} with shape {}'.format(type(mask_img),
                                                   mask_img.shape)
     display_attributes['mask_img'] = mask_img
-    model_attributes_table = pd.DataFrame.from_dict(display_attributes,
+    model_attributes = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
     attribute_names_with_units = {
@@ -436,17 +441,9 @@ def _tabulate_model_attributes(model):
         for attribute_name_, attribute_unit_
         in attribute_units.items()
         }
-    model_attributes_table.rename(index=attribute_names_with_units,
+    model_attributes.rename(index=attribute_names_with_units,
                                   inplace=True)
-    with pd.option_context('display.precision', 2):
-        model_attributes_table_html = model_attributes_table.to_html(
-                header=False,
-                sparsify=False,
-                )
-    # table attribute added to HTML by Pandas breaks HTML5 spec.
-    model_attributes_table_html = model_attributes_table_html.replace(
-            'border="1" ', '',)
-    return model_attributes_table_html
+    return model_attributes
 
 
 def make_stat_maps(model, contrasts):
@@ -700,19 +697,22 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
                 plot_type=plot_type,
                 table_details=table_details,
                 )
-        cluster_table_html = _cluster_table_to_html(
-                statistical_map_img=stat_map_img,
-                threshold=threshold,
-                cluster_threshold=cluster_threshold,
-                min_distance=min_distance,
-                )
-        with pd.option_context('display.precision', 2):
-            table_details_html = table_details.to_html(
-                    header=False,
-                    classes='cluster-details-table',
-                    )
-        table_details_html = table_details_html.replace('border="1" ', '')
+        cluster_table = get_clusters_table(stat_map_img,
+                                           stat_threshold=threshold,
+                                           cluster_threshold=cluster_threshold,
+                                           min_distance=min_distance,
+                                           )
 
+        cluster_table_html = _dataframe_to_html(cluster_table,
+                                                precision=2,
+                                                index=False,
+                                                classes='cluster-table',
+                                                )
+        table_details_html = _dataframe_to_html(table_details,
+                                                precision=2,
+                                                header=False,
+                                                classes='cluster-details-table',
+                                                )
         components_values = {
             'contrast_name': escape(contrast_name),
             'contrast_plot': contrasts_plots[contrast_name],
@@ -886,42 +886,27 @@ def _add_params_to_plot(table_details, stat_map_plot):
     return stat_map_plot
 
 
-def _cluster_table_to_html(statistical_map_img,
-                           threshold,
-                           cluster_threshold,
-                           min_distance,
-                           ):
-    """ Makes a HTML tables for clustering details & a cluster table.
+def _dataframe_to_html(df, precision, **kwargs):
+    """ Makes HTML table from provided dataframe.
+    Removes HTML5 non-compliant attributes (ex: `border`).
 
     Parameters
     ----------
-    stat_img : Niimg-like object,
-       Statistical image (presumably in z- or p-scale).
-
-    threshold: `float`
-        Cluster forming threshold in same scale as `stat_img` (either a
-        p-value or z-scale value).
-
-    cluster_threshold : `int` or `None`, optional
-        Cluster size threshold, in voxels.
-
-    min_distance: `float`
-        For display purposes only.
-        Minimum distance between subpeaks in mm. Default is 8 mm.
-
+    df: pandas.Dataframe
+        Dataframe to be converted into HTML table.
+    
+    precision: int
+        The display precision for float values in the table.
+        
+    **kwargs: keyworded arguments
+        Supplies keyworded arguments for func: pandas.Dataframe.to_html()
+    
     Returns
     -------
-    cluster_table_html: String
-        HTML table with clusters.
+    html_table: String
+        Code for HTML table.
     """
-    cluster_table = get_clusters_table(statistical_map_img,
-                                       stat_threshold=threshold,
-                                       cluster_threshold=cluster_threshold,
-                                       min_distance=min_distance,
-                                       )
-    with pd.option_context('display.precision', 2):
-        cluster_table_html = cluster_table.to_html(index=False,
-                                                   classes='cluster-table',
-                                                   )
-    cluster_table_html= cluster_table_html.replace('border="1" ', '')
-    return cluster_table_html
+    with pd.option_context('display.precision', precision):
+        html_table = df.to_html(**kwargs)
+    html_table= html_table.replace('border="1" ', '')
+    return html_table
