@@ -82,7 +82,7 @@ def make_glm_report(model,
         If 3 element List/Tuple, represents page title heading, sub-heading.
         If 'auto', uses the contrast titles to generate a title.
         
-    bg_img : Niimg-like object
+    bg_img: Niimg-like object
         Default is the MNI152 template
         See http://nilearn.github.io/manipulating_images/input_output.html
         The background image for mask and stat maps to be plotted on upon.
@@ -99,7 +99,7 @@ def make_glm_report(model,
         Its actual meaning depends on the height_control parameter.
         This function translates alpha to a z-scale threshold.
 
-    cluster_threshold : int, optional
+    cluster_threshold: int, optional
         Default is 0
         Cluster size threshold, in voxels.
         
@@ -424,7 +424,6 @@ def _model_attributes_to_dataframe(model):
         'hrf_model',
         'standardize',
         'noise_model',
-        'min_onset',
         't_r',
         'high_pass',
         'target_shape',
