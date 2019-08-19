@@ -20,7 +20,6 @@ except ImportError:
     from cgi import escape
 
 import pandas as pd
-import nibabel
 
 from matplotlib import pyplot as plt
 from nilearn.plotting import (plot_glass_brain,
@@ -419,7 +418,6 @@ def _model_attributes_to_dataframe(model):
     """
     selected_attributes = [
         'subject_label',
-        'mask_img',
         'drift_model',
         'hrf_model',
         'standardize',
@@ -446,14 +444,6 @@ def _model_attributes_to_dataframe(model):
         for attr_name in selected_attributes
         if attr_name in model.__dict__
         )
-    mask_img = display_attributes.get('mask_img', None)
-    img_types = (nibabel.nifti1.Nifti1Image,
-                 nibabel.nifti2.Nifti2Image
-                 )
-    if mask_img and isinstance(mask_img, img_types):
-        mask_img = '{} with shape {}'.format(type(mask_img),
-                                                  mask_img.shape)
-    display_attributes['mask_img'] = mask_img
     model_attributes = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',
                                                     )
