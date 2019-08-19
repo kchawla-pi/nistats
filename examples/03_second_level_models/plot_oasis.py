@@ -135,7 +135,6 @@ plotting.plot_stat_map(
 from nistats.reporting import make_glm_report
 
 icbm152_2009 = datasets.fetch_icbm152_2009()
-output_filepath = 'generated_report_slm_oasis.html'
 report = make_glm_report(model=second_level_model,
                          contrasts=['age', 'sex'],
                          bg_img=icbm152_2009['t1'],
@@ -145,5 +144,5 @@ report = make_glm_report(model=second_level_model,
 # We have several more ways to access the report:
 
 report  # This report can be viewed in a notebook
-# report.save_as_html(output_filepath)
+# report.save_as_html('report.html')
 # report.open_in_browser()

@@ -150,7 +150,6 @@ print(get_clusters_table(z_map, norm.isf(0.001), 10).to_latex())
 
 from nistats.reporting import make_glm_report
 
-output_filepath = 'generated_report_flm_bids_features.html'
 report = make_glm_report(model=model,
                          contrasts='StopSuccess - Go',
                          )
@@ -159,5 +158,5 @@ report = make_glm_report(model=model,
 # We have several more ways to access the report:
 
 report  # This report can be viewed in a notebook
-# report.save_as_html(output_filepath)
+# report.save_as_html('report.html')
 # report.open_in_browser()

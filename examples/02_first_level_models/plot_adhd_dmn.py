@@ -82,7 +82,6 @@ print("Save z-map in '{0}'.".format(filename))
 
 from nistats.reporting import make_glm_report
 
-output_filepath = 'generated_report_flm_adhd_dmn.html'
 report = make_glm_report(first_level_model,
                          contrasts=contrasts,
                          title='ADHD DMN Report',
@@ -95,5 +94,5 @@ report = make_glm_report(first_level_model,
 # We have several more ways to access the report:
 
 report  # This report can be viewed in a notebook
-# report.save_as_html(output_filepath)
+# report.save_as_html('report.html')
 # report.open_in_browser()
