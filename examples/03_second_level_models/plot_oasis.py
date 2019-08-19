@@ -141,14 +141,9 @@ report = make_glm_report(model=second_level_model,
                          bg_img=icbm152_2009['t1'],
                          )
 
-###########################################################################
-# This report can be viewed in a notebook
-report
+#########################################################################
+# We have several more ways to access the report:
 
-###########################################################################
-# and/or opened in a new browser tab
-report.open_in_browser()
-
-###########################################################################
-# and/or saved as a portable HTML file
-report.save_as_html(output_filepath)
+report  # This report can be viewed in a notebook
+# report.save_as_html(output_filepath)
+# report.open_in_browser()

@@ -91,10 +91,9 @@ report = make_glm_report(first_level_model,
                          plot_type='glass',
                          )
 
-report # This report can be viewed in a notebook
+#########################################################################
+# We have several more ways to access the report:
 
-# and/or opened in a new browser tab
-# report.open_in_browser()
-
-# and/or saved as a portable HTML file
+report  # This report can be viewed in a notebook
 # report.save_as_html(output_filepath)
+# report.open_in_browser()

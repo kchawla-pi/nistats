@@ -437,9 +437,9 @@ def _model_attributes_to_dataframe(model):
 
     selected_attributes.sort()
     display_attributes = OrderedDict(
-            (attr_name, model.__dict__[attr_name])
+            (attr_name, getattr(model, attr_name))
         for attr_name in selected_attributes
-        if attr_name in model.__dict__
+        if hasattr(model, attr_name)
         )
     model_attributes = pd.DataFrame.from_dict(display_attributes,
                                                     orient='index',

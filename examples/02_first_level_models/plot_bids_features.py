@@ -154,4 +154,10 @@ output_filepath = 'generated_report_flm_bids_features.html'
 report = make_glm_report(model=model,
                          contrasts='StopSuccess - Go',
                          )
-report.save_as_html(output_filepath)
+
+#########################################################################
+# We have several more ways to access the report:
+
+report  # This report can be viewed in a notebook
+# report.save_as_html(output_filepath)
+# report.open_in_browser()
