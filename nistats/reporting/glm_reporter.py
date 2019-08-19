@@ -1,6 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import io
 import string
 import os
+import warnings
 
 from collections import OrderedDict
 
@@ -34,6 +37,7 @@ from nistats.reporting import (plot_contrast_matrix,
                                )
 from nistats.thresholding import map_threshold
 
+
 html_template_root_path = os.path.join(os.path.dirname(__file__),
                                        'glm_reporter_templates')
 
@@ -44,7 +48,7 @@ def make_glm_report(model, contrasts, title='auto', bg_img=MNI152TEMPLATE,
                     display_mode=None, nb_width=1600, nb_height=800):
     """ Returns HTMLDocument object for a report which shows all important aspects of a fitted GLM. The object can be opened in a browser, displayed in a notebook, or saved to disk as a portable HTML file.
     
-    Usage:
+    Examples:
         report = make_glm_report(model, contrasts)
         report.open_in_browser()
         report.save_as_html(destination_path)
@@ -751,7 +755,17 @@ def _clustering_params_to_dataframe(threshold,
     threshold = np.around(threshold, 3)
     if height_control:
         table_details.update({'Height control': height_control})
-        table_details.update({u'\u03B1': alpha})
+        '''
+        HTMLDocument.get_iframe() invoked in Python2 Jupyter Notebooks
+        raises error due to greek alpha symbol.
+        UnicodeEncodeError: 'ascii' codec can't encode character
+        u'\u03b1' in position 0: ordinal not in range(128)
+        This is simpler than overloading the class using inheritance.
+        '''
+        if os.sys.version_info.major ==2:
+            table_details.update({'alpha': alpha})
+        else:
+            table_details.update({u'\u03B1': alpha})
         table_details.update({'Threshold (computed)': threshold})
     else:
         table_details.update({'Height control': 'None'})
