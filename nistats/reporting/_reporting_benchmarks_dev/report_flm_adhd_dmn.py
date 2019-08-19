@@ -40,9 +40,11 @@ def create_report_adhd_dmn():
                              height_control='bonferroni',
                              min_distance=8.,
                              plot_type='glass',
+                             report_dims=(1200, 'a'),
                              )
     # report.open_in_browser()
     report.save_as_html(output_filepath)
+    report.get_iframe()
 
 
 if __name__ == '__main__':

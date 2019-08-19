@@ -42,11 +42,23 @@ html_template_root_path = os.path.join(os.path.dirname(__file__),
                                        'glm_reporter_templates')
 
 
-def make_glm_report(model, contrasts, title='auto', bg_img=MNI152TEMPLATE,
-                    threshold=3.09, alpha=0.01, cluster_threshold=0,
-                    height_control='fpr', min_distance=8., plot_type='slice',
-                    display_mode=None, nb_width=1600, nb_height=800):
-    """ Returns HTMLDocument object for a report which shows all important aspects of a fitted GLM. The object can be opened in a browser, displayed in a notebook, or saved to disk as a portable HTML file.
+def make_glm_report(model,
+                    contrasts,
+                    title='auto',
+                    bg_img=MNI152TEMPLATE,
+                    threshold=3.09,
+                    alpha=0.01,
+                    cluster_threshold=0,
+                    height_control='fpr',
+                    min_distance=8.,
+                    plot_type='slice',
+                    display_mode=None,
+                    report_dims=(1600, 800),
+                    ):
+    """ Returns HTMLDocument object
+    for a report which shows all important aspects of a fitted GLM.
+    The object can be opened in a browser, displayed in a notebook,
+    or saved to disk as a portable HTML file.
     
     Examples:
         report = make_glm_report(model, contrasts)
@@ -116,15 +128,11 @@ def make_glm_report(model, contrasts, title='auto', bg_img=MNI152TEMPLATE,
         'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
         'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
         
-    nb_width: int
-        Default is 1600 (px).
-        Specifies width (in pixels) of report window within the notebook.
+    report_dims: Sequence[int, int]
+        Default is (1600, 800) pixels.
+        Specifies width, height (in pixels) of report window within the notebook.
         Only applicable when inserting the report into a Jupyter notebook.
-        
-    nb_height: int
-        Default is 800 (px).
-        Specifies height (in pixels) of report window within the notebook.
-        Only applicable when inserting the report into a Jupyter notebook.
+        Can be set after report creation using report.width, report.height.
     
     Returns
     -------
@@ -202,10 +210,36 @@ def make_glm_report(model, contrasts, title='auto', bg_img=MNI152TEMPLATE,
                      'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
-    report = HTMLDocument(report_text)
-    report.width = nb_width  # better visual experience in Jupyter Notebooks.
-    report.height = nb_height
-    return report
+    report_text = HTMLDocument(report_text)
+    # setting report size for better visual experience in Jupyter Notebooks.
+    report_text.width, report_text.height = _check_report_dims(report_dims)
+    return report_text
+    
+    
+def _check_report_dims(report_size):
+    """
+    Warns the user & reverts to default if report dimensions are non-numerical.
+    
+    Parameters
+    ----------
+    report_size: Tuple[int, int]
+        Report width, height in jupyter notebook.
+
+    Returns
+    -------
+    report_size: Tuple[int, int]
+        Valid values for report width, height in jupyter notebook.
+
+    """
+    width, height = report_size
+    try:
+        width = int(width)
+        height = int(height)
+    except ValueError:
+        warnings.warn('Report size has invalid values. Using default 1600x800')
+        width, height = (1600, 800)
+        
+    return width, height
 
 
 def _coerce_to_dict(input_arg):

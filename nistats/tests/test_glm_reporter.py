@@ -1,3 +1,5 @@
+import warnings
+
 import nibabel as nib
 import numpy as np
 
@@ -79,7 +81,18 @@ def test_slm_oasis_glass():
                                         contrasts=contrast, title=title,
                                         plot_type='glass')
 
-
+def test_check_report_dims():
+    test_input = (1200, 'a')
+    expected_output = (1600, 800)
+    expected_warning_text = ('Report size has invalid values. '
+                             'Using default 1600x800')
+    with warnings.catch_warnings(record=True) as raised_warnings:
+        actual_output = glmr._check_report_dims(test_input)
+    raised_warnings_texts = [str(warning_.message) for warning_ in raised_warnings]
+    assert actual_output == expected_output
+    assert expected_warning_text in raised_warnings_texts
+    
+    
 def test_coerce_to_dict_with_string():
     test_input = 'StopSuccess - Go'
     expected_output = {'StopSuccess - Go': 'StopSuccess - Go'}
