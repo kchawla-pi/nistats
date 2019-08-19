@@ -75,17 +75,17 @@
         ${all_contrasts_with_plots}  <!-- func:glm_reporter._plot_contrasts() -->
 
         <h3>Mask</h3>  <!-- func:glm_reporter._mask_to_svg() -->
-        <img src="data:image/svg+xml,${roi_plot}"
+        <img src="data:image/svg+xml,${mask_plot}"
              alt="Model did not supply a mask image."/>
 
         <h3> Stat Maps with Cluster Tables</h3>
         ${component}  <!-- func:glm_reporter._make_stat_maps_contrast_clusters() -->
         <br>
-    </body>
     <address>
         Built using <a href="https://nistats.github.io">Nistats</a>.
         Source code on <a href="https://github.com/nistats/nistats">GitHub</a>.
         File bugs & feature requests
         <a href="https://github.com/nistats/nistats/issues">here</a>.
     </address>
+    </body>
 </html>

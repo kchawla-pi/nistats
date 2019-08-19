@@ -7,18 +7,16 @@ import warnings
 
 from collections import OrderedDict
 
-import numpy as np
-
 try:
-    from urllib.parse import quote
-except ImportError:
-    from urllib import quote  # Python2
-
-try:
+    from collections.abc import Iterable
     from html import escape
-except ImportError:
+    from urllib.parse import quote
+except ImportError:  # Python2
+    from collections import Iterable
     from cgi import escape
+    from urllib import quote
 
+import numpy as np
 import pandas as pd
 
 from matplotlib import pyplot as plt
@@ -37,7 +35,7 @@ from nistats.reporting import (plot_contrast_matrix,
 from nistats.thresholding import map_threshold
 
 
-html_template_root_path = os.path.join(os.path.dirname(__file__),
+HTML_TEMPLATE_ROOT_PATH = os.path.join(os.path.dirname(__file__),
                                        'glm_reporter_templates')
 
 
@@ -57,7 +55,7 @@ def make_glm_report(model,
     """ Returns HTMLDocument object
     for a report which shows all important aspects of a fitted GLM.
     The object can be opened in a browser, displayed in a notebook,
-    or saved to disk as a portable HTML file.
+    or saved to disk as a standalone HTML file.
     
     Examples:
         report = make_glm_report(model, contrasts)
@@ -104,13 +102,13 @@ def make_glm_report(model,
         
     height_control: string or None
         false positive control meaning of cluster forming
-        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
+        threshold: 'fpr' (default) or 'fdr' or 'bonferroni' or None
     
     min_distance: `float`
         For display purposes only.
         Minimum distance between subpeaks in mm. Default is 8 mm.
         
-    plot_type: String. ['slice' (default)\| 'glass']
+    plot_type: String. ['slice' (default) or  'glass']
         Specifies the type of plot to be drawn for the statistical maps.
         
     display_mode: string
@@ -159,7 +157,7 @@ def make_glm_report(model,
     except AttributeError:
         design_matrices = [model.design_matrix_]
     
-    html_template_path = os.path.join(html_template_root_path,
+    html_template_path = os.path.join(HTML_TEMPLATE_ROOT_PATH,
                                       'report_template.html')
     with open(html_template_path) as html_file_obj:
         html_template_text = html_file_obj.read()
@@ -181,7 +179,7 @@ def make_glm_report(model,
                                                    )
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
-    roi_plot_html_code = _mask_to_svg(mask_img=model.mask_img,
+    mask_plot_html_code = _mask_to_svg(mask_img=model.mask_img,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
@@ -205,7 +203,7 @@ def make_glm_report(model,
                      'all_contrasts_with_plots': ''.join(
                          contrast_plots.values()),
                      'design_matrices': html_design_matrices,
-                     'roi_plot': roi_plot_html_code,
+                     'mask_plot': mask_plot_html_code,
                      'component': all_components_text,
                      }
     report_text = report_template.safe_substitute(**report_values)
@@ -267,9 +265,8 @@ def _coerce_to_dict(input_arg):
 
     """
     if not isinstance(input_arg, dict):
-        excluded_types = (list, tuple, np.ndarray, str)
-        if isinstance(input_arg, excluded_types):
-            if not isinstance(input_arg[0], excluded_types):
+        if isinstance(input_arg, Iterable):
+            if not isinstance(input_arg[0], Iterable):
                 input_arg = [input_arg]
         input_arg = [input_arg] if isinstance(input_arg, str) else input_arg
         input_arg = {str(contrast_): contrast_ for contrast_ in input_arg}
@@ -326,7 +323,7 @@ def _plot_contrasts(contrasts, design_matrices):
         for corresponding contrast plot.
     """
     all_contrasts_plots = {}
-    contrast_template_path = os.path.join(html_template_root_path,
+    contrast_template_path = os.path.join(HTML_TEMPLATE_ROOT_PATH,
                                           'contrast_template.html'
                                           )
     with open(contrast_template_path) as html_template_obj:
@@ -503,7 +500,7 @@ def _dmtx_to_svg_url(design_matrices):
         SVG Image URL for the plotted design matrices,
     """
     html_design_matrices = []
-    dmtx_template_path = os.path.join(html_template_root_path,
+    dmtx_template_path = os.path.join(HTML_TEMPLATE_ROOT_PATH,
                                       'design_matrix_template.html'
                                       )
     with open(dmtx_template_path) as html_template_obj:
@@ -514,7 +511,7 @@ def _dmtx_to_svg_url(design_matrices):
         dmtx_plot = plot_design_matrix(design_matrix)
         dmtx_title = 'Session {}'.format(dmtx_count)
         plt.title(dmtx_title, y=0.987)
-        dmtx_plot = resize_plot_inches(dmtx_plot, height_change=.3)
+        dmtx_plot = _resize_plot_inches(dmtx_plot, height_change=.3)
         url_design_matrix_svg = plot_to_svg(dmtx_plot)
         dmtx_text_ = dmtx_text_.safe_substitute(
                 {'design_matrix': url_design_matrix_svg,
@@ -526,7 +523,7 @@ def _dmtx_to_svg_url(design_matrices):
     return svg_url_design_matrices
 
 
-def resize_plot_inches(plot, width_change=0, height_change=0):
+def _resize_plot_inches(plot, width_change=0, height_change=0):
     """
     Accepts a matplotlib figure or axes object and resizes it (in inches).
     Returns the original object.
@@ -646,7 +643,7 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
     
     height_control: string
         false positive control meaning of cluster forming
-        threshold: 'fpr'\|'fdr'\|'bonferroni'\|None
+        threshold: 'fpr' or 'fdr' or 'bonferroni' or None
     
     min_distance: `float`
         For display purposes only.
@@ -681,7 +678,7 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
         contrast name, contrast plot, statistical map, cluster table.
     """
     all_components = []
-    components_template_path = os.path.join(html_template_root_path,
+    components_template_path = os.path.join(HTML_TEMPLATE_ROOT_PATH,
                                             'stat_maps_contrast_clusters_template.html'
                                             )
     with open(components_template_path) as html_template_obj:
@@ -761,7 +758,7 @@ def _clustering_params_to_dataframe(threshold,
 
     height_control: string or None
         false positive control meaning of cluster forming
-        threshold: 'fpr' (default)\|'fdr'\|'bonferroni'\|None
+        threshold: 'fpr' (default) or 'fdr' or 'bonferroni' or None
 
     alpha: float
         Default is 0.01
@@ -898,10 +895,10 @@ def _add_params_to_plot(table_details, stat_map_plot):
                                  
                                  )
     fig = list(stat_map_plot.axes.values())[0].ax.figure
-    fig = resize_plot_inches(plot=fig,
-                             width_change=.2,
-                             height_change=1,
-                             )
+    fig = _resize_plot_inches(plot=fig,
+                              width_change=.2,
+                              height_change=1,
+                              )
     if stat_map_plot._black_bg:
         suptitle_text.set_color('w')
     return stat_map_plot
