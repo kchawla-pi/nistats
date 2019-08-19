@@ -153,9 +153,9 @@ plotting.show()
 # and have the contrast, we can quickly create a summary report.
 from nistats.reporting import make_glm_report
 
-report = make_glm_report(fmri_glm, contrasts,
+report = make_glm_report(fmri_glm,
+                         contrasts,
                          bg_img=mean_img_,
-                         roi_img=data['mask'],
                          )
 output_filepath = 'generated_report_flm_fiac.html'
 report.save_as_html(output_filepath)

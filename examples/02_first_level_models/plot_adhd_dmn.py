@@ -86,8 +86,8 @@ output_filepath = 'generated_report_flm_adhd_dmn.html'
 report = make_glm_report(first_level_model,
                          contrasts=contrasts,
                          title='ADHD DMN Report',
-                         min_distance=8.,
                          cluster_threshold=15,
+                         min_distance=8.,
                          plot_type='glass',
                          )
 

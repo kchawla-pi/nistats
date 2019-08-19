@@ -38,22 +38,10 @@ html_template_root_path = os.path.join(os.path.dirname(__file__),
                                        'glm_reporter_templates')
 
 
-def make_glm_report(
-        model,
-        contrasts,
-        title='auto',
-        roi_img=None,
-        bg_img=MNI152TEMPLATE,
-        threshold=3.09,
-        alpha=0.01,
-        cluster_threshold=0,
-        height_control='fpr',
-        min_distance=8.,
-        plot_type='slice',
-        display_mode=None,
-        nb_width=1600,
-        nb_height=800,
-        ):
+def make_glm_report(model, contrasts, title='auto', bg_img=MNI152TEMPLATE,
+                    threshold=3.09, alpha=0.01, cluster_threshold=0,
+                    height_control='fpr', min_distance=8., plot_type='slice',
+                    display_mode=None, nb_width=1600, nb_height=800):
     """ Returns HTMLDocument object for a report which shows all important aspects of a fitted GLM. The object can be opened in a browser, displayed in a notebook, or saved to disk as a portable HTML file.
     
     Usage:
@@ -78,15 +66,10 @@ def make_glm_report(
         If 3 element List/Tuple, represents page title heading, sub-heading.
         If 'auto', uses the contrast titles to generate a title.
         
-    roi_img : Niimg-like object
-        See http://nilearn.github.io/manipulating_images/input_output.html
-        The ROI/mask image, it could be binary mask or an atlas or ROIs
-        with integer values.
-    
     bg_img : Niimg-like object
         Default is the MNI152 template
         See http://nilearn.github.io/manipulating_images/input_output.html
-        The background image that the ROI/mask will be plotted on top of.
+        The background image for mask and stat maps to be plotted on upon.
         To turn off background image, just pass "bg_img=None".
         
     threshold: float
@@ -187,7 +170,7 @@ def make_glm_report(
                                                    )
     statistical_maps = make_stat_maps(model, contrasts)
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
-    roi_plot_html_code = _mask_to_svg(roi_img=roi_img,
+    roi_plot_html_code = _mask_to_svg(mask_img=model.mask_img,
                                       bg_img=bg_img,
                                       display_mode=display_mode,
                                       )
@@ -553,20 +536,20 @@ def resize_plot_inches(plot, width_change=0, height_change=0):
     return plot
 
 
-def _mask_to_svg(roi_img, bg_img, display_mode):
+def _mask_to_svg(mask_img, bg_img, display_mode):
     """
-    Plot cuts of an ROI/mask image and creates SVG code of it.
+    Plot cuts of an mask image and creates SVG code of it.
     
     Parameters
     ----------
-    roi_img : Niimg-like object
+    mask_img : Niimg-like object
         See http://nilearn.github.io/manipulating_images/input_output.html
-        The ROI/mask image, it could be binary mask or an atlas or ROIs
+        The mask image; it could be binary mask or an atlas or ROIs
         with integer values.
 
     bg_img : Niimg-like object
         See http://nilearn.github.io/manipulating_images/input_output.html
-        The background image that the ROI/mask will be plotted on top of.
+        The background image that the mask will be plotted on top of.
         To turn off background image, just pass "bg_img=None".
 
     display_mode: string
@@ -582,19 +565,19 @@ def _mask_to_svg(roi_img, bg_img, display_mode):
         
     Returns
     -------
-    roi_plot_svg: str
-        SVG Image Data URL for the ROI plot.
+    mask_plot_svg: str
+        SVG Image Data URL for the mask plot.
     """
-    if roi_img:
-        roi_plot = plot_roi(roi_img=roi_img,
+    if mask_img:
+        mask_plot = plot_roi(roi_img=mask_img,
                             bg_img=bg_img,
                             display_mode=display_mode,
                             cmap='Set1',
                             )
-        roi_plot_svg = plot_to_svg(plt.gcf())
+        mask_plot_svg = plot_to_svg(plt.gcf())
     else:
-        roi_plot_svg = None  # HTML image tag's alt attribute is used.
-    return roi_plot_svg
+        mask_plot_svg = None  # HTML image tag's alt attribute is used.
+    return mask_plot_svg
 
 
 def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
@@ -645,7 +628,7 @@ def _make_stat_maps_contrast_clusters(stat_img, contrasts_plots, threshold,
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
-        The background image that the ROI/mask will be plotted on top of.
+        The background image for stat maps to be plotted on upon.
         If nothing is specified, the MNI152 template will be used.
         To turn off background image, just pass "bg_img=False".
     
@@ -802,7 +785,7 @@ def _stat_map_to_svg(stat_img,
     bg_img : Niimg-like object
         Only used when plot_type is 'slice'.
         See http://nilearn.github.io/manipulating_images/input_output.html
-        The background image that the ROI/mask will be plotted on top of.
+        The background image for stat maps to be plotted on upon.
         If nothing is specified, the MNI152 template will be used.
         To turn off background image, just pass "bg_img=False".
     

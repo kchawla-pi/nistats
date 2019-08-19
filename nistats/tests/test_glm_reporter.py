@@ -47,8 +47,7 @@ def test_flm_fiac_test():
     contrasts = {'SStSSp_minus_DStDSp': pad_vector([1, 0, 0, -1], n_columns),
                  'DStDSp_minus_SStSSp': pad_vector([-1, 0, 0, 1], n_columns),
                  }
-    report_flm = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_,
-                                  roi_img=data['mask'])
+    report_flm = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_)
 
 
 def _make_design_matrix(oasis_dataset, n_subjects):
@@ -76,12 +75,9 @@ def test_slm_oasis_glass():
              'Report: Glass Brain ADHD FLM',
              0,
              )
-    report_oasis = glmr.make_glm_report(
-            model=second_level_model,
-            contrasts=contrast,
-            plot_type='glass',
-            title=title
-            )
+    report_oasis = glmr.make_glm_report(model=second_level_model,
+                                        contrasts=contrast, title=title,
+                                        plot_type='glass')
 
 
 def test_coerce_to_dict_with_string():
@@ -317,3 +313,5 @@ def test_plot_contrasts():
     contrast_plots = glmr._plot_contrasts(contrast,
                                           [dmtx],
                                           )
+
+# def test

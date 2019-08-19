@@ -66,8 +66,8 @@ def create_report_bids_features():
              )
     report = make_glm_report(model=model,
                              contrasts='StopSuccess - Go',
-                             cluster_threshold=3,
                              title=title,
+                             cluster_threshold=3,
                              )
     report.save_as_html(output_filepath)
     

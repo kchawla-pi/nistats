@@ -34,13 +34,11 @@ def make_report_oasis():
                            design_matrix=design_matrix)
 
     contrast = [[1, 0, 0], [0, 1, 0]]
-    report = make_glm_report(
-            model=second_level_model,
-            roi_img=mask_img,
-            contrasts=contrast,
-            bg_img=datasets.fetch_icbm152_2009()['t1'],
-            height_control=None,
-            )
+    report = make_glm_report(model=second_level_model,
+                             contrasts=contrast,
+                             bg_img=datasets.fetch_icbm152_2009()['t1'],
+                             height_control=None,
+                             )
     output_filepath = 'generated_report_slm_oasis.html'
     report.save_as_html(output_filepath)
 
