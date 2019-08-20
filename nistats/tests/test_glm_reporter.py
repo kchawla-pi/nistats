@@ -116,7 +116,6 @@ def test_coerce_to_dict_with_list_of_arrays():
                               )
 
 
-
 def test_coerce_to_dict_with_list_of_ints():
     test_input = [1, 0, 1]
     expected_output = {'[1, 0, 1]': [1, 0, 1]}
@@ -134,32 +133,6 @@ def test_coerce_to_dict_with_array_of_ints():
                           expected_output['[1 0 1]'],
                           )
 
-def test_make_headings_with_contrast_string():
-    model = FirstLevelModel()
-    test_input = ('SStSSp_minus_DStDSp', None, model)
-    expected_output = ('Report: First Level Model for SStSSp_minus_DStDSp',
-                       'Statistical Report for First Level Model',
-                       'Contrasts: SStSSp_minus_DStDSp',
-                       )
-    actual_output = glmr._make_headings(*test_input)
-    assert actual_output == expected_output
-
-
-def test_make_headings_with_contrast_list_of_strings():
-    model = FirstLevelModel()
-    test_input = (['SStSSp_minus_DStDSp', 'DStDSp_minus_SStSSp'],
-                  None,
-                  model
-                  )
-    expected_output = ('Report: First Level Model for '
-                       'DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
-                       'Statistical Report for First Level Model',
-                       'Contrasts: DStDSp_minus_SStSSp, SStSSp_minus_DStDSp',
-                       )
-    actual_output = glmr._make_headings(*test_input)
-    assert actual_output == expected_output
-
-
 def test_make_headings_with_contrasts_title_none():
     model = SecondLevelModel()
     test_input = ({'contrast_0': [0, 0, 1],
@@ -169,24 +142,8 @@ def test_make_headings_with_contrasts_title_none():
                   model
                   )
     expected_output = ('Report: Second Level Model for contrast_0, contrast_1',
-                       'Statistical Report for Second Level Model',
-                       'Contrasts: contrast_0, contrast_1',
-                       )
-    actual_output = glmr._make_headings(*test_input)
-    assert actual_output == expected_output
-
-
-def test_make_headings_with_contrasts_title_auto():
-    model = SecondLevelModel()
-    test_input = ({'contrast_0': [0, 0, 1],
-                   'contrast_1': [0, 1, 1],
-                   },
-                  'auto',
-                  model,
-                  )
-    expected_output = ('Report: Second Level Model for contrast_0, contrast_1',
-                       'Statistical Report for Second Level Model',
-                       'Contrasts: contrast_0, contrast_1',
+                       'Statistical Report for contrast_0, contrast_1',
+                       'Second Level Model',
                        )
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
@@ -221,18 +178,6 @@ def test_make_headings_with_contrasts_none_title_custom():
     actual_output = glmr._make_headings(*test_input)
     assert actual_output == expected_output
 
-
-def test_make_headings_with_tuple():
-    model = FirstLevelModel()
-    title = ('Custom Page Title', 'Heading', 2)
-    test_input = (None,
-                  title,
-                  model,
-                  )
-    expected_output = ('Custom Page Title', 'Heading', 2,
-                       )
-    actual_output = glmr._make_headings(*test_input)
-    assert actual_output == expected_output
 
 def _generate_img():
     mni_affine = np.array([[-2., 0., 0., 90.],
