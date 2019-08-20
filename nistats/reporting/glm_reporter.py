@@ -192,7 +192,6 @@ def make_glm_report(model,
     html_design_matrices = _dmtx_to_svg_url(design_matrices)
     mask_plot_html_code = _mask_to_svg(mask_img=model.mask_img,
                                       bg_img=bg_img,
-                                      display_mode=display_mode,
                                       )
     all_components = _make_stat_maps_contrast_clusters(
             stat_img=statistical_maps,
@@ -566,7 +565,7 @@ def _resize_plot_inches(plot, width_change=0, height_change=0):
     return plot
 
 
-def _mask_to_svg(mask_img, bg_img, display_mode):
+def _mask_to_svg(mask_img, bg_img):
     """
     Plot cuts of an mask image and creates SVG code of it.
     
@@ -581,17 +580,6 @@ def _mask_to_svg(mask_img, bg_img, display_mode):
         See http://nilearn.github.io/manipulating_images/input_output.html
         The background image that the mask will be plotted on top of.
         To turn off background image, just pass "bg_img=None".
-
-    display_mode: string
-        Choose the direction of the cuts:
-        'x' - sagittal, 'y' - coronal, 'z' - axial,
-        'l' - sagittal left hemisphere only,
-        'r' - sagittal right hemisphere only,
-        'ortho' - three cuts are performed in orthogonal directions.
-        
-        Possible values are:
-        'ortho', 'x', 'y', 'z', 'xz', 'yx', 'yz',
-        'l', 'r', 'lr', 'lzr', 'lyr', 'lzry', 'lyrz'.
         
     Returns
     -------
