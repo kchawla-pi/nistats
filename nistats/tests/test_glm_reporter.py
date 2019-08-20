@@ -33,8 +33,6 @@ def test_flm_reporting():
             fmri_data, design_matrices=design_matrices)
     contrast = np.eye(3)[1]
     report_flm = glmr.make_glm_report(flm, contrast,plot_type='glass')
-    report_flm.open_in_browser()
-    print()
 
 
 @dec.skipif(not_have_mpl)
@@ -49,7 +47,6 @@ def test_slm_reporting():
     model = model.fit(Y, design_matrix=X)
     c1 = np.eye(len(model.design_matrix_.columns))[0]
     report_slm = glmr.make_glm_report(model, c1)
-    report_slm.open_in_browser()
     # Delete objects attached to files to avoid WindowsError when deleting
     # temporary directory (in Windows)
     del Y, FUNCFILE, func_img, model
