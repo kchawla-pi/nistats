@@ -102,7 +102,8 @@ def make_glm_report(model,
     threshold: float
         Default is 3.09
         Cluster forming threshold in same scale as `stat_img` (either a
-        t-scale or z-scale value).
+        t-scale or z-scale value). Used only if height_control is None.
+
         
     alpha: float
         Default is 0.01

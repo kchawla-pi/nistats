@@ -3,6 +3,7 @@ import warnings
 import nibabel as nib
 import numpy as np
 from nibabel import load
+from nibabel.tmpdirs import InTemporaryDirectory
 
 from nose import SkipTest
 
@@ -32,24 +33,28 @@ def test_flm_reporting():
     flm = FirstLevelModel(mask_img=mask).fit(
             fmri_data, design_matrices=design_matrices)
     contrast = np.eye(3)[1]
-    report_flm = glmr.make_glm_report(flm, contrast,plot_type='glass')
+    report_flm = glmr.make_glm_report(flm, contrast, plot_type='glass',
+                                      height_control=None, min_distance=15,
+                                      alpha=0.001, threshold=2.78,
+                                      )
 
 
 @dec.skipif(not_have_mpl)
 def test_slm_reporting():
-    shapes = ((7, 8, 9, 1),)
-    mask, FUNCFILE, _ = _write_fake_fmri_data(shapes)
-    FUNCFILE = FUNCFILE[0]
-    func_img = load(FUNCFILE)
-    model = SecondLevelModel(mask_img=mask)
-    Y = [func_img] * 4
-    X = pd.DataFrame([[1]] * 4, columns=['intercept'])
-    model = model.fit(Y, design_matrix=X)
-    c1 = np.eye(len(model.design_matrix_.columns))[0]
-    report_slm = glmr.make_glm_report(model, c1)
-    # Delete objects attached to files to avoid WindowsError when deleting
-    # temporary directory (in Windows)
-    del Y, FUNCFILE, func_img, model
+    with InTemporaryDirectory():
+        shapes = ((7, 8, 9, 1),)
+        mask, FUNCFILE, _ = _write_fake_fmri_data(shapes)
+        FUNCFILE = FUNCFILE[0]
+        func_img = load(FUNCFILE)
+        model = SecondLevelModel()
+        Y = [func_img] * 4
+        X = pd.DataFrame([[1]] * 4, columns=['intercept'])
+        model = model.fit(Y, design_matrix=X)
+        c1 = np.eye(len(model.design_matrix_.columns))[0]
+        report_slm = glmr.make_glm_report(model, c1)
+        # Delete objects attached to files to avoid WindowsError when deleting
+        # temporary directory (in Windows)
+        del Y, FUNCFILE, func_img, model
 
 
 def test_check_report_dims():
