@@ -2,16 +2,17 @@ import warnings
 
 import nibabel as nib
 import numpy as np
+from nibabel import load
 
 from nose import SkipTest
 
 import pandas as pd
 from nilearn.datasets import fetch_oasis_vbm
 
+from nistats._utils.testing import _write_fake_fmri_data
 from nistats.design_matrix import make_first_level_design_matrix
 from nistats.first_level_model import FirstLevelModel
 from nistats.reporting import glm_reporter as glmr
-from nistats import datasets
 from numpy.testing import dec
 
 from nistats.second_level_model import SecondLevelModel
@@ -25,61 +26,34 @@ else:
 
 
 @dec.skipif(not_have_mpl)
-def test_flm_fiac_test():
-    if mpl.__version__ == '1.5.1':
-        raise SkipTest('Skipping test in Matplotlib v1.5.1')
-    data = datasets.fetch_fiac_first_level()
-    fmri_img = [data['func1'], data['func2']]
-    
-    from nilearn.image import mean_img
-    mean_img_ = mean_img(fmri_img[0])
-    
-    design_files = [data['design_matrix1'], data['design_matrix2']]
-    design_matrices = [pd.DataFrame(np.load(df)['X']) for df in design_files]
-    
-    fmri_glm = FirstLevelModel(mask_img=data['mask'], minimize_memory=True)
-    fmri_glm = fmri_glm.fit(fmri_img, design_matrices=design_matrices)
-    
-    n_columns = design_matrices[0].shape[1]
-    
-    def pad_vector(contrast_, n_columns):
-        """A small routine to append zeros in contrast vectors"""
-        return np.hstack((contrast_, np.zeros(n_columns - len(contrast_))))
-    
-    contrasts = {'SStSSp_minus_DStDSp': pad_vector([1, 0, 0, -1], n_columns),
-                 'DStDSp_minus_SStSSp': pad_vector([-1, 0, 0, 1], n_columns),
-                 }
-    report_flm = glmr.make_glm_report(fmri_glm, contrasts, bg_img=mean_img_)
+def test_flm_reporting():
+    shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 16)), 3
+    mask, fmri_data, design_matrices = _write_fake_fmri_data(shapes, rk)
+    flm = FirstLevelModel(mask_img=mask).fit(
+            fmri_data, design_matrices=design_matrices)
+    contrast = np.eye(3)[1]
+    report_flm = glmr.make_glm_report(flm, contrast,plot_type='glass')
+    report_flm.open_in_browser()
+    print()
 
-
-def _make_design_matrix(oasis_dataset, n_subjects):
-    age = oasis_dataset.ext_vars['age'].astype(float)
-    sex = oasis_dataset.ext_vars['mf'] == b'F'
-    intercept = np.ones(n_subjects)
-    design_matrix = pd.DataFrame(np.vstack((age, sex, intercept)).T,
-                                 columns=['age', 'sex', 'intercept'])
-    design_matrix = pd.DataFrame(design_matrix, columns=['age', 'sex',
-                                                         'intercept']
-                                 )
-    return design_matrix
 
 @dec.skipif(not_have_mpl)
-def test_slm_oasis_glass():
-    n_subjects = 4
-    contrast = [[1, 0, 0], [0, 1, 0]]
-    oasis_dataset = fetch_oasis_vbm(n_subjects)
-    design_matrix = _make_design_matrix(oasis_dataset, n_subjects)
-    
-    second_level_model = SecondLevelModel(smoothing_fwhm=2.0)
-    second_level_model.fit(oasis_dataset.gray_matter_maps,
-                           design_matrix=design_matrix)
-    title = ('Report: Glass Brain ADHD DMN',
-             'Report: Glass Brain ADHD FLM',
-             0,
-             )
-    report_oasis = glmr.make_glm_report(model=second_level_model,
-                                        contrasts=contrast, title=title,
-                                        plot_type='glass')
+def test_slm_reporting():
+    shapes = ((7, 8, 9, 1),)
+    mask, FUNCFILE, _ = _write_fake_fmri_data(shapes)
+    FUNCFILE = FUNCFILE[0]
+    func_img = load(FUNCFILE)
+    model = SecondLevelModel(mask_img=mask)
+    Y = [func_img] * 4
+    X = pd.DataFrame([[1]] * 4, columns=['intercept'])
+    model = model.fit(Y, design_matrix=X)
+    c1 = np.eye(len(model.design_matrix_.columns))[0]
+    report_slm = glmr.make_glm_report(model, c1)
+    report_slm.open_in_browser()
+    # Delete objects attached to files to avoid WindowsError when deleting
+    # temporary directory (in Windows)
+    del Y, FUNCFILE, func_img, model
+
 
 def test_check_report_dims():
     test_input = (1200, 'a')
