@@ -601,7 +601,7 @@ def _mask_to_svg(mask_img, bg_img, display_mode):
     if mask_img:
         mask_plot = plot_roi(roi_img=mask_img,
                             bg_img=bg_img,
-                            display_mode=display_mode,
+                            display_mode='z',
                             cmap='Set1',
                             )
         mask_plot_svg = plot_to_svg(plt.gcf())
