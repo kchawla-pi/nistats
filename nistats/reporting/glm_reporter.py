@@ -68,10 +68,13 @@ def make_glm_report(model,
         A fitted first or second level model object.
         Must have the computed design matrix(ces).
         
-    contrasts: Dict[string, ndarray] , String, List[String], ndarray,
+    contrasts: Dict[string, ndarray] or String or List[String] or ndarray or
         List[ndarray]
+        
         Contrasts information for a first or second level model.
+        
         Example:
+        
             Dict of contrast names and coefficients,
             or list of contrast names
             or list of contrast coefficients
