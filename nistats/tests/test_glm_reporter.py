@@ -1,3 +1,5 @@
+# -*- coding: utf-8 -*-
+
 import warnings
 
 import nibabel as nib
@@ -5,10 +7,7 @@ import numpy as np
 from nibabel import load
 from nibabel.tmpdirs import InTemporaryDirectory
 
-from nose import SkipTest
-
 import pandas as pd
-from nilearn.datasets import fetch_oasis_vbm
 
 from nistats._utils.testing import _write_fake_fmri_data
 from nistats.design_matrix import make_first_level_design_matrix
@@ -37,6 +36,8 @@ def test_flm_reporting():
                                       height_control=None, min_distance=15,
                                       alpha=0.001, threshold=2.78,
                                       )
+    # catches & raises UnicodeEncodeError in HTMLDocument.get_iframe()
+    report_iframe = report_flm.get_iframe()
 
 
 @dec.skipif(not_have_mpl)
@@ -52,6 +53,8 @@ def test_slm_reporting():
         model = model.fit(Y, design_matrix=X)
         c1 = np.eye(len(model.design_matrix_.columns))[0]
         report_slm = glmr.make_glm_report(model, c1)
+        # catches & raises UnicodeEncodeError in HTMLDocument.get_iframe()
+        report_iframe = report_slm.get_iframe()
         # Delete objects attached to files to avoid WindowsError when deleting
         # temporary directory (in Windows)
         del Y, FUNCFILE, func_img, model
@@ -64,11 +67,12 @@ def test_check_report_dims():
                              'Using default 1600x800')
     with warnings.catch_warnings(record=True) as raised_warnings:
         actual_output = glmr._check_report_dims(test_input)
-    raised_warnings_texts = [str(warning_.message) for warning_ in raised_warnings]
+    raised_warnings_texts = [str(warning_.message) for warning_ in
+                             raised_warnings]
     assert actual_output == expected_output
     assert expected_warning_text in raised_warnings_texts
-    
-    
+
+
 def test_coerce_to_dict_with_string():
     test_input = 'StopSuccess - Go'
     expected_output = {'StopSuccess - Go': 'StopSuccess - Go'}
@@ -126,6 +130,7 @@ def test_coerce_to_dict_with_list_of_ints():
                           expected_output['[1, 0, 1]'],
                           )
 
+
 def test_coerce_to_dict_with_array_of_ints():
     test_input = np.array([1, 0, 1])
     expected_output = {'[1 0 1]': np.array([1, 0, 1])}
@@ -134,6 +139,7 @@ def test_coerce_to_dict_with_array_of_ints():
     assert np.array_equal(actual_output['[1 0 1]'],
                           expected_output['[1 0 1]'],
                           )
+
 
 def test_make_headings_with_contrasts_title_none():
     model = SecondLevelModel()
@@ -215,12 +221,13 @@ def test_stat_map_to_svg_glass_z():
                                                plot_type='glass',
                                                table_details=table_details,
                                                )
-    
+
 
 def test_stat_map_to_svg_invalid_plot_type():
     img = _generate_img()
-    expected_error = ValueError('Invalid plot type provided. Acceptable options are'
-                         "'slice' or 'glass'.")
+    expected_error = ValueError(
+        'Invalid plot type provided. Acceptable options are'
+        "'slice' or 'glass'.")
     try:
         stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
                                                    bg_img=None,
@@ -247,5 +254,3 @@ def test_plot_contrasts():
     contrast_plots = glmr._plot_contrasts(contrast,
                                           [dmtx],
                                           )
-
-# def test

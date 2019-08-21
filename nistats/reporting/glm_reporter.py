@@ -1,4 +1,14 @@
 # -*- coding: utf-8 -*-
+"""
+Functionality to create an HTML report using a fitted GLM & contrasts.
+
+Functions
+---------
+
+make_glm_report(model, contrasts):
+    Creates an HTMLDocument Object which can be viewed or saved as a report.
+
+"""
 
 import io
 import string
