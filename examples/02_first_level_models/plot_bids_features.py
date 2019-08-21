@@ -145,6 +145,8 @@ from nistats.reporting import get_clusters_table
 print(get_clusters_table(z_map, norm.isf(0.001), 10).to_latex())
 
 #########################################################################
+# Generating a report
+# -------------------
 # Using the computed FirstLevelModel and contrast information,
 # we can quickly create a summary report.
 

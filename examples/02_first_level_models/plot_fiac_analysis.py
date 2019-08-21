@@ -149,6 +149,8 @@ plotting.plot_stat_map(
 plotting.show()
 
 #########################################################################
+# Generating a report
+# -------------------
 # Since we have already computed the FirstLevelModel and
 # and have the contrast, we can quickly create a summary report.
 from nistats.reporting import make_glm_report

@@ -127,6 +127,8 @@ plotting.plot_stat_map(
 # grey matter density on that dataset.
 
 ###########################################################################
+# Generating a report
+# -------------------
 # It can be useful to quickly generate a
 # portable, ready-to-view report with most of the pertinent information.
 # This is easy to do if you have a fitted model and the list of contrasts,
