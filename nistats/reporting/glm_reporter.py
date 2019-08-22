@@ -796,7 +796,7 @@ def _clustering_params_to_dataframe(threshold,
         u'\u03b1' in position 0: ordinal not in range(128)
         This is simpler than overloading the class using inheritance.
         '''
-        if os.sys.version_info.major ==2:
+        if os.sys.version_info.major == 2:
             table_details.update({'alpha': alpha})
         else:
             table_details.update({u'\u03B1': alpha})
@@ -908,7 +908,6 @@ def _add_params_to_plot(table_details, stat_map_plot):
                                  fontsize=11,
                                  x=.45,
                                  wrap=True,
-                                 
                                  )
     fig = list(stat_map_plot.axes.values())[0].ax.figure
     fig = _resize_plot_inches(plot=fig,
