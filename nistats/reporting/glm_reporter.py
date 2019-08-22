@@ -361,6 +361,8 @@ def _plot_contrasts(contrasts, design_matrices):
             contrast_plot.figure.set_figheight(2)
             contrast_plot.figure.set_tight_layout(True)
             url_contrast_plot_svg = plot_to_svg(contrast_plot)
+            # prevents sphinx-gallery & jupyter from scraping & inserting plots
+            plt.close()
             contrasts_for_subsitution = {
                 'contrast_plot': url_contrast_plot_svg,
                 'contrast_name': contrast_name,
@@ -532,6 +534,8 @@ def _dmtx_to_svg_url(design_matrices):
         plt.title(dmtx_title, y=0.987)
         dmtx_plot = _resize_plot_inches(dmtx_plot, height_change=.3)
         url_design_matrix_svg = plot_to_svg(dmtx_plot)
+        # prevents sphinx-gallery & jupyter from scraping & inserting plots
+        plt.close()
         dmtx_text_ = dmtx_text_.safe_substitute(
                 {'design_matrix': url_design_matrix_svg,
                  'dmtx_title': dmtx_title,
@@ -607,6 +611,8 @@ def _mask_to_svg(mask_img, bg_img):
                             cmap='Set1',
                             )
         mask_plot_svg = plot_to_svg(plt.gcf())
+        # prevents sphinx-gallery & jupyter from scraping & inserting plots
+        plt.close()
     else:
         mask_plot_svg = None  # HTML image tag's alt attribute is used.
     return mask_plot_svg
@@ -873,6 +879,8 @@ def _stat_map_to_svg(stat_img,
         stat_map_plot = _add_params_to_plot(table_details, stat_map_plot)
     fig = plt.gcf()
     stat_map_svg = plot_to_svg(fig)
+    # prevents sphinx-gallery & jupyter from scraping & inserting plots
+    plt.close()
     return stat_map_svg
 
     

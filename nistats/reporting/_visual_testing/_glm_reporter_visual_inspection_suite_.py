@@ -62,11 +62,9 @@ def report_flm_adhd_dmn():  # pragma: no cover
                              plot_type='glass',
                              report_dims=(1200, 'a'),
                              )
-    # report.open_in_browser()
     output_filename = 'generated_report_flm_adhd_dmn.html'
     output_filepath = os.path.join(REPORTS_DIR, output_filename)
     report.save_as_html(output_filepath)
-    # print(output_filename, 'COMPLETED')
     report.get_iframe()
 
 ###########################################################################
@@ -129,7 +127,6 @@ def report_flm_bids_features():  # pragma: no cover
                              )
     output_filename = 'generated_report_flm_bids_features.html'
     output_filepath = os.path.join(REPORTS_DIR, output_filename)
-    # print(output_filename, 'COMPLETED')
     report.save_as_html(output_filepath)
     report.get_iframe()
 
@@ -171,7 +168,6 @@ def report_flm_fiac():  # pragma: no cover
                              )
     output_filename = 'generated_report_flm_fiac.html'
     output_filepath = os.path.join(REPORTS_DIR, output_filename)
-    # print(output_filename, 'COMPLETED')
     report.save_as_html(output_filepath)
     report.get_iframe()
 
@@ -210,7 +206,6 @@ def report_slm_oasis():  # pragma: no cover
                              )
     output_filename = 'generated_report_slm_oasis.html'
     output_filepath = os.path.join(REPORTS_DIR, output_filename)
-    # print(output_filename, 'COMPLETED')
     report.save_as_html(output_filepath)
     report.get_iframe()
 
