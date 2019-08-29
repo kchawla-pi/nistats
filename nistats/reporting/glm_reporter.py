@@ -356,7 +356,7 @@ def _plot_contrasts(contrasts, design_matrices):
     for design_matrix in design_matrices:
         for contrast_name, contrast_data in contrasts.items():
             contrast_text_ = string.Template(contrast_template_text)
-            contrast_plot = plot_contrast_matrix(contrast_data, design_matrix)
+            contrast_plot = plot_contrast_matrix(contrast_data, design_matrix, colorbar=True)
             contrast_plot.set_xlabel(contrast_name)
             contrast_plot.figure.set_figheight(2)
             contrast_plot.figure.set_tight_layout(True)
