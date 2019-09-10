@@ -27,17 +27,25 @@ else:
 
 @dec.skipif(not_have_mpl)
 def test_flm_reporting():
-    shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 16)), 3
-    mask, fmri_data, design_matrices = _write_fake_fmri_data(shapes, rk)
-    flm = FirstLevelModel(mask_img=mask).fit(
-            fmri_data, design_matrices=design_matrices)
-    contrast = np.eye(3)[1]
-    report_flm = glmr.make_glm_report(flm, contrast, plot_type='glass',
-                                      height_control=None, min_distance=15,
-                                      alpha=0.001, threshold=2.78,
-                                      )
-    # catches & raises UnicodeEncodeError in HTMLDocument.get_iframe()
-    report_iframe = report_flm.get_iframe()
+    with InTemporaryDirectory():
+        shapes, rk = ((7, 8, 7, 15), (7, 8, 7, 16)), 3
+        mask, fmri_data, design_matrices = _write_fake_fmri_data(shapes, rk)
+        flm = FirstLevelModel(mask_img=mask).fit(
+                fmri_data, design_matrices=design_matrices)
+        contrast = np.eye(3)[1]
+        report_flm = glmr.make_glm_report(flm, contrast, plot_type='glass',
+                                          height_control=None, min_distance=15,
+                                          alpha=0.001, threshold=2.78,
+                                          )
+        '''
+        catches & raises UnicodeEncodeError in HTMLDocument.get_iframe()
+        HTMLDocument.get_iframe() mishandles certain unicode characters in Python2,
+        like the greek alpha symbol and raises this error.
+        Calling HTMLDocument.get_iframe() causes the tests to fail on Python2
+        if such a situation arises in future due to modifications.
+        '''
+        
+        report_iframe = report_flm.get_iframe()
 
 
 @dec.skipif(not_have_mpl)
@@ -202,41 +210,44 @@ def _generate_img():
 
 
 def test_stat_map_to_svg_slice_z():
-    img = _generate_img()
-    table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
-    stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
-                                               bg_img=None,
-                                               display_mode='ortho',
-                                               plot_type='slice',
-                                               table_details=table_details,
-                                               )
+    with InTemporaryDirectory():
+        img = _generate_img()
+        table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
+        stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
+                                                   bg_img=None,
+                                                   display_mode='ortho',
+                                                   plot_type='slice',
+                                                   table_details=table_details,
+                                                   )
 
 
 def test_stat_map_to_svg_glass_z():
-    img = _generate_img()
-    table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
-    stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
-                                               bg_img=None,
-                                               display_mode='z',
-                                               plot_type='glass',
-                                               table_details=table_details,
-                                               )
-
-
-def test_stat_map_to_svg_invalid_plot_type():
-    img = _generate_img()
-    expected_error = ValueError(
-        'Invalid plot type provided. Acceptable options are'
-        "'slice' or 'glass'.")
-    try:
+    with InTemporaryDirectory():
+        img = _generate_img()
+        table_details = pd.DataFrame.from_dict({'junk': 0}, orient='index')
         stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
                                                    bg_img=None,
                                                    display_mode='z',
-                                                   plot_type='junk',
-                                                   table_details={'junk': 0},
+                                                   plot_type='glass',
+                                                   table_details=table_details,
                                                    )
-    except ValueError as raised_exception:
-        assert str(raised_exception) == str(expected_error)
+
+
+def test_stat_map_to_svg_invalid_plot_type():
+    with InTemporaryDirectory():
+        img = _generate_img()
+        expected_error = ValueError(
+            'Invalid plot type provided. Acceptable options are'
+            "'slice' or 'glass'.")
+        try:
+            stat_map_html_code = glmr._stat_map_to_svg(stat_img=img,
+                                                       bg_img=None,
+                                                       display_mode='z',
+                                                       plot_type='junk',
+                                                       table_details={'junk': 0},
+                                                       )
+        except ValueError as raised_exception:
+            assert str(raised_exception) == str(expected_error)
 
 
 def _make_dummy_contrasts_dmtx():

@@ -11,10 +11,9 @@ make_glm_report(model, contrasts):
 """
 
 import io
-import string
 import os
+import string
 import warnings
-
 from collections import OrderedDict
 
 try:
@@ -94,8 +93,8 @@ def make_glm_report(model,
             Each contrast name must be a string.
             Each contrast coefficient must be a list or numpy array of ints.
         
-        Corresponds to the ``contrast_def`` for the FirstLevelModel [1]_
-        & second_level_contrast for a SecondLevelModel [2]_ .
+        Contrasts are passed to ``contrast_def`` for FirstLevelModel [1]_
+        & second_level_contrast for SecondLevelModel [2]_ .
     
     title: String, optional
         If string, represents the web page's title and primary heading,
@@ -791,10 +790,10 @@ def _clustering_params_to_dataframe(threshold,
         table_details.update({'Height control': height_control})
         '''
         HTMLDocument.get_iframe() invoked in Python2 Jupyter Notebooks
-        raises error due to greek alpha symbol.
-        UnicodeEncodeError: 'ascii' codec can't encode character
-        u'\u03b1' in position 0: ordinal not in range(128)
-        This is simpler than overloading the class using inheritance.
+        mishandles certain unicode characters
+        & raises error due to greek alpha symbol.
+        This is simpler than overloading the class using inheritance,
+        especially given limited Python2 use at time of release.
         '''
         if os.sys.version_info.major == 2:
             table_details.update({'alpha': alpha})
