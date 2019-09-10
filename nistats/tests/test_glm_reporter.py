@@ -44,8 +44,8 @@ def test_flm_reporting():
         Calling HTMLDocument.get_iframe() causes the tests to fail on Python2
         if such a situation arises in future due to modifications.
         '''
-        
         report_iframe = report_flm.get_iframe()
+        del mask, flm
 
 
 @dec.skipif(not_have_mpl)
