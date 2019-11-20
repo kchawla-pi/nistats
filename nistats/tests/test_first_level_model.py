@@ -18,6 +18,7 @@ from nose.tools import (assert_equal,
                         assert_true,
                         )
 from numpy.testing import (assert_almost_equal,
+                           assert_array_almost_equal,
                            assert_array_equal,
                            assert_array_less,
                            )
@@ -537,9 +538,9 @@ def test_first_level_model_residuals():
                             noise_model='ols')
     model.fit(fmri_data, design_matrices=design_matrices)
 
-    for resid in model.residuals():
-        mean_resids = model.masker_.transform(resid).mean(0)
-        assert_array_almost_equal(mean_resids, 0)
+    resid = model.residuals()
+    mean_resids = model.masker_.transform(resid).mean(0)
+    assert_array_almost_equal(mean_resids, 0)
 
 
 def test_first_level_model_predictions_rsq():
@@ -565,4 +566,4 @@ def test_first_level_model_predictions_rsq():
     assert_almost_equal(np.mean(y_predicted - y_measured), 0)
 
     rsq = model.masker_.transform(rsq)
-    assert_array_lessl(0., rsq)
+    assert_array_less(0., rsq)
