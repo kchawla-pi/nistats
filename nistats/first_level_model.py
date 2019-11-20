@@ -613,15 +613,12 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         else:
             return output
 
-    @setattr_on_read
     def residuals(self):
         return self.get_voxelwise_model_attribute_('resid')
 
-    @setattr_on_read
     def predicted(self):
         return self.get_voxelwise_model_attribute_('predicted')
 
-    @setattr_on_read
     def rsq(self):
         return self.get_voxelwise_model_attribute_('rsq', timeseries=False)
 
