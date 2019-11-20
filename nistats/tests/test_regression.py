@@ -39,7 +39,7 @@ def test_residuals():
     # mean of the residuals should be 0 (short of
     # some numerical rounding errors) 
     Xintercept[:, 0] = 1
-    model = OLSModel(design=X)
+    model = OLSModel(design=Xintercept)
     results = model.fit(Y)
     assert_almost_equal(results.resid.mean(), 0)
 
