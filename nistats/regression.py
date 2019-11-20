@@ -321,7 +321,7 @@ class RegressionResults(LikelihoodModelResults):
 
     @setattr_on_read
     def rsq(self):
-        """Proportion of explained variance. 
+        """Proportion of explained variance.
         If not from an OLS model this is "pseudo"-R2.
         """
         return np.var(self.predicted, 0) / np.var(self.wY, 0)

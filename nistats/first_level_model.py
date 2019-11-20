@@ -118,14 +118,14 @@ def run_glm(Y, X, noise_model='ar1', bins=100, n_jobs=1, verbose=0):
     acceptable_noise_models = ['ar1', 'ols']
     if noise_model not in acceptable_noise_models:
         raise ValueError(
-            "Acceptable noise models are {0}. You provided 'noise_model={1}'".\
-                format(acceptable_noise_models, noise_model))
+            "Acceptable noise models are {0}. You provided 'noise_model={1}'".
+            format(acceptable_noise_models, noise_model))
 
     if Y.shape[0] != X.shape[0]:
         raise ValueError(
             'The number of rows of Y should match the number of rows of X.'
-            ' You provided X with shape {0} and Y with shape {1}'.\
-                format(X.shape, Y.shape))
+            ' You provided X with shape {0} and Y with shape {1}'.
+            format(X.shape, Y.shape))
 
     # Create the model
     ols_result = OLSModel(X).fit(Y)
@@ -586,27 +586,26 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         return outputs if output_type == 'all' else output
 
     def get_voxelwise_model_attribute_(self, attribute, timeseries=True):
-        
+
         if self.minimize_memory:
             raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
-        
+
         if self.labels_ is None or self.results_ is None:
             raise ValueError('The model has not been fit yet')
-        
+
         output = []
-        
+
         for design_matrix, labels, results in zip(self.design_matrices_, self.labels_, self.results_):        
-            
+
             if timeseries:
                 voxelwise_attribute = np.zeros((design_matrix.shape[0], len(labels)))
             else:
                 voxelwise_attribute = np.zeros((1, len(labels)))
-            
+
             for label_ in results:
-                label_mask = labels == label_            
+                label_mask = labels == label_
                 voxelwise_attribute[:, label_mask] = getattr(results[label_], attribute)
-            
-            
+
             output.append(self.masker_.inverse_transform(voxelwise_attribute))
 
         if len(output) == 1:

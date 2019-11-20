@@ -9,6 +9,7 @@ from nose.tools import assert_equal
 from nose.tools import assert_equal, assert_true, assert_almost_equal
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
+from nistats.regression import OLSModel, ARModel
 
 RNG = np.random.RandomState(20110902)
 X = RNG.standard_normal((40, 10))
@@ -30,21 +31,23 @@ def test_AR():
     assert_equal(results.resid.shape[0], 40)
     assert_equal(results.predicted.shape[0], 40)
 
+
 def test_residuals():
     Xintercept = X.copy()
 
     # If design matrix contains an intercept, the
     # mean of the residuals should be 0 (short of
     # some numerical rounding errors) 
-    X[:, 0] = 1
+    Xintercept[:, 0] = 1
     model = OLSModel(design=X)
     results = model.fit(Y)
     assert_almost_equal(results.resid.mean(), 0)
 
+
 def test_predicted_rsq():
     Xshort = X.copy()[:10, :]
     Yshort = Y.copy()[:10]
-    
+
     # Signal of 10 elements should be completely
     # predicted by 10 predictors (short of some numerical
     # rounding errors)

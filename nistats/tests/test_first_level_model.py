@@ -528,7 +528,7 @@ def test_param_mask_deprecation_first_level_models_from_bids():
 
 def test_first_level_model_residuals():
     shapes, rk = [(10, 10, 10, 100)], 3
-    mask, fmri_data, design_matrices  = _generate_fake_fmri_data(shapes, rk)
+    mask, fmri_data, design_matrices = _generate_fake_fmri_data(shapes, rk)
 
     for i in range(len(design_matrices)):
         design_matrices[i].iloc[:, 0] = 1
@@ -544,7 +544,7 @@ def test_first_level_model_residuals():
 
 def test_first_level_model_predictions_rsq():
     shapes, rk = [(10, 10, 10, 25)], 3
-    mask, fmri_data, design_matrices  = _generate_fake_fmri_data(shapes, rk)
+    mask, fmri_data, design_matrices = _generate_fake_fmri_data(shapes, rk)
 
     model = FirstLevelModel(mask=mask,
                             signal_scaling=False,
@@ -560,5 +560,3 @@ def test_first_level_model_predictions_rsq():
 
         rsq = model.masker_.transform(rsq)
         assert_array_almost_equal(rsq, 1.0)
-
-
