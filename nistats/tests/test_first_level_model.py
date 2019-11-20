@@ -18,6 +18,7 @@ from nose.tools import (assert_equal,
                         assert_true,
                         )
 from numpy.testing import (assert_almost_equal,
+                           assert_array_almost_equal,
                            assert_array_equal,
                            )
 from nibabel.tmpdirs import InTemporaryDirectory
@@ -526,8 +527,8 @@ def test_param_mask_deprecation_first_level_models_from_bids():
 
 
 def test_first_level_model_residuals():
-    shapes = [(10, 10, 10, 100)] * 3
-    mask, fmri_data, design_matrices  = generate_fake_fmri_data(shapes)
+    shapes, rk = [(10, 10, 10, 100)], 3
+    mask, fmri_data, design_matrices  = _generate_fake_fmri_data(shapes, rk)
 
     for i in range(len(design_matrices)):
         design_matrices[i].iloc[:, 0] = 1
@@ -542,8 +543,8 @@ def test_first_level_model_residuals():
 
 
 def test_first_level_model_predictions_rsq():
-    shapes = [(10, 10, 10, 25)] * 3
-    mask, fmri_data, design_matrices  = generate_fake_fmri_data(shapes, 25)
+    shapes, rk = [(10, 10, 10, 25)], 3
+    mask, fmri_data, design_matrices  = _generate_fake_fmri_data(shapes, rk)
 
     model = FirstLevelModel(mask=mask,
                             signal_scaling=False,
