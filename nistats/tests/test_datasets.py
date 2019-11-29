@@ -3,11 +3,10 @@ import os
 
 import numpy as np
 import pandas as pd
-
-from nibabel.tmpdirs import InTemporaryDirectory
+from nibabel.tmpdirs import TemporaryDirectory
 from nilearn._utils.compat import _basestring
+from nilearn.datasets import func, utils
 from nilearn.datasets.tests import test_utils as tst
-from nilearn.datasets import utils, func
 from nilearn.datasets.utils import _get_dataset_dir
 from nose import with_setup
 from nose.tools import (assert_equal,
@@ -15,7 +14,8 @@ from nose.tools import (assert_equal,
                         )
 
 from nistats import datasets
-
+from nistats.datasets import fetch_openneuro_dataset_index, \
+    fetch_language_localizer_demo_dataset
 
 currdir = os.path.dirname(os.path.abspath(__file__))
 datadir = os.path.join(currdir, 'data')
@@ -41,35 +41,6 @@ def test_fetch_bids_langloc_dataset():
 
     assert_true(isinstance(datadir, _basestring))
     assert_true(isinstance(dl_files, list))
-
-
-@with_setup(setup_mock, teardown_mock)
-@with_setup(tst.setup_tmpdata, tst.teardown_tmpdata)
-def test_fetch_openneuro_dataset_index():
-    dataset_version = 'ds000030_R1.0.4'
-    data_prefix = '{}/{}/uncompressed'.format(
-        dataset_version.split('_')[0], dataset_version)
-    data_dir = _get_dataset_dir(data_prefix, data_dir=tst.tmpdir,
-                                verbose=1)
-    url_file = os.path.join(data_dir, 'urls.json')
-    # Prepare url files for subject and filter tests
-    file_list = [data_prefix + '/stuff.html',
-                 data_prefix + '/sub-xxx.html',
-                 data_prefix + '/sub-yyy.html',
-                 data_prefix + '/sub-xxx/ses-01_task-rest.txt',
-                 data_prefix + '/sub-xxx/ses-01_task-other.txt',
-                 data_prefix + '/sub-xxx/ses-02_task-rest.txt',
-                 data_prefix + '/sub-xxx/ses-02_task-other.txt',
-                 data_prefix + '/sub-yyy/ses-01.txt',
-                 data_prefix + '/sub-yyy/ses-02.txt']
-    json.dump(file_list, open(url_file, 'w'))
-
-    # Only 1 subject and not subject specific files get downloaded
-    datadir, dl_files = datasets.fetch_openneuro_dataset_index(
-        tst.tmpdir, dataset_version)
-    assert_true(isinstance(datadir, _basestring))
-    assert_true(isinstance(dl_files, list))
-    assert_true(len(dl_files) == 9)
 
 
 def test_select_from_index():
@@ -118,6 +89,30 @@ def test_select_from_index():
         exclusion_filters=['*ses-01*'])
     assert_true(len(new_urls) == 1)
     assert_true(data_prefix + '/sub-xxx/ses-02_task-rest.txt' in new_urls)
+
+
+def test_fetch_openneuro_dataset_index():
+    with TemporaryDirectory() as tmpdir:
+        dataset_version = 'ds000030_R1.0.4'
+        subdir_names = ['ds000030', 'ds000030_R1.0.4', 'uncompressed']
+        tmp_list = []
+        for subdir in subdir_names:
+            tmp_list.append(subdir)
+            subdirpath = os.path.join(tmpdir, *tmp_list)
+            os.mkdir(subdirpath)
+
+        filepath = os.path.join(subdirpath, 'urls.json')
+        mock_json_content = ['junk1', 'junk2']
+        with open(filepath, 'w') as f:
+            json.dump(mock_json_content, f)
+        urls_path, urls = fetch_openneuro_dataset_index(
+                data_dir=tmpdir,
+                dataset_version=dataset_version,
+                verbose=1,
+                )
+        urls_path = urls_path.replace('/', os.sep)
+        assert urls_path == filepath
+        assert urls == mock_json_content
 
 
 @with_setup(setup_mock, teardown_mock)
@@ -177,6 +172,59 @@ def _mock_bids_compliant_spm_auditory_events_file():
     with open(events_filepath, 'r') as actual_events_file_obj:
         actual_events_data_string = actual_events_file_obj.read()
     return actual_events_data_string, events_filepath
+
+
+@with_setup(setup_mock, teardown_mock)
+@with_setup(tst.setup_tmpdata, tst.teardown_tmpdata)
+def test_fetch_language_localizer_demo_dataset():
+    data_dir = tst.tmpdir
+    expected_data_dir, expected_files= _mock_language_localizer_demo_dataset(
+            data_dir)
+    actual_data_dir, actual_subdirs = fetch_language_localizer_demo_dataset(
+            data_dir)
+    assert actual_data_dir == expected_data_dir
+    assert actual_subdirs == expected_files
+
+
+def _mock_language_localizer_demo_dataset(data_dir):
+    events_file_paths = []
+    derivatives_file_paths = []
+    dataset_name = 'fMRI-language-localizer-demo-dataset'
+    filename_prefix = '_task-languagelocalizer_'
+    for name_suffix in range(1, 10):
+        subject_dir = 'sub-0{}'.format(name_suffix)
+        subdir_path = os.path.join(data_dir,
+                                   dataset_name,
+                                   subject_dir,
+                                   'func',
+                                   )
+        os.makedirs(subdir_path)
+        file_name = '{}{}events.tsv'.format(subject_dir, filename_prefix)
+        file_path = os.path.join(subdir_path, file_name)
+        events_file_paths.append(file_path)
+        with open(file_path, 'w') as f: pass
+        subdir_path = os.path.join(data_dir,
+                                   dataset_name,
+                                   'derivatives',
+                                   subject_dir,
+                                   'func',
+                                   )
+        os.makedirs(subdir_path)
+        filename_suffixes = ['desc-preproc_bold.json',
+                             'desc-preproc_bold.nii.gz',
+                             'desc-confounds_regressors.tsv',
+                             ]
+        for filename_suffix_ in filename_suffixes:
+            file_name = '{}{}'.format(filename_prefix, filename_suffix_)
+            file_path = os.path.join(subdir_path, file_name)
+            derivatives_file_paths.append(file_path)
+            with open(file_path, 'w') as f: pass
+    expected_data_dir = os.path.join(data_dir, dataset_name)
+    expected_files = []
+    expected_files.extend(events_file_paths)
+    expected_files.extend(derivatives_file_paths)
+    expected_files.sort()
+    return expected_data_dir, expected_files
 
 
 def test_make_spm_auditory_events_file():

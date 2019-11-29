@@ -10,6 +10,13 @@ New
 ---
 
 * Use :func:`nistats.reporting.make_glm_report` to easily generate HTML reports from fitted first and second level models and contrasts.
+* New dataset fetcher, :func:`nistats.datasets.fetch_language_localizer_demo_dataset` , BIDS 1.2 compatible.
+
+Changes
+-------
+
+* Nistats now uses BIDS v1.2 & BIDS Derivatives terminology.
+* `run_img` variable deleted after masking in FirstLevelModel to reduce memory use.
 
 Fixes
 -----
@@ -17,10 +24,27 @@ Fixes
 * Removed Python 2 deprecation warning for Python 3 installations.
 * fixed effect contrasts now average effect sizes across runs rather than
   summing them.
-
+* :func:`nistats.first_level_model.first_level_models_from_bids` uses correct BIDS v1.2 conventions.
+* Explicit method for fixed effects to support image-based summary
+  statistics approach.
+  
 Contributors
 ------------
 
+The following people contributed to this release (in alphabetical order)
+
+	Ana Luisa Pinho
+	Anthony Gifuni
+	Bertrand Thirion
+	Christopher J. Markiewicz
+	Christophe Pallier
+	Gael Varoquaux
+	Jerome Dockes
+	Jerome-Alexis Chevalier
+	Jessica Thompson
+	Kshitij Chawla (kchawla-pi)
+	Takis Panagopoulos
+	Tuan Binh Nguyen
 
 0.0.1b
 =======

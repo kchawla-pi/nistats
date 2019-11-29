@@ -92,9 +92,8 @@ if [[ "$DISTRIB" == "neurodebian" ]]; then
     create_new_venv
     bash <(wget -q -O- http://neuro.debian.net/_files/neurodebian-travis.sh)
     sudo apt-get install -qq python-scipy python-nose python-nibabel\
-         python-sklearn python-pandas python-nilearn python-patsy\
+         python-sklearn python-pandas python-nilearn \
          python-pip
-    pip install boto3
 
 elif [[ "$DISTRIB" == "conda" ]]; then
     create_new_conda_env
@@ -106,7 +105,12 @@ elif [[ "$DISTRIB" == "conda" ]]; then
     if [ -n "$NIBABEL_VERSION" ]; then
         pip install --prefer-binary nibabel=="$NIBABEL_VERSION"
     fi
-    pip install boto3 patsy nilearn
+    if
+        $BOTO3  # If true, install boto3 & run boto3 dependent test.
+    then
+        pip install boto3
+    fi
+    pip install nilearn
 
 
 else

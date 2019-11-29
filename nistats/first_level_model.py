@@ -1,5 +1,3 @@
-# emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
-# vi: set ft=python sts=4 ts=4 sw=4 et:
 """
 This module presents an interface to use the glm implemented in
 nistats.regression.
@@ -10,7 +8,6 @@ of fMRI data analyses.
 Author: Bertrand Thirion, Martin Perez-Guevara, 2016
 
 """
-
 import glob
 import json
 import os
@@ -30,12 +27,11 @@ from sklearn.externals.joblib import Memory
 from nilearn.input_data import NiftiMasker
 from nilearn._utils import CacheMixin
 from nilearn._utils.niimg_conversions import check_niimg
-from patsy import DesignInfo
 from sklearn.externals.joblib import (Parallel,
                                       delayed,
                                       )
 
-from .contrasts import _fixed_effect_contrast
+from .contrasts import _compute_fixed_effect_contrast, expression_to_contrast_vector
 from .design_matrix import make_first_level_design_matrix
 from .regression import (ARModel,
                          OLSModel,
@@ -46,6 +42,7 @@ from .utils import (_basestring,
                     _check_events_file_uses_tab_separators,
                     get_bids_files,
                     parse_bids_filename,
+                    get_data
                     )
 from nistats._utils.helpers import replace_parameters
 
@@ -339,14 +336,14 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
 
         events: pandas Dataframe or string or list of pandas DataFrames or
                    strings
-                   
+
             fMRI events used to build design matrices. One events object
             expected per run_img. Ignored in case designs is not None.
             If string, then a path to a csv file is expected.
 
         confounds: pandas Dataframe or string or list of pandas DataFrames or
                    strings
-                   
+
             Each column in a DataFrame corresponds to a confound variable
             to be included in the regression model of the respective run_img.
             The number of rows must match the number of volumes in the
@@ -438,7 +435,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             # Build the experimental design for the glm
             run_img = check_niimg(run_img, ensure_ndim=4)
             if design_matrices is None:
-                n_scans = run_img.get_data().shape[3]
+                n_scans = get_data(run_img).shape[3]
                 if confounds is not None:
                     confounds_matrix = confounds[run_idx].values
                     if confounds_matrix.shape[0] != n_scans:
@@ -467,6 +464,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
                 sys.stderr.write('Starting masker computation \r')
 
             Y = self.masker_.transform(run_img)
+            del run_img  # Delete unmasked image to save memory
 
             if self.verbose > 1:
                 t_masking = time.time() - t_masking
@@ -515,16 +513,15 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         ----------
         contrast_def : str or array of shape (n_col) or list of (string or
                        array of shape (n_col))
-                       
+
             where ``n_col`` is the number of columns of the design matrix,
             (one array per run). If only one array is provided when there
             are several runs, it will be assumed that the same contrast is
             desired for all runs. The string can be a formula compatible with
-            the linear constraint of the Patsy library. Basically one can use
-            the name of the conditions as they appear in the design matrix of
-            the fitted model combined with operators /\*+- and numbers.
-            Please checks the patsy documentation for formula examples:
-            http://patsy.readthedocs.io/en/latest/API-reference.html#patsy.DesignInfo.linear_constraint
+            `pandas.DataFrame.eval`. Basically one can use the name of the
+            conditions as they appear in the design matrix of the fitted model
+            combined with operators +- and combined with numbers with operators
+            +-`*`/.
 
         stat_type : {'t', 'F'}, optional
             type of the contrast
@@ -551,11 +548,12 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             raise ValueError('contrast_def must be an array or str or list of'
                              ' (array or str)')
 
-        # Translate formulas to vectors with patsy
-        design_info = DesignInfo(self.design_matrices_[0].columns.tolist())
+        # Translate formulas to vectors
+        design_columns = self.design_matrices_[0].columns.tolist()
         for cidx, con in enumerate(con_vals):
-            if not isinstance(con, np.ndarray):
-                con_vals[cidx] = design_info.linear_constraint(con).coefs
+            if isinstance(con, _basestring):
+                con_vals[cidx] = expression_to_contrast_vector(
+                    con, design_columns)
 
         n_runs = len(self.labels_)
         if len(con_vals) != n_runs:
@@ -568,8 +566,8 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         if output_type not in valid_types:
             raise ValueError('output_type must be one of {}'.format(valid_types))
 
-        contrast = _fixed_effect_contrast(self.labels_, self.results_,
-                                          con_vals, stat_type)
+        contrast = _compute_fixed_effect_contrast(self.labels_, self.results_,
+                                                  con_vals, stat_type)
 
         output_types = valid_types[:-1] if output_type == 'all' else [output_type]
 
@@ -588,7 +586,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
 
 @replace_parameters({'mask': 'mask_img'}, end_version='next')
 def first_level_models_from_bids(
-        dataset_path, task_label, space_label, img_filters=None,
+        dataset_path, task_label, space_label=None, img_filters=None,
         t_r=None, slice_time_ref=0., hrf_model='glover', drift_model='cosine',
         high_pass=.01, drift_order=1, fir_delays=[0], min_onset=-24,
         mask_img=None, target_affine=None, target_shape=None, smoothing_fwhm=None,
@@ -611,15 +609,15 @@ def first_level_models_from_bids(
         Task_label as specified in the file names like _task-<task_label>_.
 
     space_label: str, optional
-        Specifies the space label of the preproc.nii images.
+        Specifies the space label of the preprocessed bold.nii images.
         As they are specified in the file names like _space-<space_label>_.
 
     img_filters: list of tuples (str, str), optional (default: None)
         Filters are of the form (field, label). Only one filter per field
         allowed. A file that does not match a filter will be discarded.
-        Possible filters are 'acq', 'rec', 'run', 'res' and 'variant'.
-        Filter examples would be (variant, smooth), (acq, pa) and
-        (res, 1x1x1).
+        Possible filters are 'acq', 'ce', 'dir', 'rec', 'run', 'echo', 'res',
+        'den', and 'desc'. Filter examples would be ('desc', 'preproc'),
+        ('dir', 'pa') and ('run', '10').
 
     derivatives_folder: str, optional
         derivatives and app folder path containing preprocessed files.
@@ -655,7 +653,7 @@ def first_level_models_from_bids(
     if not isinstance(task_label, str):
         raise TypeError('task_label must be a string, instead %s was given' %
                         type(task_label))
-    if not isinstance(space_label, str):
+    if space_label is not None and not isinstance(space_label, str):
         raise TypeError('space_label must be a string, instead %s was given' %
                         type(space_label))
     if not isinstance(img_filters, list):
@@ -666,10 +664,10 @@ def first_level_models_from_bids(
                 not isinstance(img_filter[1], str)):
             raise TypeError('filters in img filters must be (str, str), '
                             'instead %s was given' % type(img_filter))
-        if img_filter[0] not in ['acq', 'rec', 'run', 'res', 'variant']:
+        if img_filter[0] not in ['acq', 'ce', 'dir', 'rec', 'run', 'echo', 'desc', 'res', 'den']:
             raise ValueError("field %s is not a possible filter. Only "
-                             "'acq', 'rec', 'run', 'res' and 'variant' "
-                             "are allowed." % type(img_filter[0]))
+                             "'acq', 'ce', 'dir', 'rec', 'run', 'echo', 'desc', 'res', 'den' "
+                             "are allowed." % img_filter[0])
 
     # check derivatives folder is present
     derivatives_path = os.path.join(dataset_path, derivatives_folder)
@@ -689,7 +687,7 @@ def first_level_models_from_bids(
                 filters.append(img_filter)
 
         img_specs = get_bids_files(derivatives_path, modality_folder='func',
-                                   file_tag='preproc', file_type='json',
+                                   file_tag='bold', file_type='json',
                                    filters=filters)
         # If we dont find the parameter information in the derivatives folder
         # we try to search in the raw data folder
@@ -698,7 +696,7 @@ def first_level_models_from_bids(
                                        file_tag='bold', file_type='json',
                                        filters=filters)
         if not img_specs:
-            warn('No preproc.json found in derivatives folder and no bold.json'
+            warn('No bold.json found in derivatives folder or'
                  ' in dataset folder. t_r can not be inferred and will need to'
                  ' be set manually in the list of models, otherwise their fit '
                  'will throw an exception')
@@ -746,9 +744,12 @@ def first_level_models_from_bids(
         models.append(model)
 
         # Get preprocessed imgs
-        filters = [('task', task_label), ('space', space_label)] + img_filters
+        if space_label is None:
+            filters = [('task', task_label)] + img_filters
+        else:
+            filters = [('task', task_label), ('space', space_label)] + img_filters
         imgs = get_bids_files(derivatives_path, modality_folder='func',
-                              file_tag='preproc', file_type='nii*',
+                              file_tag='bold', file_type='nii*',
                               sub_label=sub_label, filters=filters)
         # If there is more than one file for the same (ses, run), likely we
         # have an issue of underspecification of filters.
@@ -764,7 +765,7 @@ def first_level_models_from_bids(
                         raise ValueError(
                             'More than one nifti image found for the same run '
                             '%s and session %s. Please verify that the '
-                            'preproc_variant and space_label labels '
+                            'desc_label and space_label labels '
                             'corresponding to the BIDS spec '
                             'were correctly specified.' %
                             (img_dict['run'], img_dict['ses']))
@@ -777,7 +778,7 @@ def first_level_models_from_bids(
                         raise ValueError(
                             'More than one nifti image found for the same ses '
                             '%s, while no additional run specification present'
-                            '. Please verify that the preproc_variant and '
+                            '. Please verify that the desc_label and '
                             'space_label labels '
                             'corresponding to the BIDS spec '
                             'were correctly specified.' %
@@ -789,7 +790,7 @@ def first_level_models_from_bids(
                     if img_dict['run'] in run_check_list:
                         raise ValueError(
                             'More than one nifti image found for the same run '
-                            '%s. Please verify that the preproc_variant and '
+                            '%s. Please verify that the desc_label and '
                             'space_label labels '
                             'corresponding to the BIDS spec '
                             'were correctly specified.' %
@@ -823,7 +824,7 @@ def first_level_models_from_bids(
         # Get confounds. If not found it will be assumed there are none.
         # If there are confounds, they are assumed to be present for all runs.
         confounds = get_bids_files(derivatives_path, modality_folder='func',
-                                   file_tag='confounds', file_type='tsv',
+                                   file_tag='desc-confounds_regressors', file_type='tsv',
                                    sub_label=sub_label, filters=filters)
 
         if confounds:
