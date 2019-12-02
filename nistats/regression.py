@@ -320,7 +320,7 @@ class RegressionResults(LikelihoodModelResults):
         return (self.wresid ** 2).sum(0)
 
     @setattr_on_read
-    def rsq(self):
+    def r_square(self):
         """Proportion of explained variance.
         If not from an OLS model this is "pseudo"-R2.
         """
