@@ -44,7 +44,7 @@ def test_residuals():
     assert_almost_equal(results.resid.mean(), 0)
 
 
-def test_predicted_rsq():
+def test_predicted_r_square():
     Xshort = X.copy()[:10, :]
     Yshort = Y.copy()[:10]
 
@@ -55,7 +55,7 @@ def test_predicted_rsq():
     results = model.fit(Yshort)
     assert_almost_equal(results.resid.sum(), 0)
     assert_array_almost_equal(results.predicted, Yshort)
-    assert_almost_equal(results.rsq, 1.0)
+    assert_almost_equal(results.r_square, 1.0)
 
 
 def test_OLS_degenerate():

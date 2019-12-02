@@ -543,7 +543,7 @@ def test_first_level_model_residuals():
     assert_array_almost_equal(mean_resids, 0)
 
 
-def test_first_level_model_predictions_rsq():
+def test_first_level_model_predictions_r_square():
     shapes, rk = [(10, 10, 10, 25)], 3
     mask, fmri_data, design_matrices = _generate_fake_fmri_data(shapes, rk)
 
@@ -558,12 +558,11 @@ def test_first_level_model_predictions_rsq():
 
     pred = model.predicted()
     data = fmri_data[0]
-    rsq = model.rsq()
+    r_square = model.r_square()
 
     y_predicted = model.masker_.transform(pred)
     y_measured = model.masker_.transform(data)
 
     assert_almost_equal(np.mean(y_predicted - y_measured), 0)
 
-    rsq = model.masker_.transform(rsq)
-    assert_array_less(0., rsq)
+    assert_array_less(0., r_square)
