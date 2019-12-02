@@ -586,7 +586,25 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         return outputs if output_type == 'all' else output
 
     def get_voxelwise_model_attribute_(self, attribute, timeseries=True):
+        """Transform RegressionResults instances within a dictionary
+        (whose keys represent the autoregressive coefficient under the 'ar1'
+        noise model or only 0.0 under 'ols' noise_model and values are the
+        RegressionResults instances) into input nifti space.
 
+        Parameters
+        ----------
+        attribute : str
+            an attribute of a RegressionResults instance
+        timeseries : bool, optional
+            whether the RegressionResult attribute has a value
+            per timepoint of the input nifti image.
+
+        Returns
+        -------
+        output : list or Nifti1Image
+            a list of Nifti1Images if FirstLevelModel is fit with
+            a list of Nifti1Images, or a single Nifti1Image otherwise.
+        """
         if self.minimize_memory:
             raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
 
@@ -613,15 +631,44 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         else:
             return output
 
+    @setattr_on_read
     def residuals(self):
+        """Transform voxelwise residuals to the same shape
+        as the input Nifti1Image(s)
+
+        Returns
+        -------
+        output : list or Nifti1Image
+            a list of Nifti1Images if FirstLevelModel is fit with
+            a list of Nifti1Images, or a single Nifti1Image otherwise.
+        """
         return self.get_voxelwise_model_attribute_('resid')
 
+    @setattr_on_read
     def predicted(self):
+        """Transform voxelwise predicted values to the same shape
+        as the input Nifti1Image(s)
+
+        Returns
+        -------
+        output : list or Nifti1Image
+            a list of Nifti1Images if FirstLevelModel is fit with
+            a list of Nifti1Images, or a single Nifti1Image otherwise.
+        """
         return self.get_voxelwise_model_attribute_('predicted')
 
-    def rsq(self):
-        return self.get_voxelwise_model_attribute_('rsq', timeseries=False)
+    @setattr_on_read
+    def r_square(self):
+        """Transform voxelwise r-squared values to the same shape
+        as the input Nifti1Image(s)
 
+        Returns
+        -------
+        output : list or Nifti1Image
+            a list of Nifti1Images if FirstLevelModel is fit with
+            a list of Nifti1Images, or a single Nifti1Image otherwise.
+        """
+        return self.get_voxelwise_model_attribute_('r_square', timeseries=False)
 
 
 @replace_parameters({'mask': 'mask_img'}, end_version='next')
