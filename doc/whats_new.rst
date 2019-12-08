@@ -11,8 +11,8 @@ New
 
 * Use :func:`nistats.reporting.make_glm_report` to easily generate HTML reports from fitted first and second level models and contrasts.
 * New dataset fetcher, :func:`nistats.datasets.fetch_language_localizer_demo_dataset` , BIDS 1.2 compatible.
+* addition of all-resolution inference, ie statistically grounded of true positive in given clusters, in :func:`nistats.thresholding.map_threshold`
 * New example showcasing the use of a GLM to get beta maps for decoding experiments (aka beta-regression).
-  See it `here :ref:sphx_glr_auto_examples_05_plot_haxby_block_classification.py`_
 
 Changes
 -------
