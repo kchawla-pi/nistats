@@ -606,7 +606,10 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             a list of Nifti1Images, or a single Nifti1Image otherwise.
         """
         if self.minimize_memory:
-            raise ValueError('minimize_memory should be set to False to make residuals or predictions.')
+            raise ValueError('To access voxelwise attributes like R-squared, residuals, '
+                    'and predictions, the `FirstLevelModel`-object needs to store '
+                    'there attributes. To do so, set `minimize_memory` to `False` '
+                    'when initializing the `FirstLevelModel`-object.')
 
         if self.labels_ is None or self.results_ is None:
             raise ValueError('The model has not been fit yet')
