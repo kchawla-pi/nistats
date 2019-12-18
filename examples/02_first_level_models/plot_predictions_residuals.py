@@ -108,3 +108,14 @@ for i in range(1, 7):
 
 plt.gcf().set_size_inches(12, 7)
 plt.tight_layout()
+
+
+#########################################################################
+# Plot R-squared
+# -------------------------------------
+# Because we stored the residuals, we can plot the R-squared: the proportion
+# of explained variance of the GLM as a whole. Note that the R-squared is markedly
+# lower deep down the brain, where there is more physiological noise and we 
+# are further away from the receive coils.
+plotting.plot_stat_map(fmri_glm.r_square, 
+                       bg_img=mean_img, threshold=.1, display_mode='z', cut_coords=7)
