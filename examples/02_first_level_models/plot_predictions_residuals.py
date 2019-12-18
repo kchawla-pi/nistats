@@ -10,7 +10,7 @@ Also, the predicted time series can be extracted, which are useful to assess the
 
 #########################################################################
 # Import modules
-# -------------------------------------
+# --------------
 from nistats.datasets import fetch_spm_auditory
 from nilearn.plotting import plot_stat_map
 from nilearn import input_data, image
@@ -38,7 +38,7 @@ events = pd.read_table(subject_data['events'])
 
 #########################################################################
 # Fit model
-# -------------------------------------
+# ---------
 # Note that `minimize_memory` is set to `False` so that `FirstLevelModel`
 # stores the residuals.
 # `signal_scaling` is set to False, so we keep the same scaling as the
@@ -55,14 +55,14 @@ fmri_glm = fmri_glm.fit(fmri_img, events)
 
 #########################################################################
 # Calculate and plot contrast
-# -------------------------------------
+# ---------------------------
 z_map = fmri_glm.compute_contrast('active - rest')
 
 plotting.plot_stat_map(z_map, bg_img=mean_img, threshold=3.1)
 
 #########################################################################
 # Extract the largest clusters
-# -------------------------------------
+# ----------------------------
 
 table = get_clusters_table(z_map, stat_threshold=3.1,
         cluster_threshold=20).set_index('Cluster ID', drop=True)
@@ -76,7 +76,7 @@ predicted_timeseries = masker.fit_transform(fmri_glm.predicted)
 
 #########################################################################
 # Plot predicted and actual time series for 6 most significant clusters
-# -------------------------------------
+# ---------------------------------------------------------------------
 for i in range(1, 7):
     plt.subplot(2,  3, i)
     plt.title('Cluster peak {}\n'.format(table.loc[i, ['X', 'Y', 'Z']].tolist()))
@@ -90,13 +90,13 @@ plt.tight_layout()
 
 #########################################################################
 # Get residuals
-# -------------------------------------
+# -------------
 resid = masker.fit_transform(fmri_glm.residuals)
 
 
 #########################################################################
 # Plot distribution of residuals
-# -------------------------------------
+# ------------------------------
 # Note that residuals are not really distributed normally.
 
 
@@ -112,7 +112,7 @@ plt.tight_layout()
 
 #########################################################################
 # Plot R-squared
-# -------------------------------------
+# --------------
 # Because we stored the residuals, we can plot the R-squared: the proportion
 # of explained variance of the GLM as a whole. Note that the R-squared is markedly
 # lower deep down the brain, where there is more physiological noise and we 
