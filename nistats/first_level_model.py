@@ -585,7 +585,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
 
         return outputs if output_type == 'all' else output
 
-    def get_voxelwise_model_attribute_(self, attribute, timeseries=True):
+    def get_voxelwise_model_attribute_(self, attribute, result_as_time_series=True):
         """Transform RegressionResults instances within a dictionary
         (whose keys represent the autoregressive coefficient under the 'ar1'
         noise model or only 0.0 under 'ols' noise_model and values are the
@@ -595,7 +595,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
         ----------
         attribute : str
             an attribute of a RegressionResults instance
-        timeseries : bool, optional
+        result_as_time_series : bool, optional
             whether the RegressionResult attribute has a value
             per timepoint of the input nifti image.
 
@@ -618,7 +618,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
 
         for design_matrix, labels, results in zip(self.design_matrices_, self.labels_, self.results_):        
 
-            if timeseries:
+            if result_as_time_series:
                 voxelwise_attribute = np.zeros((design_matrix.shape[0], len(labels)))
             else:
                 voxelwise_attribute = np.zeros((1, len(labels)))
@@ -671,7 +671,7 @@ class FirstLevelModel(BaseEstimator, TransformerMixin, CacheMixin):
             a list of Nifti1Images if FirstLevelModel is fit with
             a list of Nifti1Images, or a single Nifti1Image otherwise.
         """
-        return self.get_voxelwise_model_attribute_('r_square', timeseries=False)
+        return self.get_voxelwise_model_attribute_('r_square', result_as_time_series=False)
 
 
 @replace_parameters({'mask': 'mask_img'}, end_version='next')
