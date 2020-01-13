@@ -257,10 +257,6 @@ trim_doctests_flags = True
 
 _python_doc_base = 'http://docs.python.org/2.7'
 
-from nistats.reporting import _ReportScraper
-report_scraper = _ReportScraper()
-scrapers = ('matplotlib', report_scraper)
-
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
@@ -286,7 +282,6 @@ sphinx_gallery_conf = {
     'reference_url'     : {
         'nistats': None,
         },
-    'image_scrapers': scrapers,
     }
 
 # Get rid of spurious warnings due to some interaction between
@@ -310,5 +305,4 @@ def touch_example_backreferences(app, what, name, obj, options, lines):
 def setup(app):
     app.add_javascript('copybutton.js')
     app.connect('autodoc-process-docstring', touch_example_backreferences)
-    report_scraper.app = app
 
