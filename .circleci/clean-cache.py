@@ -22,5 +22,5 @@ def update_cache_timestamp(timestamp_filename):
 
 if __name__ == '__main__':
     update_cache_timestamp('manual-cache-timestamp')
-    update_cache_timestamp('auto-cache-timestamp')
+    # update_cache_timestamp('auto-cache-timestamp')
     # update_cache_timestamp('package-cache-timestamp')
