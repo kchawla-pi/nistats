@@ -8,14 +8,14 @@ version: 2
 jobs:
   quick-build:
     docker:
-      - image: circleci/python:3.6
+      - image: circleci/python:3.7
     environment:
       DISTRIB: "conda"
-      PYTHON_VERSION: "3.6"
+      PYTHON_VERSION: "3.7"
       NUMPY_VERSION: "*"
       SCIPY_VERSION: "*"
       SCIKIT_LEARN_VERSION: "*"
-      MATPLOTLIB_VERSION: "3.0.3"
+      MATPLOTLIB_VERSION: "*"
 
     steps:
       - checkout
