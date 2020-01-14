@@ -118,7 +118,7 @@ report = make_glm_report(glm,
                          contrasts=conditions,
                          bg_img=mean_img_,
                          )
-
+report
 #############################################################################
 # In a jupyter notebook, the report will be automatically inserted, as above.
 # We have several other ways to access the report:
