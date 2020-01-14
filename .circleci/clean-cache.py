@@ -5,6 +5,7 @@ Flushes the cached docs for next CircleCI build.
 import os
 from datetime import datetime as dt
 
+
 def update_cache_timestamp(timestamp_filename):
     """ Updates the contents of the manual-cache-timestamp file
     with current timestamp.
