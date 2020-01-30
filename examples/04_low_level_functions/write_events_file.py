@@ -63,3 +63,7 @@ events = pd.DataFrame({'trial_type': trial_type,
 tsvfile = 'localizer_events.tsv'
 events.to_csv(tsvfile, sep='\t', index=False)
 print("Created the events file in %s " % tsvfile)
+
+#########################################################################
+# some junk 2
+# -----------

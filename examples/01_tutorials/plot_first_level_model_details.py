@@ -484,3 +484,8 @@ plt.show()
 # that Nistats defaults ('cosine' drift, cutoff=128s, 'glover' hrf,
 # ar(1) model) are actually reasonable.  Note that these conclusions
 # are specific to this dataset and may vary with other ones.
+
+
+#########################################################################
+# some junk 1
+# -----------
