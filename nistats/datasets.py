@@ -672,7 +672,7 @@ def fetch_spm_multimodal_fmri(data_dir=None, data_name='spm_multimodal_fmri',
 
 
 def fetch_fiac_first_level(data_dir=None, verbose=1):
-    """ Download a first-level fiac fMRI dataset (2 sessions)
+    """ Download a JUNK DOCSTRING first-level fiac fMRI dataset (2 sessions)
 
     Parameters
     ----------
