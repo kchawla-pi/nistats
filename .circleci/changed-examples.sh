@@ -1,5 +1,5 @@
 changed_examples=`git diff --name-only master | grep -e examples/ | grep -e /**/*.py`
-changed_sources=` git diff --name-only master | grep -v examples/ | grep -e /**/*.py`
+changed_sources=`git diff --name-only master | grep -v examples/ | grep -e /**/*.py`
 
 for changed_example_ in $changed_examples
 do
