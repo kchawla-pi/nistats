@@ -74,7 +74,9 @@ jobs:
             source activate testenv
             pip install nibabel sphinx-gallery nilearn nose-timer
             pip install -e .
-            set -o pipefail && cd doc && . ../.circleci/changed_examples.sh 2>&1 | tee log.txt
+            set -o pipefail
+            cd doc
+            . ../.circleci/changed_examples.sh 2>&1 | tee log.txt
           no_output_timeout: 5h
       - save_cache:
           key: v1-packages+datasets-{{ checksum "week_num" }}
