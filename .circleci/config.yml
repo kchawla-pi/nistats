@@ -76,7 +76,7 @@ jobs:
             pip install -e .
             set -o pipefail
             cd doc
-            make html-diff 2>&1 | tee log.txt
+            . ../.circleci/changed-examples.sh 2>&1 | tee log.txt
           no_output_timeout: 5h
       - save_cache:
           key: v1-packages+datasets-{{ checksum "week_num" }}
