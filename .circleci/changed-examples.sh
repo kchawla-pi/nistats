@@ -1,0 +1,1 @@
+git diff --name-only master | grep -e examples/ | grep -e /**.py
