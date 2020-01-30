@@ -76,6 +76,7 @@ jobs:
             pip install -e .
             set -o pipefail
             cd doc
+            chmod 777 ../.circleci/changed-examples.sh
             . ../.circleci/changed-examples.sh 2>&1 | tee log.txt
           no_output_timeout: 5h
       - save_cache:
