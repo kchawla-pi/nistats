@@ -26,23 +26,49 @@ reporting               --- Utilities for creating reports & plotting data
 utils                   --- Miscellaneous utilities
 """
 
-import sys
 import warnings
+from distutils.version import LooseVersion
+
+import nilearn
 
 from .version import _check_module_dependencies, __version__
 
 
-def _library_deprecation_warning():
-    lib_dep_warning = (
-        'Starting with Nilearn 0.7.0, all Nistats functionality '
-        'has been incorporated into Nilearn. '
-        'Nistats package will no longer be updated or maintained.')
-    warnings.filterwarnings('once', message=lib_dep_warning)
-    warnings.warn(message=lib_dep_warning,
+def _nistats_deprecation_warning():
+    warning_msg = (
+        '\n\n'
+        ' | Starting with Nilearn 0.7.0, all Nistats functionality '
+        "has been incorporated into Nilearn's stats & reporting modules.\n"
+        ' | Nistats package will no longer be updated or maintained.\n')
+    warnings.filterwarnings('once', message=warning_msg)
+    warnings.warn(message=warning_msg,
                   category=FutureWarning,
-                  stacklevel=3)
+                  stacklevel=4)
+
+
+def _nistats_redundant_warning():
+    warning_msg = (
+        '\n\n'
+        ' | Using Nistats with Nilearn versions >= 0.7.0 '
+        'is redundant and potentially conflicting.\n'
+        ' | Nilearn versions 0.7.0 and up offer all the functionality of Nistats '
+        'as well the latest features and fixes.\n'
+        ' | We strongly recommend uninstalling Nistats and using '
+        "Nilearn's stats & reporting modules.\n")
+    warnings.filterwarnings('once', message=warning_msg)
+    warnings.warn(message=warning_msg,
+                  stacklevel=4)
+
+
+def _nistats_retirement_warning():
+    nilearn_version = LooseVersion(nilearn.__version__)
+    if nilearn_version.version[1] > 6:
+        _nistats_redundant_warning()
+    else:
+        _nistats_deprecation_warning()
+
 
 _check_module_dependencies()
-_library_deprecation_warning()
+_nistats_retirement_warning()
 
 __all__ = ['__version__', 'datasets', 'design_matrix']

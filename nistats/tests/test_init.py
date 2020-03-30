@@ -1,18 +1,29 @@
 import sys
 import warnings
 
-
 # import time warnings don't interfere with warning's tests
 import pytest
 
 with warnings.catch_warnings(record=True):
-    from nistats import _library_deprecation_warning
+    from nistats import (_nistats_deprecation_warning,
+                         _nistats_redundant_warning,
+                         )
 
 
-def test_python_deprecation_warnings():
-    with pytest.warns(FutureWarning,
-                      match='Starting with Nilearn 0.7.0, '):
-        _library_deprecation_warning()
+def test_nistats_deprecation_warnings():
+    with pytest.warns(
+        FutureWarning,
+        match='\n\n | Starting with Nilearn 0.7.0, all Nistats functionality ',
+        ):
+        _nistats_deprecation_warning()
+
+
+def test_nistats_deprecation_warnings():
+    with pytest.warns(
+        FutureWarning,
+        match='\n\n | Using Nistats with Nilearn versions >= 0.7.0 ',
+        ):
+        _nistats_redundant_warning()
 
 
 def test_warnings_filter_scope():
