@@ -70,5 +70,5 @@ jobs:
 
   - script: |
       set -e
-      pip install dist/nilearn-*-py3-none-any.whl 2>&1 | grep "^ERROR"
+      pip install dist/nistats-*-py3-none-any.whl 2>&1 | grep "^ERROR"
     displayName: 'Attempt to install Nistats from wheel When Nilearn >= 0.7.x'
