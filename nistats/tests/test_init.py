@@ -10,7 +10,7 @@ with warnings.catch_warnings(record=True):
                          )
 
 
-def test_nistats_deprecation_warnings():
+def test_nistats_deprecation_warning():
     with pytest.warns(
         FutureWarning,
         match='\n\n | Starting with Nilearn 0.7.0, all Nistats functionality ',
@@ -18,9 +18,9 @@ def test_nistats_deprecation_warnings():
         _nistats_deprecation_warning()
 
 
-def test_nistats_deprecation_warnings():
+def test_nistats_redundant_warning():
     with pytest.warns(
-        FutureWarning,
+        UserWarning,
         match='\n\n | Using Nistats with Nilearn versions >= 0.7.0 ',
         ):
         _nistats_redundant_warning()
