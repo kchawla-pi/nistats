@@ -41,12 +41,12 @@ jobs:
     condition: succeededOrFailed()
 
 
-- job: 'test_expeceted_to_fail_installation_on_nilearn_07x'
+- job: 'test_retirement_warning_with_nilearn_07x'
   pool:
     vmImage: 'ubuntu-18.04'
   strategy:
     matrix:
-      Python27:
+      Python36:
         python.version: '3.6'
     maxParallel: 4
 
@@ -65,10 +65,11 @@ jobs:
 
   - script: |
       set -e
-      python setup.py sdist bdist_wheel
+      python setup.py sdist bdist_wheel --universal
     displayName: 'Build Nistats'
 
   - script: |
       set -e
-      pip install dist/nistats-*-py3-none-any.whl 2>&1 | grep "^ERROR"
+      pip install dist/nistats-*-py3-none-any.whl
+      python -c "import nistats; from nistats.first_level_model import FirstLevelModel" |& grep -c "Using Nistats with Nilearn versions >= 0.7.0"
     displayName: 'Attempt to install Nistats from wheel When Nilearn >= 0.7.x'
