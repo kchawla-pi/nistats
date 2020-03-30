@@ -33,8 +33,11 @@ from .version import _check_module_dependencies, __version__
 
 
 def _library_deprecation_warning():
-    lib_dep_warning = ('Starting with Nilearn 0.7.0, all Nistats functionality has been incorporated into Nilearn.'
-                       'Nistats package will no longer be updated or maintained.')
+    lib_dep_warning = (
+        'Starting with Nilearn 0.7.0, all Nistats functionality '
+        'has been incorporated into Nilearn. '
+        'Nistats package will no longer be updated or maintained.')
+    warnings.filterwarnings('once', message=lib_dep_warning)
     warnings.warn(message=lib_dep_warning,
                   category=FutureWarning,
                   stacklevel=3)
