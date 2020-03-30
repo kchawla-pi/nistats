@@ -21,7 +21,7 @@ nistats version, required package versions, and utilities for checking
 # Dev branch marker is: 'X.Y.dev' or 'X.Y.devN' where N is an integer.
 # 'X.Y.dev0' is the canonical version of 'X.Y.dev'
 #
-__version__ = '0.0.1rc'
+__version__ = '0.0.1rc0'
 
 _NISTATS_INSTALL_MSG = 'See %s for installation information.' % (
     'http://nistats.github.io/introduction.html#installation')
@@ -45,7 +45,6 @@ REQUIRED_MODULE_METADATA = (
         'install_info': _NISTATS_INSTALL_MSG}),
     ('nilearn', {
         'min_version': '0.4',
-        'max_version': '0.6.3',
         'install_info': _NISTATS_INSTALL_MSG}),
     ('pandas', {
         'min_version': '0.18.0',
