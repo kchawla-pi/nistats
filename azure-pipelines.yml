@@ -73,5 +73,8 @@ jobs:
       pip install dist/nistats-0.0.1rc0-*-none-any.whl
       warn_count=$(python -c "import nistats; from nistats.first_level_model import FirstLevelModel" |& grep -c "Using Nistats with Nilearn versions >= 0.7.0")
       echo $warn_count
-      $warn_count | grep 1
+      if [ $warn_count -ne 1 ]
+        then
+          exit 1
+      fi
     displayName: 'Install Nistats & check for correct warnings, raised only once'
