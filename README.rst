@@ -1,5 +1,23 @@
 .. -*- mode: rst -*-
 
+
+..warning::
+
+	**Nistats is being retired.**
+
+	This repository is now archived.
+
+	It will not receive any further development or bug fixes.
+	Its functionality has now been incorporated into Nilearn's *stats* and *reporting* modules.
+
+	It will be available in Nilearn 0.7.0 onwards.
+	Please file issues and pull requests in Nilearn, from now on.
+
+	Credit for the various Pull Requests that  have been merged into Nistats are now visible in Nilearn.
+	Open issues have been moved into Nilearn.
+	Open PRs will need to be redone.
+
+
 Nistats
 =======
 
