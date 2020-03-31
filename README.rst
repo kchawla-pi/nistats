@@ -1,7 +1,7 @@
 .. -*- mode: rst -*-
 
 
-..warning::
+.. warning::
 
 	**Nistats is being retired.**
 
