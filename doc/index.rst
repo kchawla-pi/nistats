@@ -6,7 +6,7 @@
 .. warning::
 
 	| **Nistats is RETIRED and will no longer receive fixes and updates!**
-	| Its latest release, 0.0.1rc will eb the last release, available via PyPI.
+	| Its latest release, 0.0.1rc will be the last release, available via PyPI.
 	| Its functionality will now be available in the release of `Nilearn`_ 0.7.0 in late 2020.
 
 .. _Nilearn: http://nilearn.github.io/
