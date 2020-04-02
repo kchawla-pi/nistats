@@ -9,14 +9,13 @@
 	It will not receive any further development or bug fixes.
 	Its functionality has now been incorporated into Nilearn's *stats*, *datasets*, and *reporting* modules.
 
-	It will be available in `Nilearn`_ 0.7.0 onwards, set to release in late 2020.
+	It will be available in `Nilearn <http://nilearn.github.io>`_ 0.7.0 onwards, set to release in late 2020.
 	Please file issues and pull requests in Nilearn, from now on.
 
 	Credit for the various Pull Requests that  have been merged into Nistats are now visible in Nilearn.
 	Open issues have been moved into Nilearn.
 	Open PRs will need to be redone.
 
-.. _Nilearn: https://nilearn.github.io
 
 Nistats
 =======
